@@ -3,6 +3,9 @@ A Girder plugin proof-of-concept for a MultNet API / web application
 
 ## Installation
 
+### Set up `multinet-server-poc`
+Follow the instructions at [multinet-server-poc](https://github.com/multinet-app/multinet-server-poc).
+
 ### Set Up Girder
 1. Clone this repository: `git clone
 https://github.com/multinet-app/multinet-girder; cd multinet-girder`

@@ -1,35 +1,39 @@
-from girder import plugin
+from girder import plugin, logprint
 from girder.api import access
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource, RestException, iterBody
 from girder.api.describe import Description, autoDescribeRoute
 
 import requests
-
+import json
+import logging
+from graphql import graphql
+from schema import schema
 
 class MultiNet(Resource):
     def __init__(self, port):
         super(MultiNet, self).__init__()
         self.resourceName = 'multinet'
         self.arango_port = port
-
-        self.route('GET', ('vertices',), self.get_vertices)
+        self.route('POST', ('graphql',), self.graphql)
 
     @access.public
     @autoDescribeRoute(
         Description('Foobar')
-        .param('db', 'The database', dataType='string', required=True)
-        .param('collection', 'The collection', dataType='string', required=True)
     )
-    def get_vertices(self, params):
-        db = params['db']
-        collection = params['collection']
+    def graphql(self, params):
+        logprint('Executing GraphQL Request', level=logging.INFO)
+        query = ''.join([buf for buf in iterBody()])
+        logprint('request: %s' % query, level=logging.DEBUG)
 
-        r = requests.get('http://localhost:8080/vertices/{}/graph/{}'.format(db, collection))
-        if r.status_code == requests.codes.ok:
-            return r.json()
-
-        raise RestException(r.reason, r.status_code)
-
+        result = graphql(schema, query)
+        if result:
+            errors= [error.message for error in result.errors] if result.errors else []
+            logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
+            for error in errors[:10]:
+                logprint(error, level=logging.WARNING)
+        else:
+            errors = []
+        return dict(data=result.data, errors=errors)
 
 class GirderPlugin(plugin.GirderPlugin):
     DISPLAY_NAME = 'MultiNet'

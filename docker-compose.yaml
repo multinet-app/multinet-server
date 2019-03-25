@@ -1,0 +1,18 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo:4.0.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - "${MONGO_DATA:-/var/mongodb}:/data/db"
+  arangodb:
+    image: arangodb/arangodb:3.4.3
+    container_name: arangodb
+    ports:
+      - "${ARANGO_PORT:-8529}:8529"
+    environment:
+      - ARANGO_ROOT_PASSWORD=${MULTINET_ROOT_PASSWORD:-openSesame}
+    volumes:
+      - "${ARANGO_DATA:-/var/arangodb}:/var/lib/arangodb3"
+      - "${ARANGO_DATA:-/var/arangodb}-apps:/var/lib/arangodb-apps"

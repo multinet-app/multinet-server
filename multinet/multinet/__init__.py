@@ -1,6 +1,6 @@
 from girder import plugin, logprint
 from girder.api import access
-from girder.api.rest import Resource, RestException, iterBody
+from girder.api.rest import Resource, RestException, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 
 import requests
@@ -22,7 +22,7 @@ class MultiNet(Resource):
     )
     def graphql(self, params):
         logprint('Executing GraphQL Request', level=logging.INFO)
-        query = ''.join([buf for buf in iterBody()])
+        query = getBodyJson()['query']
         logprint('request: %s' % query, level=logging.DEBUG)
 
         result = graphql(schema, query)

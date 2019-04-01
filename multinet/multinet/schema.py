@@ -9,6 +9,11 @@ schema = build_ast_schema(parse("""
         edges(graph: String!, type: String="", id: String=""): [Edge!]!
     }
 
+    type Mutation {
+        workspace(name: String!): String!
+        graph(workspace: String!, name: String!, nodeTables: [String!]!, edgeTables: [String!]!): String!
+    }
+
     type Attribute {
         key: String!
         value: String!
@@ -30,11 +35,11 @@ schema = build_ast_schema(parse("""
 
     schema {
       query: Query
+      mutation: Mutation
     }
 """))
 
 fields = schema.get_type('Query').fields
-
 fields['nodes'].resolver = resolvers.allNodes
 fields['edges'].resolver = resolvers.allEdges
 
@@ -53,3 +58,7 @@ fields['attributes'].resolver = resolvers.attributes
 fields = schema.get_type('Attribute').fields
 fields['key'].resolver = lambda attr, *_: attr[0]
 fields['value'].resolver = lambda attr, *_: attr[1]
+
+fields = schema.get_type('Mutation').fields
+fields['workspace'].resolver = resolvers.create_workspace
+fields['graph'].resolver = resolvers.create_graph

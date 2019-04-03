@@ -42,7 +42,10 @@ class MultiNet(Resource):
 
     @access.public
     @autoDescribeRoute(
-        Description('Stores File Information in Databse')
+        Description('Store CSV data in database')
+        .param('workspace', 'Target workspace', required=True)
+        .param('table', 'Target table', required=True)
+        .param('data', 'CSV data', paramType='body', required=True)
     )
     def bulk(self, params, workspace=None, table=None):
         logprint('Bulk Loading', level=logging.INFO)

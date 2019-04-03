@@ -23,7 +23,8 @@ class MultiNet(Resource):
 
     @access.public
     @autoDescribeRoute(
-        Description('Receives GraphQL queries')
+        Description('Receive GraphQL queries')
+        .param('query', 'GraphQL query text', paramType='body', required=True)
     )
     def graphql(self, params):
         logprint('Executing GraphQL Request', level=logging.INFO)

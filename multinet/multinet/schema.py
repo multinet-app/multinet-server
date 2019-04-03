@@ -1,7 +1,7 @@
 from graphql import build_ast_schema
 from graphql.language.parser import parse
 
-import resolvers
+from . import resolvers
 
 schema = build_ast_schema(parse("""
     type Query {

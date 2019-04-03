@@ -10,8 +10,8 @@ import logging
 from graphql import graphql
 import cherrypy
 
-from schema import schema
-import db
+from .schema import schema
+from . import db
 
 class MultiNet(Resource):
     def __init__(self, port):

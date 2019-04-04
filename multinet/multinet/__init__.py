@@ -4,10 +4,14 @@ from girder.api.rest import Resource, RestException, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 
 import requests
+import csv
 import json
 import logging
 from graphql import graphql
-from schema import schema
+import cherrypy
+
+from .schema import schema
+from . import db
 
 class MultiNet(Resource):
     def __init__(self, port):
@@ -15,10 +19,12 @@ class MultiNet(Resource):
         self.resourceName = 'multinet'
         self.arango_port = port
         self.route('POST', ('graphql',), self.graphql)
+        self.route('POST', ('bulk', ':workspace', ':table'), self.bulk)
 
     @access.public
     @autoDescribeRoute(
-        Description('Foobar')
+        Description('Receive GraphQL queries')
+        .param('query', 'GraphQL query text', paramType='body', required=True)
     )
     def graphql(self, params):
         logprint('Executing GraphQL Request', level=logging.INFO)
@@ -34,6 +40,28 @@ class MultiNet(Resource):
         else:
             errors = []
         return dict(data=result.data, errors=errors)
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Store CSV data in database')
+        .param('workspace', 'Target workspace', required=True)
+        .param('table', 'Target table', required=True)
+        .param('data', 'CSV data', paramType='body', required=True)
+    )
+    def bulk(self, params, workspace=None, table=None):
+        logprint('Bulk Loading', level=logging.INFO)
+        rows = csv.DictReader(cherrypy.request.body)
+        workspace = db.db(workspace)
+        if workspace.has_collection(table):
+            table = workspace.collection(table)
+        else:
+            table = workspace.create_collection(table)
+
+        count = 0
+        for row in rows:
+            count = count+1
+            table.insert(row)
+        return dict(count=count)
 
 class GirderPlugin(plugin.GirderPlugin):
     DISPLAY_NAME = 'MultiNet'

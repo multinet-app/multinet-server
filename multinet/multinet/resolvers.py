@@ -2,7 +2,7 @@ import os
 import logging
 from girder import plugin, logprint
 
-import db
+from . import db
 
 def allNodes(root, info, graph, type, id):
   dbgraph = db.graph(graph)

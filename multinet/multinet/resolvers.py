@@ -55,3 +55,11 @@ def nodeIncoming(node, info):
 
 def attributes(document, info, source, keys):
     return [(key, value) for key, value in document[1].iteritems() if key in keys]
+
+def create_workspace(root, info, name):
+    db.create_workspace(name)
+    return name
+
+def create_graph(root, info, workspace, name, nodeTables, edgeTables):
+    db.create_graph(workspace, name, nodeTables, edgeTables)
+    return name

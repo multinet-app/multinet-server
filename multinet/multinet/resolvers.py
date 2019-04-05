@@ -4,7 +4,7 @@ from girder import plugin, logprint
 
 from . import db
 
-def allNodes(root, info, graph, type, id):
+def query_nodes(root, info, graph, type, id):
   dbgraph = db.graph(graph)
   collections = []
   if type:
@@ -19,7 +19,7 @@ def allNodes(root, info, graph, type, id):
       vertices = [(dbgraph, vert) for coll in collections for vert in coll.all()]
   return vertices
 
-def allEdges(root, info, graph, type, id):
+def query_edges(root, info, graph, type, id):
   dbgraph = db.graph(graph)
   collections = []
   if type:
@@ -34,6 +34,39 @@ def allEdges(root, info, graph, type, id):
       edges = [(dbgraph, edge) for coll in collections for edge in coll.all()]
 
   return edges
+
+def query_workspaces(root, info, name=""):
+    return db.get_workspaces(name)
+
+def query_graphs(root, info, workspace):
+    pass
+
+def query_tables(root, info, workspace):
+    pass
+
+def workspace_name(workspace, info):
+    return workspace
+
+def workspace_tables(workspace, info):
+    return db.workspace_tables(workspace)
+
+def workspace_graphs(workspace, info):
+    return db.workspace_graphs(workspace)
+
+def table_name(table, info):
+    return table
+
+def table_fields(table, info):
+    return db.table_fields(table)
+
+def graph_name(graph, info):
+    return graph
+
+def graph_edgeTables(graph, info):
+    return db.graph_edge_tables(graph)
+
+def graph_nodeTables(graph, info):
+    return db.graph_node_tables(graph)
 
 def edgeSource(edge, info):
     return (edge[0], edge[0].vertex(edge[1]['_from']))

@@ -39,6 +39,57 @@ def create_workspace(name, arango=None):
         sys.create_database(name)
 
 @with_client
+def get_workspaces(name, arango=None):
+    sys = db('_system', arango=arango)
+    if name and sys.has_database(name):
+        return [name]
+
+    workspaces = sys.databases()
+    return [workspace for workspace in workspaces if workspace != '_system']
+
+@with_client
+def workspace_tables(workspace, arango=None):
+    space = db(workspace, arango=arango)
+    return ['%s/%s' % (workspace, table['name']) for table in space.collections() if not table['name'].startswith('_')]
+
+@with_client
+def workspace_graphs(workspace, arango=None):
+    space = db(workspace, arango=arango)
+    return ['%s/%s' % (workspace, graph['name']) for graph in space.graphs()]
+
+@with_client
+def table_fields(table, arango=None):
+    db_name, coll_name = table.split('/')
+    workspace = db(db_name, arango=arango)
+    if workspace.has_collection(coll_name):
+        sample = workspace.collection(coll_name).random()
+        logprint(sample)
+        return sample.keys()
+    else:
+        return []
+
+@with_client
+def graph_edge_tables(graph, arango=None):
+    db_name, graph_name = graph.split('/')
+    workspace = db(db_name, arango=arango)
+    if workspace.has_graph(graph_name):
+        graph = workspace.graph(graph_name)
+        return [edges['edge_collection'] for edges in graph.edge_definitions()]
+    else:
+        return []
+
+@with_client
+def graph_node_tables(graph, arango=None):
+    db_name, graph_name = graph.split('/')
+    workspace = db(db_name, arango=arango)
+    if workspace.has_graph(graph_name):
+        graph = workspace.graph(graph_name)
+        return [nodes for nodes in graph.vertex_collections()]
+    else:
+        return []
+
+
+@with_client
 def create_graph(workspace, name, node_tables, edge_tables, arango=None):
     workspace = db(workspace, arango=arango)
     if workspace.has_graph(name):

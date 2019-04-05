@@ -11,8 +11,8 @@ def with_client(fun):
         return fun(*args, **kwargs)
     return wrapper
 
-def db_name(fully_qualified_name):
-    return fully_qualified_name.split('/')[0]
+def name_parts(fully_qualified_name):
+    return fully_qualified_name.split('/')
 
 @with_client
 def db(name, arango=None):
@@ -23,7 +23,7 @@ def db(name, arango=None):
 
 @with_client
 def graph(name, create=False, arango=None):
-    db_name, graph_name = name.split('/')
+    db_name, graph_name = name_parts(name)
     graphdb = db(db_name, arango=arango)
     if graphdb.has_graph(graph_name):
         return graphdb.graph(graph_name)
@@ -70,7 +70,7 @@ def table_fields(table, arango=None):
 
 @with_client
 def graph_edge_tables(graph, arango=None):
-    db_name, graph_name = graph.split('/')
+    db_name, graph_name = name_parts(graph)
     workspace = db(db_name, arango=arango)
     if workspace.has_graph(graph_name):
         graph = workspace.graph(graph_name)
@@ -80,7 +80,7 @@ def graph_edge_tables(graph, arango=None):
 
 @with_client
 def graph_node_tables(graph, arango=None):
-    db_name, graph_name = graph.split('/')
+    db_name, graph_name = name_parts(graph)
     workspace = db(db_name, arango=arango)
     if workspace.has_graph(graph_name):
         graph = workspace.graph(graph_name)
@@ -88,6 +88,43 @@ def graph_node_tables(graph, arango=None):
     else:
         return []
 
+@with_client
+def graph_nodes(graph, offset=None, limit=None, arango=None):
+    db_name, graph_name = name_parts(graph)
+    workspace = db(db_name, arango=arango)
+    graph = workspace.graph(graph_name)
+    node_tables = [workspace.collection(nodes) for nodes in graph.vertex_collections()]
+    if len(node_tables) == 0:
+        return [], 0
+
+    nodes = []
+    total = 0
+    for table in node_tables:
+        count = table.count()
+        if (offset <= total + count) and (len(nodes) < limit):
+            nodes += [node for node in table.all(skip=(offset-total), limit=(limit-len(nodes)))]
+        total += count
+
+    return nodes, total
+
+@with_client
+def graph_edges(graph, arango=None):
+    db_name, graph_name = name_parts(graph)
+    workspace = db(db_name, arango=arango)
+    graph = workspace.graph(graph_name)
+    edge_tables = [workspace.collection(edges['edge_collection']) for edges in graph.edge_definitions()]
+    if len(edge_tables) == 0:
+        return [], 0
+
+    edges = []
+    total = 0
+    for table in edge_tables:
+        count = table.count()
+        if (offset <= total + count) and (len(edges) < limit):
+            edges += [node for node in table.all(skip=(offset-total), limit=(limit-len(edges)))]
+        total += count
+
+    return edges, total
 
 @with_client
 def create_graph(workspace, name, node_tables, edge_tables, arango=None):

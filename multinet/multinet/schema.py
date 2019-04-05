@@ -5,17 +5,37 @@ from . import resolvers
 
 schema = build_ast_schema(parse("""
     type Query {
-        nodes(graph: String!, type: String="", id: String=""): [Node!]!
-        edges(graph: String!, type: String="", id: String=""): [Edge!]!
-        workspaces(name: String=""): [Workspace!]!
-        graphs(workspace: String!): [Graph!]!
-        tables(workspace: String!): [Table!]!
+        nodes (graph: String!, type: String="", id: String=""): [Node!]!
+        edges (graph: String!, type: String="", id: String=""): [Edge!]!
+        workspaces (name: String=""): [Workspace!]!
+        graphs (workspace: String!, name: String=""): [Graph!]!
+        tables (workspace: String!, name: String=""): [Table!]!
     }
 
     type Mutation {
-        workspace(name: String!): String!
-        graph(workspace: String!, name: String!, nodeTables: [String!]!, edgeTables: [String!]!): Graph!
-        table(workspace: String!, name: String!, primaryKey: String="_id", fields: [String!]!): Table!
+        workspace (name: String!): String!
+        graph (workspace: String!, name: String!, nodeTables: [String!]!, edgeTables: [String!]!): Graph!
+        table (workspace: String!, name: String!, primaryKey: String="_id", fields: [String!]!): Table!
+    }
+
+    interface Cursor {
+        limit: Int!
+        offset: Int!
+        total: Int!
+    }
+
+    type NodeCursor implements Cursor {
+        limit: Int!
+        offset: Int!
+        total: Int!
+        nodes: [Node!]!
+    }
+
+    type EdgeCursor implements Cursor {
+        limit: Int!
+        offset: Int!
+        total: Int!
+        edges: [Edge!]!
     }
 
     type Attribute {
@@ -33,6 +53,8 @@ schema = build_ast_schema(parse("""
         name: String!
         edgeTables: [Table!]!
         nodeTables: [Table!]!
+        nodes (offset: Int!, limit: Int!): NodeCursor!
+        edges (offset: Int!, limit: Int!): EdgeCursor!
     }
 
     type Workspace {
@@ -87,6 +109,8 @@ fields = schema.get_type('Graph').fields
 fields['name'].resolver = resolvers.graph_name
 fields['edgeTables'].resolver = resolvers.graph_edgeTables
 fields['nodeTables'].resolver = resolvers.graph_nodeTables
+fields['nodes'].resolver = resolvers.graph_nodes
+fields['edges'].resolver = resolvers.graph_edges
 
 fields = schema.get_type('Node').fields
 fields['key'].resolver = lambda node, *_: node[1]['_key']
@@ -103,6 +127,18 @@ fields['attributes'].resolver = resolvers.attributes
 fields = schema.get_type('Attribute').fields
 fields['key'].resolver = lambda attr, *_: attr[0]
 fields['value'].resolver = lambda attr, *_: attr[1]
+
+fields = schema.get_type('NodeCursor').fields
+fields['offset'].resolver = lambda cursor, *_: cursor['offset']
+fields['limit'].resolver = lambda cursor, *_: cursor['limit']
+fields['total'].resolver = lambda cursor, *_: cursor['total']
+fields['nodes'].resolver = lambda cursor, *_: cursor['nodes']
+
+fields = schema.get_type('EdgeCursor').fields
+fields['offset'].resolver = lambda cursor, *_: cursor['offset']
+fields['limit'].resolver = lambda cursor, *_: cursor['limit']
+fields['total'].resolver = lambda cursor, *_: cursor['total']
+fields['edges'].resolver = lambda cursor, *_: cursor['edges']
 
 fields = schema.get_type('Mutation').fields
 fields['workspace'].resolver = resolvers.create_workspace

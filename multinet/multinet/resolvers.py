@@ -38,11 +38,11 @@ def query_edges(root, info, graph, type, id):
 def query_workspaces(root, info, name=""):
     return db.get_workspaces(name)
 
-def query_graphs(root, info, workspace):
-    pass
+def query_graphs(root, info, workspace, name=""):
+    return [graph for graph in db.workspace_graphs(workspace) if not name or graph.split('/')[1] == name]
 
-def query_tables(root, info, workspace):
-    pass
+def query_tables(root, info, workspace, name=""):
+    return [table for table in db.workspace_tables(workspace) if not name or table.split('/')[1] == name]
 
 def workspace_name(workspace, info):
     return workspace
@@ -67,6 +67,24 @@ def graph_edgeTables(graph, info):
 
 def graph_nodeTables(graph, info):
     return db.graph_node_tables(graph)
+
+def graph_nodes(graph, info, offset, limit):
+    nodes, total = [node for node in db.graph_nodes(graph, offset=offset, limit=limit)]
+    return dict(
+        offset=offset,
+        limit=limit,
+        total=total,
+        nodes=[(graph, node) for node in nodes]
+    )
+
+def graph_edges(graph, info, offset, count):
+    edges, total = [edge for edge in db.graph_edges(graph, offset=offset, limit=limit)]
+    return dict(
+        offset=offset,
+        limit=limit,
+        total=total,
+        edges=[(graph, edge) for edge in edges]
+    )
 
 def edgeSource(edge, info):
     return (edge[0], edge[0].vertex(edge[1]['_from']))

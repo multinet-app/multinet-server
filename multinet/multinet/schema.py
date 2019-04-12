@@ -5,11 +5,13 @@ from . import resolvers
 
 schema = build_ast_schema(parse("""
     type Query {
-        nodes (graph: String!, type: String="", id: String=""): [Node!]!
-        edges (graph: String!, type: String="", id: String=""): [Edge!]!
-        workspaces (name: String=""): [Workspace!]!
-        graphs (workspace: String!, name: String=""): [Graph!]!
-        tables (workspace: String!, name: String=""): [Table!]!
+        nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String, limit: Int, offset: Int): NodeCursor!
+        edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String, limit: Int, offset: Int): EdgeCursor!
+        rows (workspace: String!, table: String!, key: String, search: String, limit: Int, offset: Int): RowCursor!
+
+        workspaces (name: String): [Workspace!]!
+        graphs (workspace: String!, name: String): [Graph!]!
+        tables (workspace: String!, name: String): [Table!]!
     }
 
     type Mutation {
@@ -38,23 +40,49 @@ schema = build_ast_schema(parse("""
         edges: [Edge!]!
     }
 
+    type RowCursor implements Cursor {
+        limit: Int!
+        offset: Int!
+        total: Int!
+        row: [Row!]!
+    }
+
     type Attribute {
+        # the key is the table name followed by the column name delimited by a slash, eg table/col
         key: String!
+        # json representation of the value
         value: String!
     }
 
     type Table {
         name: String!
         primaryKey: String!
+        # a list of key strings as they would appear in Attribute
         fields: [String!]!
+        rows (limit: Int, offset: Int): RowCursor!
+    }
+
+    type Row {
+        key: String!
+        columns: [Attribute!]!
     }
 
     type Graph {
         name: String!
-        edgeTables: [Table!]!
-        nodeTables: [Table!]!
+        nodeTypes: [EntityType!]!
+        edgeTypes: [EntityType!]!
         nodes (offset: Int!, limit: Int!): NodeCursor!
         edges (offset: Int!, limit: Int!): EdgeCursor!
+    }
+
+    type EntityType {
+        name: String!
+        properties: [Property!]!
+    }
+
+    type Property {
+        label: String!
+        key: String!
     }
 
     type Workspace {
@@ -64,22 +92,26 @@ schema = build_ast_schema(parse("""
     }
 
     interface Entity {
+        # this is the id of the entity in all tables it's associated with
         key: String!
+        type: EntityType!
         attributes (source: String!, keys: [String!]): [Attribute!]
     }
 
     type Node implements Entity {
         key: String!
-        outgoing: [Edge!]
-        incoming: [Edge!]
-        attributes (source: String!, keys: [String!]): [Attribute!]
+        type: EntityType!
+        outgoing (limit: Int, offset: Int): EdgeCursor!
+        incoming (limit: Int, offset: Int): EdgeCursor!
+        attributes (keys: [String!]): [Attribute!]
     }
 
     type Edge implements Entity {
         key: String!
+        type: EntityType!
         source: Node!
         target: Node!
-        attributes (source: String!, keys: [String!]): [Attribute!]
+        attributes (keys: [String!]): [Attribute!]
     }
 
     schema {

@@ -3,6 +3,8 @@ import os
 from girder import logprint
 from arango import ArangoClient
 
+from types import *
+
 def with_client(fun):
     def wrapper(*args, **kwargs):
         kwargs['arango'] = kwargs.get('arango', ArangoClient(
@@ -11,26 +13,12 @@ def with_client(fun):
         return fun(*args, **kwargs)
     return wrapper
 
-def name_parts(fully_qualified_name):
-    return fully_qualified_name.split('/')
-
 @with_client
 def db(name, arango=None):
     return arango.db(
         name,
         username="root",
         password=os.environ['MULTINET_APP_PASSWORD'])
-
-@with_client
-def graph(name, create=False, arango=None):
-    db_name, graph_name = name_parts(name)
-    graphdb = db(db_name, arango=arango)
-    if graphdb.has_graph(graph_name):
-        return graphdb.graph(graph_name)
-    elif create:
-        return graphdb.create_graph(graph_name)
-    else:
-        return None
 
 @with_client
 def create_workspace(name, arango=None):
@@ -50,110 +38,170 @@ def get_workspaces(name, arango=None):
 @with_client
 def workspace_tables(workspace, arango=None):
     space = db(workspace, arango=arango)
-    return ['%s/%s' % (workspace, table['name']) for table in space.collections() if not table['name'].startswith('_')]
+    return [table['name'] for table in space.collections() if not table['name'].startswith('_')]
 
 @with_client
 def workspace_graphs(workspace, arango=None):
     space = db(workspace, arango=arango)
-    return ['%s/%s' % (workspace, graph['name']) for graph in space.graphs()]
+    return [graph['name'] for graph in space.graphs()]
 
 @with_client
 def table_fields(table, arango=None):
-    db_name, coll_name = table.split('/')
-    workspace = db(db_name, arango=arango)
-    if workspace.has_collection(coll_name):
-        sample = workspace.collection(coll_name).random()
-        logprint(sample)
+    workspace = db(table.workspace, arango=arango)
+    if workspace.has_collection(table.name):
+        sample = workspace.collection(table.name).random()
         return sample.keys()
     else:
         return []
 
 @with_client
-def graph_edge_tables(graph, arango=None):
-    db_name, graph_name = name_parts(graph)
-    workspace = db(db_name, arango=arango)
-    if workspace.has_graph(graph_name):
-        graph = workspace.graph(graph_name)
-        return [edges['edge_collection'] for edges in graph.edge_definitions()]
-    else:
-        return []
-
-@with_client
-def graph_node_tables(graph, arango=None):
-    db_name, graph_name = name_parts(graph)
-    workspace = db(db_name, arango=arango)
-    if workspace.has_graph(graph_name):
-        graph = workspace.graph(graph_name)
-        return [nodes for nodes in graph.vertex_collections()]
-    else:
-        return []
-
-@with_client
-def graph_nodes(graph, offset=None, limit=None, arango=None):
-    db_name, graph_name = name_parts(graph)
-    workspace = db(db_name, arango=arango)
-    graph = workspace.graph(graph_name)
-    node_tables = [workspace.collection(nodes) for nodes in graph.vertex_collections()]
-    if len(node_tables) == 0:
+def nodes(query, cursor, arango=None):
+    db = db(query.entity_type.graph.workspace, arango=arango)
+    g = db.graph(query.entity_type.graph.name)
+    tables = [db.collection(nodes) for nodes in g.vertex_collections()]
+    if len(tables) == 0:
         return [], 0
 
-    nodes = []
-    total = 0
-    for table in node_tables:
-        count = table.count()
-        if (offset <= total + count) and (len(nodes) < limit):
-            nodes += [node for node in table.all(skip=(offset-total), limit=(limit-len(nodes)))]
-        total += count
-
-    return nodes, total
+    return paged(tables, cursor)
 
 @with_client
-def graph_edges(graph, arango=None):
-    db_name, graph_name = name_parts(graph)
-    workspace = db(db_name, arango=arango)
-    graph = workspace.graph(graph_name)
-    edge_tables = [workspace.collection(edges['edge_collection']) for edges in graph.edge_definitions()]
-    if len(edge_tables) == 0:
+def edges(query, cursor, arango=None):
+    db = db(query.entity_type.graph.workspace, arango=arango)
+    g = db.graph(query.entity_type.graph.name)
+    tables = [db.collection(edges['edge_collection']) for edges in g.edge_definitions()]
+    if len(tables) == 0:
         return [], 0
 
-    edges = []
+    return paged(tables, cursor)
+
+def paged(tables, cursor):
+    docs = []
     total = 0
-    for table in edge_tables:
+    for table in tables:
         count = table.count()
-        if (offset <= total + count) and (len(edges) < limit):
-            edges += [node for node in table.all(skip=(offset-total), limit=(limit-len(edges)))]
+        if (cursor.offset <= total + count) and (len(docs) < cursor.limit):
+            items = table.all(skip=(cursor.offset-total), limit=(cursor.limit-len(docs)))
+            docs += items
         total += count
 
-    return edges, total
+    return docs, total
 
 @with_client
-def create_graph(workspace, name, node_tables, edge_tables, arango=None):
-    workspace = db(workspace, arango=arango)
-    if workspace.has_graph(name):
-        graph = workspace.graph(name)
+def create_graph(graph, node_types, edge_types, arango=None):
+    workspace = db(graph.workspace, arango=arango)
+    if workspace.has_graph(graph.name):
+        graph = workspace.graph(graph.name)
     else:
-        graph = workspace.create_graph(name)
+        graph = workspace.create_graph(graph.name)
 
-    for table in node_tables:
+    for table in node_types:
         if not graph.has_vertex_collection(table):
             graph.create_vertex_collection(table)
 
-    for table in edge_tables:
+    for table in edge_types:
         if graph.has_edge_definition(table):
             graph.replace_edge_definition(
                 edge_collection=table,
-                from_vertex_collections=node_tables,
-                to_vertex_collections=node_tables)
+                from_vertex_collections=node_types,
+                to_vertex_collections=node_types)
         else:
             graph.create_edge_definition(
                 edge_collection=table,
-                from_vertex_collections=node_tables,
-                to_vertex_collections=node_tables)
+                from_vertex_collections=node_types,
+                to_vertex_collections=node_types)
 
     for table in graph.edge_definitions():
-        if table['edge_collection'] not in edge_tables:
+        if table['edge_collection'] not in edge_types:
             graph.delete_edge_definition(table, purge=False)
 
     for table in graph.vertex_collections():
         if table not in node_tables:
             graph.delete_vertex_collection(table)
+
+@with_client
+def table(table, arango=None):
+    workspace = db(table.workspace, arango=arango)
+    if workspace.has_collection(table.name):
+        return workspace.collection(table.name)
+    elif create:
+        return workspace.create_collection(table.name)
+    else:
+        return None
+
+@with_client
+def graph(graph, create=False, arango=None):
+    workspace = db(graph.workspace, arango=arango)
+    if workspace.has_graph(graph.name):
+        return workspace.graph(graph.name)
+    elif create:
+        return workspace.create_graph(graph.name)
+    else:
+        return None
+
+def countRows(query):
+    logprint(query)
+    collection = table(query.table)
+    if query.id:
+        return 1
+    elif query.search:
+        return 0 # to be implemented
+    else:
+        return collection.count()
+
+def fetchRows(query, cursor):
+    collection = table(query.table)
+    if query.id:
+        return [collection.get(query.id)]
+    elif query.search:
+        return [] # to be implemented
+    else:
+        return collection.all(skip=cursor.offset, limit=cursor.limit)
+
+def countNodes(query):
+    if query.search or query.entity_type.name:
+        return 0 # to be implemented
+    else:
+        return (nodes(query, Cursor(0, 0)))[1]
+
+def fetchNodes(query, cursor):
+    if query.search or query.entity_type.name:
+        return [] # to be implemented
+    else:
+        return (nodes(query, cursor))[0]
+
+def countEdges(query):
+    if query.search or query.entity_type.name:
+        return 0 # to be implemented
+    else:
+        return (edges(query, Cursor(0, 0)))[1]
+
+def fetchEdges(query, cursor):
+    if query.search or query.entity_type.name:
+        return [] # to be implemented
+    else:
+        return (edges(query, cursor))[0]
+
+def graph_node_types(graph):
+    workspace = db(graph.workspace)
+    graph = workspace.graph(graph.name)
+    return graph.vertex_collections()
+
+def graph_edge_types(graph):
+    workspace = db(graph.workspace)
+    graph = workspace.graph(graph.name)
+    return [edges['edge_collection'] for edges in graph.edge_definitions()]
+
+def source(edge):
+    pass
+
+def target(edge):
+    pass
+
+def outgoing(node):
+    pass
+
+def incoming(node):
+    pass
+
+def create_table(table, fields, primary):
+    pass

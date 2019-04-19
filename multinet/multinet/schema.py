@@ -4,20 +4,49 @@ from graphql.language.parser import parse
 from . import resolvers
 
 schema = build_ast_schema(parse("""
-    type Query {
-        nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String): NodeList!
-        edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String): EdgeList!
-        rows (workspace: String!, table: String!, key: String, search: String): RowList!
-
-        workspaces (name: String): [Workspace!]!
-        graphs (workspace: String!, name: String): [Graph!]!
-        tables (workspace: String!, name: String): [Table!]!
+    type Attribute {
+        # the key is the table name followed by the column name delimited by a slash, eg table/col
+        key: String!
+        # json representation of the value
+        value: String!
     }
 
-    type Mutation {
-        workspace (name: String!): String!
-        graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
-        table (workspace: String!, name: String!, fields: [String!]!, primaryKey: String): Table!
+    # type Property {
+    #     label: String!
+    #     key: String!
+    # }
+
+    # type EntityType {
+    #     name: String!
+    #     properties: [Property!]!
+    # }
+
+    interface Entity {
+        # this is the id of the entity in all tables it's associated with
+        key: String!
+        type: String!
+        properties (keys: [String!]): [Attribute!]
+    }
+
+    type Node implements Entity {
+        key: String!
+        type: String!
+        outgoing (limit: Int, offset: Int): EdgeList!
+        incoming (limit: Int, offset: Int): EdgeList!
+        properties (keys: [String!]): [Attribute!]
+    }
+
+    type Edge implements Entity {
+        key: String!
+        type: String!
+        source: Node!
+        target: Node!
+        properties (keys: [String!]): [Attribute!]
+    }
+
+    type Row {
+        key: String!
+        columns (keys: [String!]): [Attribute!]!
     }
 
     type NodeList {
@@ -35,24 +64,12 @@ schema = build_ast_schema(parse("""
         rows (offset: Int, limit: Int): [Row!]!
     }
 
-    type Attribute {
-        # the key is the table name followed by the column name delimited by a slash, eg table/col
-        key: String!
-        # json representation of the value
-        value: String!
-    }
-
     type Table {
         name: String!
         primaryKey: String!
         # a list of key strings as they would appear in Attribute
         fields: [String!]!
         rows: RowList!
-    }
-
-    type Row {
-        key: String!
-        columns (keys: [String!]): [Attribute!]!
     }
 
     type Graph {
@@ -63,43 +80,26 @@ schema = build_ast_schema(parse("""
         edges: EdgeList!
     }
 
-    type EntityType {
-        name: String!
-        properties: [Property!]!
-    }
-
-    type Property {
-        label: String!
-        key: String!
-    }
-
     type Workspace {
         name: String!
         tables: [Table!]!
         graphs: [Graph!]!
     }
 
-    interface Entity {
-        # this is the id of the entity in all tables it's associated with
-        key: String!
-        type: EntityType!
-        properties (keys: [String!]): [Attribute!]
+    type Query {
+        nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String): NodeList!
+        edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String): EdgeList!
+        rows (workspace: String!, table: String!, key: String, search: String): RowList!
+
+        workspaces (name: String): [Workspace!]!
+        graphs (workspace: String!, name: String): [Graph!]!
+        tables (workspace: String!, name: String): [Table!]!
     }
 
-    type Node implements Entity {
-        key: String!
-        type: EntityType!
-        outgoing (limit: Int, offset: Int): EdgeList!
-        incoming (limit: Int, offset: Int): EdgeList!
-        properties (keys: [String!]): [Attribute!]
-    }
-
-    type Edge implements Entity {
-        key: String!
-        type: EntityType!
-        source: Node!
-        target: Node!
-        properties (keys: [String!]): [Attribute!]
+    type Mutation {
+        workspace (name: String!): String!
+        graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
+        table (workspace: String!, name: String!, fields: [String!]!, primaryKey: String): Table!
     }
 
     schema {
@@ -135,15 +135,15 @@ fields['nodes'].resolver = resolvers.graph_nodelist
 fields['edges'].resolver = resolvers.graph_edgelist
 
 fields = schema.get_type('Node').fields
-fields['key'].resolver = lambda node, *_: node['_id']
-fields['type'].resolver = lambda node, *_: node['_type']
+fields['key'].resolver = lambda node, *_: node.data['_id']
+fields['type'].resolver = lambda node, *_: node.entity_type
 fields['outgoing'].resolver = resolvers.nodeOutgoing
 fields['incoming'].resolver = resolvers.nodeIncoming
 fields['properties'].resolver = resolvers.attributes
 
 fields = schema.get_type('Edge').fields
-fields['key'].resolver = lambda edge, *_: edge['_id']
-fields['type'].resolver = lambda edge, *_: node['_type']
+fields['key'].resolver = lambda edge, *_: edge.data['_id']
+fields['type'].resolver = lambda edge, *_: edge.entity_type
 fields['source'].resolver = resolvers.edgeSource
 fields['target'].resolver = resolvers.edgeTarget
 fields['properties'].resolver = resolvers.attributes

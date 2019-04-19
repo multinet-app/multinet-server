@@ -15,28 +15,35 @@ def query_tables(root, info, workspace, name=""):
     return [Table(workspace, table) for table in db.workspace_tables(workspace) if not name or table == name]
 
 def query_nodes(root, info, workspace, graph, nodeType=None, key=None, search=None):
-    return EntityQuery(EntityType(Graph(workspace, graph), nodeType), key, search)
+    return EntityQuery(workspace, graph, nodeType, key, search)
 
 def query_edges(root, info, workspace, graph, edgeType=None, key=None, search=None):
-    return EntityQuery(EntityType(Graph(workspace, graph), edgeType), key, search)
+    return EntityQuery(workspace, graph, edgeType, key, search)
 
 def query_rows(root, info, workspace, table, key=None, search=None):
-    return RowQuery(Table(workspace, table), key, search)
+    return RowQuery(workspace, table, key, search)
 
 def nodeCount(query, info):
     return db.countNodes(query)
 
 def edgeCount(query, info):
+    if type(query) == RealizedQuery:
+        return len(query.values)
     return db.countEdges(query)
 
 def rowCount(query, info):
-    logprint(query)
+    if type(query) == RealizedQuery:
+        return len(query.values)
     return db.countRows(query)
 
 def nodes(query, info, offset=0, limit=10):
+    if type(query) == RealizedQuery:
+        return query.values[offset:(offset+limit)]
     return db.fetchNodes(query, Cursor(offset, limit))
 
 def edges(query, info, offset=0, limit=10):
+    if type(query) == RealizedQuery:
+        return query.values[offset:(offset+limit)]
     return db.fetchEdges(query, Cursor(offset, limit))
 
 def rows(query, info, offset=0, limit=10):
@@ -55,7 +62,7 @@ def workspace_graphs(workspace, info):
     return [Graph(workspace, graph) for graph in db.workspace_graphs(workspace)]
 
 def graph_name(graph, info):
-    return graph.name
+    return graph.graph
 
 def edgeTypes(graph, info):
     return db.graph_edge_types(graph)
@@ -64,13 +71,13 @@ def nodeTypes(graph, info):
     return db.graph_node_types(graph)
 
 def graph_nodelist(graph, info):
-    return EntityQuery(EntityType(graph, None), None, None)
+    return EntityQuery(graph.workspace, graph.graph, None, None, None)
 
 def graph_edgelist(graph, info):
-    return EntityQuery(EntityType(graph, None), None, None)
+    return EntityQuery(graph.workspace, graph.graph, None, None, None)
 
 def table_name(table, info):
-    return table.name
+    return table.table
 
 def table_fields(table, info):
     return db.table_fields(table)
@@ -82,13 +89,13 @@ def edgeTarget(edge, info):
     return db.target(edge)
 
 def nodeOutgoing(node, info):
-    return db.outgoing(node)
+    return RealizedQuery(db.outgoing(node))
 
 def nodeIncoming(node, info):
-    return db.incoming(node)
+    return RealizedQuery(db.incoming(node))
 
-def attributes(data, info, keys=None):
-    return [(key, value) for key, value in data.iteritems() if (keys is None) or (key in keys)]
+def attributes(entity, info, keys=None):
+    return [(key, value) for key, value in entity.data.iteritems() if (keys is None) or (key in keys)]
 
 # MUTATIONS
 def create_workspace(root, info, name):

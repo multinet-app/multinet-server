@@ -58,31 +58,50 @@ def table_fields(table, arango=None):
 def nodes(query, cursor, arango=None):
     workspace = db(query.workspace, arango=arango)
     graph = workspace.graph(query.graph)
-    tables = [workspace.collection(nodes) for nodes in graph.vertex_collections()]
+    if query.entity_type:
+        if query.id:
+            return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+        else:
+            tables = [workspace.collection(query.entity_type)]
+    else:
+        tables = [workspace.collection(nodes) for nodes in graph.vertex_collections()]
     if len(tables) == 0:
         return [], 0
 
-    pages = paged(tables, cursor)
+    pages = paged(tables, cursor, query.id)
     return [Entity(query.workspace, query.graph, node['_id'].split('/')[0], node) for node in pages[0]], pages[1]
 
 @with_client
 def edges(query, cursor, arango=None):
     workspace = db(query.workspace, arango=arango)
     graph = workspace.graph(query.graph)
-    tables = [workspace.collection(edges['edge_collection']) for edges in graph.edge_definitions()]
+    if query.entity_type:
+        if query.id:
+            return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+        else:
+            tables = [workspace.collection(query.entity_type)]
+    else:
+        tables = [workspace.collection(edges['edge_collection']) for edges in graph.edge_definitions()]
     if len(tables) == 0:
         return [], 0
 
-    pages = paged(tables, cursor)
+    pages = paged(tables, cursor, query.id)
     return [Entity(query.workspace, query.graph, edge['_id'].split('/')[0], edge) for edge in pages[0]], pages[1]
 
-def paged(tables, cursor):
+def paged(tables, cursor, id=None):
     docs = []
     total = 0
     for table in tables:
-        count = table.count()
+        count = 1 if id else table.count()
         if (cursor.offset <= total + count) and (len(docs) < cursor.limit):
-            items = table.all(skip=(cursor.offset-total), limit=(cursor.limit-len(docs)))
+            if id:
+                item = table.get(id)
+                if item:
+                    docs.append(item)
+                else:
+                    count = 0
+            else:
+                items = table.all(skip=(cursor.offset-total), limit=(cursor.limit-len(docs)))
             docs += items
         total += count
     return docs, total
@@ -158,25 +177,25 @@ def fetchRows(query, cursor):
         return [Row(query.workspace, query.table, row) for row in collection.all(skip=cursor.offset, limit=cursor.limit)]
 
 def countNodes(query):
-    if query.search or query.entity_type:
+    if query.search:
         return 0 # to be implemented
     else:
         return (nodes(query, Cursor(0, 0)))[1]
 
 def fetchNodes(query, cursor):
-    if query.search or query.entity_type:
+    if query.search:
         return [] # to be implemented
     else:
         return (nodes(query, cursor))[0]
 
 def countEdges(query):
-    if query.search or query.entity_type:
+    if query.search:
         return 0 # to be implemented
     else:
         return (edges(query, Cursor(0, 0)))[1]
 
 def fetchEdges(query, cursor):
-    if query.search or query.entity_type:
+    if query.search:
         return [] # to be implemented
     else:
         return (edges(query, cursor))[0]

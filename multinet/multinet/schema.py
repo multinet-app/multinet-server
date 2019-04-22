@@ -1,112 +1,15 @@
+import os.path
+
 from graphql import build_ast_schema
 from graphql.language.parser import parse
 
 from . import resolvers
 
-schema = build_ast_schema(parse("""
-    type Attribute {
-        # the key is the table name followed by the column name delimited by a slash, eg table/col
-        key: String!
-        # json representation of the value
-        value: String!
-    }
+schema_text = None
+with open(os.path.join(os.path.dirname(__file__), 'multinet.gql')) as f:
+    schema_text = f.read()
 
-    # type Property {
-    #     label: String!
-    #     key: String!
-    # }
-
-    # type EntityType {
-    #     name: String!
-    #     properties: [Property!]!
-    # }
-
-    interface Entity {
-        # this is the id of the entity in all tables it's associated with
-        key: String!
-        type: String!
-        properties (keys: [String!]): [Attribute!]
-    }
-
-    type Node implements Entity {
-        key: String!
-        type: String!
-        outgoing (limit: Int, offset: Int): EdgeList!
-        incoming (limit: Int, offset: Int): EdgeList!
-        properties (keys: [String!]): [Attribute!]
-    }
-
-    type Edge implements Entity {
-        key: String!
-        type: String!
-        source: Node!
-        target: Node!
-        properties (keys: [String!]): [Attribute!]
-    }
-
-    type Row {
-        key: String!
-        columns (keys: [String!]): [Attribute!]!
-    }
-
-    type NodeList {
-        total: Int!
-        nodes (offset: Int, limit: Int): [Node!]!
-    }
-
-    type EdgeList {
-        total: Int!
-        edges (offset: Int, limit: Int): [Edge!]!
-    }
-
-    type RowList {
-        total: Int!
-        rows (offset: Int, limit: Int): [Row!]!
-    }
-
-    type Table {
-        name: String!
-        primaryKey: String!
-        # a list of key strings as they would appear in Attribute
-        fields: [String!]!
-        rows: RowList!
-    }
-
-    type Graph {
-        name: String!
-        nodeTypes: [String!]!
-        edgeTypes: [String!]!
-        nodes: NodeList!
-        edges: EdgeList!
-    }
-
-    type Workspace {
-        name: String!
-        tables: [Table!]!
-        graphs: [Graph!]!
-    }
-
-    type Query {
-        nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String): NodeList!
-        edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String): EdgeList!
-        rows (workspace: String!, table: String!, key: String, search: String): RowList!
-
-        workspaces (name: String): [Workspace!]!
-        graphs (workspace: String!, name: String): [Graph!]!
-        tables (workspace: String!, name: String): [Table!]!
-    }
-
-    type Mutation {
-        workspace (name: String!): String!
-        graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
-        table (workspace: String!, name: String!, fields: [String!]!, primaryKey: String): Table!
-    }
-
-    schema {
-      query: Query
-      mutation: Mutation
-    }
-"""))
+schema = build_ast_schema(parse(schema_text))
 
 fields = schema.get_type('Query').fields
 fields['nodes'].resolver = resolvers.query_nodes

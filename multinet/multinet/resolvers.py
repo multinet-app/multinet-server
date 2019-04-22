@@ -50,7 +50,7 @@ def rows(query, info, offset=0, limit=10):
     return db.fetchRows(query, Cursor(offset, limit))
 
 def table_rows(table, info):
-    return RowQuery(table, None, None)
+    return RowQuery(table.workspace, table.table, None, None)
 
 def workspace_name(workspace, info):
     return workspace

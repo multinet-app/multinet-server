@@ -50,7 +50,7 @@ class MultiNet(Resource):
     )
     def bulk(self, params, workspace=None, table=None):
         logprint('Bulk Loading', level=logging.INFO)
-        rows = csv.DictReader(cherrypy.request.body)
+        rows = csv.DictReader(cherrypy.request.body.read().decode('utf8'))
         workspace = db.db(workspace)
         if workspace.has_collection(table):
             table = workspace.collection(table)

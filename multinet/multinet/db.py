@@ -3,7 +3,7 @@ import os
 from girder import logprint
 from arango import ArangoClient
 
-from types import *
+from .types import *
 
 def with_client(fun):
     def wrapper(*args, **kwargs):
@@ -46,10 +46,10 @@ def workspace_graphs(workspace, arango=None):
     return [graph['name'] for graph in space.graphs()]
 
 @with_client
-def table_fields(table, arango=None):
-    workspace = db(table.workspace, arango=arango)
-    if workspace.has_collection(table.table):
-        sample = workspace.collection(table.table).random()
+def table_fields(query, arango=None):
+    workspace = db(query.workspace, arango=arango)
+    if workspace.has_collection(query.table):
+        sample = workspace.collection(query.table).random()
         return sample.keys()
     else:
         return []
@@ -135,16 +135,16 @@ def create_graph(graph, node_types, edge_types, arango=None):
             graph.delete_edge_definition(table, purge=False)
 
     for table in graph.vertex_collections():
-        if table not in node_tables:
+        if table not in node_types:
             graph.delete_vertex_collection(table)
 
 @with_client
-def table(table, arango=None):
-    workspace = db(table.workspace, arango=arango)
-    if workspace.has_collection(table.table):
-        return workspace.collection(table.table)
+def table(query, arango=None):
+    workspace = db(query.workspace, arango=arango)
+    if workspace.has_collection(query.table):
+        return workspace.collection(query.table)
     elif create:
-        return workspace.create_collection(table.table)
+        return workspace.create_collection(query.table)
     else:
         return None
 
@@ -159,7 +159,7 @@ def graph(graph, create=False, arango=None):
         return None
 
 def countRows(query):
-    collection = table(query.table)
+    collection = table(query)
     if query.id:
         return 1
     elif query.search:
@@ -168,7 +168,7 @@ def countRows(query):
         return collection.count()
 
 def fetchRows(query, cursor):
-    collection = table(query.table)
+    collection = table(query)
     if query.id:
         return [collection.get(query.id)]
     elif query.search:

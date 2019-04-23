@@ -9,11 +9,11 @@ Follow the instructions at [multinet-server-poc](https://github.com/multinet-app
 ### Set Up Girder
 1. Clone this repository: `git clone
 https://github.com/multinet-app/multinet-girder; cd multinet-girder`
-2. Create and activate a Python virtual environment: `virtualenv venv; source
-./venv/bin/activate`
-3. Perform an editable install of the plugin package: `pip install -e multinet`
+2. Start the mongo and arango databases using docker-compose: `MULTINET_ROOT_PASSWORD=yourSecretPassword docker-compose up -d`
+2. Use pipenv to create a virtual environment and install the dependencies: `pipenv install`
+3. Start the pipenv shell to set up girder and run the websever: `pipenv shell`
 4. Build the Girder web client: `girder build`
-5. Serve the Girder client: `girder serve --database
+5. Serve the Girder client: `MULTINET_ROOT_PASSWORD=yourSecretPassword girder serve --database
    mongodb://localhost:27017/multinet --port 9090`
 6. Open the Girder client and register a user (which will become an admin user):
 http://localhost:9090

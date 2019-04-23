@@ -1,7 +1,7 @@
 import os
 import logging
 from girder import plugin, logprint
-from types import *
+from .types import *
 
 from . import db
 
@@ -50,7 +50,7 @@ def rows(query, info, offset=0, limit=10):
     return db.fetchRows(query, Cursor(offset, limit))
 
 def table_rows(table, info):
-    return RowQuery(table, None, None)
+    return RowQuery(table.workspace, table.table, None, None)
 
 def workspace_name(workspace, info):
     return workspace
@@ -95,7 +95,7 @@ def nodeIncoming(node, info):
     return RealizedQuery(db.incoming(node))
 
 def attributes(entity, info, keys=None):
-    return [(key, value) for key, value in entity.data.iteritems() if (keys is None) or (key in keys)]
+    return [(key, value) for key, value in entity.data.items() if (keys is None) or (key in keys)]
 
 # MUTATIONS
 def create_workspace(root, info, name):

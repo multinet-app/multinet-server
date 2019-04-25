@@ -11,5 +11,3 @@ pytest>=3.6
 pytest-cov==2.5
 pytest-girder>=0.1.0a1
 pytest-xdist
-
-requests

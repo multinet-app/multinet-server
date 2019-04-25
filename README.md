@@ -1,5 +1,5 @@
 # multinet-girder
-A Girder plugin proof-of-concept for a MultNet API / web application
+A Girder plugin proof-of-concept for a MultiNet API / web application
 
 ## Installation
 

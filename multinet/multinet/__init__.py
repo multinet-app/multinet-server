@@ -3,7 +3,6 @@ from girder.api import access
 from girder.api.rest import Resource, RestException, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 
-import requests
 import csv
 import json
 import logging

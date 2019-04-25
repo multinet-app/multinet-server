@@ -52,7 +52,7 @@ fields['target'].resolver = resolvers.edgeTarget
 fields['properties'].resolver = resolvers.attributes
 
 fields = schema.get_type('Row').fields
-fields['key'].resolver = lambda row, *_: row['_id']
+fields['key'].resolver = lambda row, *_: row.data['_id']
 fields['columns'].resolver = resolvers.attributes
 
 fields = schema.get_type('Attribute').fields

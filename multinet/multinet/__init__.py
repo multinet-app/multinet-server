@@ -4,6 +4,7 @@ from girder.api.rest import Resource, RestException, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 
 import csv
+from io import StringIO
 import json
 import logging
 from graphql import graphql
@@ -52,17 +53,20 @@ class MultiNet(Resource):
     )
     def bulk(self, params, workspace=None, table=None):
         logprint('Bulk Loading', level=logging.INFO)
-        rows = csv.DictReader(cherrypy.request.body.read().decode('utf8'))
+        rows = csv.DictReader(StringIO(cherrypy.request.body.read().decode('utf8')))
         workspace = db.db(workspace)
-        if workspace.has_collection(table):
-            table = workspace.collection(table)
-        else:
-            table = workspace.create_collection(table)
+        coll = None
 
         count = 0
         for row in rows:
+            if coll is None:
+                if workspace.has_collection(table):
+                    coll = workspace.collection(table)
+                else:
+                    edges = ('_from' in row.keys()) and ('_to' in row.keys())
+                    coll = workspace.create_collection(table, edge=edges)
             count = count+1
-            table.insert(row)
+            coll.insert(row)
         return dict(count=count)
 
     @access.public

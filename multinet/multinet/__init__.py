@@ -83,6 +83,8 @@ class MultiNet(Resource):
         if workspace.has_collection(edgetable_name):
             edgetable = workspace.collection(edgetable_name)
         else:
+            # Note that edge=True must be set or the _from and _to keys
+            # will be ignored below.
             edgetable = workspace.create_collection(edgetable_name, edge=True)
         if workspace.has_collection(nodetable_name):
             nodetable = workspace.collection(nodetable_name)

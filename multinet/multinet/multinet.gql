@@ -93,7 +93,7 @@ type Query {
 type Mutation {
   workspace (name: String!): String!
   graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
-  table (workspace: String!, name: String!, fields: [String!]!, primaryKey: String): Table!
+  table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
 }
 
 schema {

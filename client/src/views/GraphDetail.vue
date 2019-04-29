@@ -100,6 +100,12 @@ export default {
     }
   },
   watch: {
+    offset () {
+      this.update()
+    },
+    limit () {
+      this.update()
+    },
     workspace () {
       this.update()
     },

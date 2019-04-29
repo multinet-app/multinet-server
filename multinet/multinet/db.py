@@ -242,5 +242,10 @@ def incoming(node):
                   graph.edges(table, node.data['_id'], direction='in')['edges']]
     return [Entity(node.workspace, node.graph, edge['_id'].split('/')[0], edge) for edge in edges]
 
-def create_table(table, fields, primary):
-    pass
+def create_table(table, edges, fields=[], primary='_id'):
+    workspace = db(table.workspace)
+    if workspace.has_collection(table.table):
+        coll = workspace.collection(table.table)
+    else:
+        coll = workspace.create_collection(table.table, edge=edges)
+    return table

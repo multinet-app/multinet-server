@@ -55,19 +55,19 @@ class MultiNet(Resource):
         logprint('Bulk Loading', level=logging.INFO)
         rows = csv.DictReader(StringIO(cherrypy.request.body.read().decode('utf8')))
         workspace = db.db(workspace)
-        coll = None
 
-        count = 0
-        for row in rows:
-            if coll is None:
-                if workspace.has_collection(table):
-                    coll = workspace.collection(table)
-                else:
-                    edges = ('_from' in row.keys()) and ('_to' in row.keys())
-                    coll = workspace.create_collection(table, edge=edges)
-            count = count+1
-            coll.insert(row)
-        return dict(count=count)
+        # Set the collection, paying attention to whether the data contains
+        # _from/_to fields.
+        coll = None
+        if workspace.has_collection(table):
+            coll = workspace.collection(table)
+        else:
+            edges = '_from' in rows.fieldnames and '_to' in rows.fieldnames
+            coll = workspace.create_collection(table, edge=edges)
+
+        # Insert the data into the collection.
+        results = coll.insert_many(rows)
+        return dict(count=len(results))
 
     @access.public
     @autoDescribeRoute(

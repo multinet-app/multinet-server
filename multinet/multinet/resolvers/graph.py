@@ -1,5 +1,5 @@
-from . import db
-from .types import *
+from multinet import db
+from multinet.types import EntityQuery
 
 # a graph knows about the types of things in it and a set of nodes and edges
 
@@ -13,7 +13,7 @@ def edge_types(graph, info):
 def node_types(graph, info):
     return db.graph_node_types(graph)
 
-def graph_name(graph, info):
+def name(graph, info):
     return graph.graph
 
 def nodes(graph, info):
@@ -24,7 +24,7 @@ def edges(graph, info):
 
 def add_resolvers(schema):
     fields = schema.get_type('Graph').fields
-    fields['name'].resolver = graph_name
+    fields['name'].resolver = name
     fields['edgeTypes'].resolver = edge_types
     fields['nodeTypes'].resolver = node_types
     fields['nodes'].resolver = nodes

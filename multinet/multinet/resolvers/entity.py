@@ -1,5 +1,5 @@
-from . import db
-from .types import *
+from multinet import db
+from multinet.types import Attribute, RealizedQuery
 
 # The entities are nodes, edges, and rows. Entities share in common having a single
 # key and a set of key-value pairs. Each key-value pair represents a property on

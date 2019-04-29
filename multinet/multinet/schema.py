@@ -3,14 +3,14 @@ import os.path
 from graphql import build_ast_schema
 from graphql.language.parser import parse
 
-from . import attribute
-from . import entity
-from . import pagedlist
-from . import table
-from . import graph
-from . import workspace
-from . import query
-from . import mutation
+from .resolvers import attribute
+from .resolvers import entity
+from .resolvers import pagedlist
+from .resolvers import table
+from .resolvers import graph
+from .resolvers import workspace
+from .resolvers import query
+from .resolvers import mutation
 
 schema_text = None
 with open(os.path.join(os.path.dirname(__file__), 'multinet.gql')) as f:

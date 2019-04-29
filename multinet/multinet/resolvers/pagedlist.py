@@ -1,5 +1,5 @@
-from . import db
-from .types import *
+from multinet import db
+from multinet.types import RealizedQuery, Cursor
 
 # Paged lists allow the ui to specify a limit to the number of entities (nodes, edges, rows)
 # that are returned at once. In each case, an offset and limit value can be specified.

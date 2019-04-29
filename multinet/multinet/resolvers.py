@@ -108,7 +108,7 @@ def create_graph(root, info, workspace, name, nodeTypes, edgeTypes):
     db.create_graph(graph, nodeTypes, edgeTypes)
     return graph
 
-def create_table(root, info, workspace, name, primaryKey='_id', fields=[]):
+def create_table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[]):
     table = Table(workspace, name)
-    db.create_table(table)
+    db.create_table(table, edges)
     return table

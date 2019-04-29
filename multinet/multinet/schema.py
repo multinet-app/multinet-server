@@ -74,3 +74,4 @@ fields['rows'].resolver = resolvers.rows
 fields = schema.get_type('Mutation').fields
 fields['workspace'].resolver = resolvers.create_workspace
 fields['graph'].resolver = resolvers.create_graph
+fields['table'].resolver = resolvers.create_table

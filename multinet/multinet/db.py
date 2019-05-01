@@ -3,7 +3,7 @@ import os
 from girder import logprint
 from arango import ArangoClient
 
-from multinet.types import Row, Entity
+from multinet.types import Row, Entity, Cursor
 
 def with_client(fun):
     def wrapper(*args, **kwargs):

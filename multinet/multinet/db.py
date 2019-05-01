@@ -60,7 +60,11 @@ def nodes(query, cursor, arango=None):
     graph = workspace.graph(query.graph)
     if query.entity_type:
         if query.id:
-            return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+            result = workspace.collection(query.entity_type).get(query.id)
+            if result is not None:
+                return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+            else:
+                return [], 0
         else:
             tables = [workspace.collection(query.entity_type)]
     else:

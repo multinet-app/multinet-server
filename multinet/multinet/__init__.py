@@ -35,7 +35,9 @@ class MultiNet(Resource):
         self.arango_port = port
         self.route('POST', ('graphql',), self.graphql)
         self.route('POST', ('bulk', ':workspace', ':table'), self.bulk)
-        self.route('POST', ('tree', ':workspace', ':table'), self.tree)
+
+        # Newick tree operations.
+        self.route('POST', ('newick', 'tree', ':workspace', ':table'), self.tree)
 
     @access.public
     @autoDescribeRoute(

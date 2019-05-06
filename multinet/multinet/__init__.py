@@ -39,9 +39,6 @@ class MultiNet(Resource):
         # Newick tree operations.
         self.route('POST', ('newick', 'tree', ':workspace', ':table'), self.tree)
 
-        # Operations for Juniper application.
-        self.route('POST', ('juniper', 'node'), self.juniper_get_node)
-
     @access.public
     @autoDescribeRoute(
         Description('Receive GraphQL queries')
@@ -126,68 +123,6 @@ class MultiNet(Resource):
         read_tree(None, tree[0])
 
         return dict(edgecount=edgecount, nodecount=nodecount)
-
-    @access.public
-    @autoDescribeRoute(
-        Description('Retrieve data for a single node for use in the Juniper application.')
-        .param('nodeId', 'ID of the node', required=True)
-    )
-    def juniper_get_node(self, params, nodeId=None):
-        final = {}
-
-        query = f'''query {{
-            nodes (workspace: "dblp", graph: "coauth", nodeType: "author", key: "author/{nodeId}") {{
-                total
-                nodes {{
-                    key
-                    type
-                    incoming {{
-                        total
-                        edges (limit: 20) {{
-                            source {{
-                                outgoing {{
-                                  total
-                                }}
-                                properties (keys: ["type", "title", "_key"]) {{
-                                    key
-                                    value
-                                }}
-                            }}
-                        }}
-                    }}
-                    properties (keys: ["type", "name"]) {{
-                        key
-                        value
-                    }}
-                }}
-            }}
-        }}'''
-
-        result = graphql_query(query)
-
-        author = result['data']['nodes']['nodes'][0]
-        props = {val['key']: val['value'] for val in author['properties']}
-
-        author_data = {'graphDegree': author['incoming']['total'],
-                       'label': 'Author',
-                       'title': props['name'],
-                       'uuid': author['key'].split('/')[1]}
-
-        def make_link(link):
-            props = {prop['key']: prop['value'] for prop in link['source']['properties']}
-            return {'source': author_data,
-                    'target': {'graphDegree': link['source']['outgoing']['total'],
-                               'label': 'Article',
-                               'title': props['title'],
-                               'uuid': props['_key']}}
-
-        links = [make_link(l) for l in author['incoming']['edges']]
-        targetNodes = [link['target'] for link in links]
-
-        return {'nodes': [author_data],
-                'links': links,
-                'root': [author['key'].split('/')[1]],
-                'targetNodes': targetNodes}
 
 class GirderPlugin(plugin.GirderPlugin):
     DISPLAY_NAME = 'MultiNet'

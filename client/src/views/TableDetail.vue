@@ -1,9 +1,23 @@
 <template>
-  <div>
-    <h1>Table: {{`${this.workspace}/${this.table}`}}</h1>
-    <ul>
-      <li v-for="field in fields" :key="field">{{field}}</li>
-    </ul>
+<div>
+<h1>Table: {{`${this.workspace}/${this.table}`}}</h1>
+  <table>
+  <thead>
+    <tr >
+    <th v-for="col in rowKeys[0]" :key="col.key" class="head">
+      {{col.key}}
+    </th>
+    </tr>
+  </thead>
+  <tbody v-for="row in rowKeys" :key="row[0].value" class="row-wrap">
+    <tr class="row">
+      <td v-for="col in row" :key="col.key" class="col">
+      {{col.value}}
+    </td>
+    </tr>
+  </tbody>
+
+  </table>
   </div>
 </template>
 
@@ -15,18 +29,30 @@ export default {
   props: ['workspace', 'table'],
   data () {
     return {
-      fields: []
+      rowKeys:[]
     }
   },
   methods: {
     async update () {
       const response = await api().post('multinet/graphql', {query: `query {
         tables (workspace: "${this.workspace}", name: "${this.table}") {
-          fields
+          name,
+          rows{
+            total,
+            rows(offset: 0, limit: 30){
+              key,
+              columns{
+                key,
+                value
+              }
+            }
+          },
         }
       }`});
-
-      this.fields = response.data.data.tables[0].fields;
+  
+      let table = response.data.data.tables[0];
+      this.rowKeys = table.rows.rows.map(r=> r.columns.filter(c=> c.key != "_rev"))
+     
     }
   },
   watch: {
@@ -44,9 +70,19 @@ export default {
 </script>
 
 <style scoped>
-ul {
-  padding: 0px;
-  list-style-type: none;
-  text-align: left;
+table{
+  margin:auto;
+}
+th.head{
+text-transform: uppercase;
+}
+tr.row {
+  background-color: #F3F6F6;
+  margin:3px;
+  padding: 10px 10px;
+}
+td.col{
+margin:5px;
+padding:5px 25px;
 }
 </style>

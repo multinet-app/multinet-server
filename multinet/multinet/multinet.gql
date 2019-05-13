@@ -5,15 +5,22 @@ type Attribute {
   value: String!
 }
 
-# type Property {
-#     label: String!
-#     key: String!
-# }
+type Property {
+  label: String!
+  table: String!
+  key: String!
+}
 
-# type EntityType {
-#     name: String!
-#     properties: [Property!]!
-# }
+input PropertyInput {
+  label: String!
+  table: String!
+  key: String!
+}
+
+type EntityType {
+  name: String!
+  properties: [Property!]!
+}
 
 interface Entity {
   # this is the id of the entity in all tables it's associated with
@@ -92,8 +99,9 @@ type Query {
 
 type Mutation {
   workspace (name: String!): String!
-  graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
+  graph (workspace: String!, name: String!): Graph!
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
+  entityType (workspace: String!, graph: String!, name: String!, properties: [PropertyInput!]!, edgeTable: String): EntityType!
 }
 
 schema {

@@ -107,36 +107,36 @@ def paged(tables, cursor, id=None):
     return docs, total
 
 @with_client
-def create_graph(graph, node_types, edge_types, arango=None):
+def create_graph(graph, arango=None):
     workspace = db(graph.workspace, arango=arango)
     if workspace.has_graph(graph.graph):
         graph = workspace.graph(graph.graph)
     else:
         graph = workspace.create_graph(graph.graph)
 
-    for table in node_types:
-        if not graph.has_vertex_collection(table):
-            graph.create_vertex_collection(table)
-
-    for table in edge_types:
-        if graph.has_edge_definition(table):
-            graph.replace_edge_definition(
-                edge_collection=table,
-                from_vertex_collections=node_types,
-                to_vertex_collections=node_types)
-        else:
-            graph.create_edge_definition(
-                edge_collection=table,
-                from_vertex_collections=node_types,
-                to_vertex_collections=node_types)
-
-    for table in graph.edge_definitions():
-        if table['edge_collection'] not in edge_types:
-            graph.delete_edge_definition(table, purge=False)
-
-    for table in graph.vertex_collections():
-        if table not in node_types:
-            graph.delete_vertex_collection(table)
+    # for table in node_types:
+    #     if not graph.has_vertex_collection(table):
+    #         graph.create_vertex_collection(table)
+    #
+    # for table in edge_types:
+    #     if graph.has_edge_definition(table):
+    #         graph.replace_edge_definition(
+    #             edge_collection=table,
+    #             from_vertex_collections=node_types,
+    #             to_vertex_collections=node_types)
+    #     else:
+    #         graph.create_edge_definition(
+    #             edge_collection=table,
+    #             from_vertex_collections=node_types,
+    #             to_vertex_collections=node_types)
+    #
+    # for table in graph.edge_definitions():
+    #     if table['edge_collection'] not in edge_types:
+    #         graph.delete_edge_definition(table, purge=False)
+    #
+    # for table in graph.vertex_collections():
+    #     if table not in node_types:
+    #         graph.delete_vertex_collection(table)
 
 @with_client
 def table(query, arango=None):
@@ -249,3 +249,50 @@ def create_table(table, edges, fields=[], primary='_id'):
     else:
         coll = workspace.create_collection(table.table, edge=edges)
     return table
+
+def create_node_type(entity_type):
+    workspace = db(entity_type.workspace)
+    metadata = workspace.collection("_graphs")
+    graph_meta = metadata.get(entity_type.graph)
+    if graph_meta.get('nodeTypes', None) is None:
+        graph_meta['nodeTypes'] = {}
+
+    graph_meta['nodeTypes'][entity_type.name] = [prop._asdict() for prop in entity_type.properties]
+    node_id_table = entity_type.properties[0].table
+    for edge_def in graph_meta['edgeDefinitions']:
+        if node_id_table not in edge_def['from']:
+            edge_def['from'].push(node_id_table)
+            edge_def['to'].push(node_id_table)
+
+    metadata.update(graph_meta)
+
+def create_edge_type(entity_type, edge_table):
+    workspace = db(entity_type.workspace)
+    metadata = workspace.collection("_graphs")
+    graph_meta = metadata.get(entity_type.graph)
+    if graph_meta.get('edgeTypes', None) is None:
+        graph_meta['edgeTypes'] = {}
+
+    possible_nodes = set()
+    for node_type in graph_meta.get('nodeTypes', []):
+        possible_nodes.add(graph_meta['nodeTypes'][node_type][0]['table'])
+
+    graph_meta['edgeTypes'][entity_type.name] = [prop._asdict() for prop in entity_type.properties]
+
+    for edge_def in graph_meta['edgeDefinitions']:
+        if edge_def['collection'] == edge_table:
+            break
+    else: # this else is for the for loop! indentation is correct!
+        graph_meta['edgeDefinitions'].append({
+            'collection': edge_table,
+            'from': list(possible_nodes),
+            'to': list(possible_nodes)
+        })
+
+    metadata.update(graph_meta)
+
+def create_type(entity_type, edge_table):
+    if edge_table is not None:
+        return create_edge_type(entity_type, edge_table)
+    else:
+        return create_node_type(entity_type)

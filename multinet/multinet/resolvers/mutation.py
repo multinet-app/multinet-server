@@ -1,5 +1,5 @@
 from multinet import db
-from multinet.types import Graph, Table
+from multinet.types import Graph, Table, EntityType, Property
 
 def workspace(root, info, name):
     db.create_workspace(name)
@@ -7,8 +7,7 @@ def workspace(root, info, name):
 
 def graph(root, info, workspace, name, nodeTypes, edgeTypes):
     graph = Graph(workspace, name)
-    # nodeTypes and edgeTypes are currently arrays of string table names, but will be converted
-    db.create_graph(graph, nodeTypes, edgeTypes)
+    db.create_graph(graph)
     return graph
 
 def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[]):
@@ -16,8 +15,15 @@ def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[])
     db.create_table(table, edges)
     return table
 
+def entity_type(root, info, workspace, graph, name, properties, edgeTable=None):
+    entity_type = EntityType(workspace, graph, name,
+        [Property(prop['label'], prop['table'], prop['key']) for prop in properties])
+    db.create_type(entity_type, edgeTable)
+    return entity_type
+
 def add_resolvers(schema):
     fields = schema.get_type('Mutation').fields
     fields['workspace'].resolver = workspace
     fields['graph'].resolver = graph
     fields['table'].resolver = table
+    fields['entityType'].resolver = entity_type

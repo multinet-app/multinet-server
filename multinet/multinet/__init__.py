@@ -15,14 +15,29 @@ import uuid
 from .schema import schema
 from . import db
 
+
+def graphql_query(query):
+    result = graphql(schema, query)
+    if result:
+        errors= [error.message for error in result.errors] if result.errors else []
+        logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
+        for error in errors[:10]:
+            logprint(error, level=logging.WARNING)
+    else:
+        errors = []
+    return dict(data=result.data, errors=errors)
+
+
 class MultiNet(Resource):
     def __init__(self, port):
         super(MultiNet, self).__init__()
         self.resourceName = 'multinet'
         self.arango_port = port
         self.route('POST', ('graphql',), self.graphql)
-        self.route('POST', ('bulk', ':workspace', ':table'), self.bulk)
-        self.route('POST', ('tree', ':workspace', ':table'), self.tree)
+        self.route('POST', ('csv', ':workspace', ':table'), self.bulk)
+
+        # Newick tree operations.
+        self.route('POST', ('newick', ':workspace', ':table'), self.tree)
 
     @access.public
     @autoDescribeRoute(
@@ -34,15 +49,7 @@ class MultiNet(Resource):
         query = getBodyJson()['query']
         logprint('request: %s' % query, level=logging.DEBUG)
 
-        result = graphql(schema, query)
-        if result:
-            errors= [error.message for error in result.errors] if result.errors else []
-            logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
-            for error in errors[:10]:
-                logprint(error, level=logging.WARNING)
-        else:
-            errors = []
-        return dict(data=result.data, errors=errors)
+        return graphql_query(query)
 
     @access.public
     @autoDescribeRoute(

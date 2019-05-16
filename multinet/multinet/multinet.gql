@@ -25,13 +25,13 @@ type EntityType {
 interface Entity {
   # this is the id of the entity in all tables it's associated with
   key: String!
-  type: String!
+  type: EntityType!
   properties (keys: [String!]): [Attribute!]
 }
 
 type Node implements Entity {
   key: String!
-  type: String!
+  type: EntityType!
   outgoing (limit: Int, offset: Int): EdgeList!
   incoming (limit: Int, offset: Int): EdgeList!
   properties (keys: [String!]): [Attribute!]
@@ -39,7 +39,7 @@ type Node implements Entity {
 
 type Edge implements Entity {
   key: String!
-  type: String!
+  type: EntityType!
   source: Node!
   target: Node!
   properties (keys: [String!]): [Attribute!]
@@ -75,8 +75,8 @@ type Table {
 
 type Graph {
   name: String!
-  nodeTypes: [String!]!
-  edgeTypes: [String!]!
+  nodeTypes: [EntityType!]!
+  edgeTypes: [EntityType!]!
   nodes: NodeList!
   edges: EdgeList!
 }
@@ -101,7 +101,7 @@ type Mutation {
   workspace (name: String!): String!
   graph (workspace: String!, name: String!): Graph!
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
-  entityType (workspace: String!, graph: String!, name: String!, properties: [PropertyInput!]!, edgeTable: String): EntityType!
+  entityType (workspace: String!, graph: String!, table: String!, properties: [PropertyInput!]!): EntityType!
 }
 
 schema {

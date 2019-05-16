@@ -3,7 +3,7 @@ import os
 from girder import logprint
 from arango import ArangoClient
 
-from multinet.types import Row, Entity, Cursor
+from multinet.types import Row, Entity, EntityType, Cursor
 
 def with_client(fun):
     def wrapper(*args, **kwargs):
@@ -73,7 +73,8 @@ def nodes(query, cursor, arango=None):
         return [], 0
 
     pages = paged(tables, cursor, query.id)
-    return [Entity(query.workspace, query.graph, node['_id'].split('/')[0], node) for node in pages[0]], pages[1]
+    return [Entity(query.workspace, query.graph, node['_id'].split('/')[0], node)
+            for node in pages[0]], pages[1]
 
 @with_client
 def edges(query, cursor, arango=None):
@@ -90,7 +91,8 @@ def edges(query, cursor, arango=None):
         return [], 0
 
     pages = paged(tables, cursor, query.id)
-    return [Entity(query.workspace, query.graph, edge['_id'].split('/')[0], edge) for edge in pages[0]], pages[1]
+    return [Entity(query.workspace, query.graph, edge['_id'].split('/')[0], edge)
+            for edge in pages[0]], pages[1]
 
 def paged(tables, cursor, id=None):
     docs = []
@@ -206,13 +208,25 @@ def fetchEdges(query, cursor):
 
 def graph_node_types(graph):
     workspace = db(graph.workspace)
-    graph = workspace.graph(graph.graph)
-    return graph.vertex_collections()
+    gr = workspace.graph(graph.graph)
+    return [EntityType(graph.workspace, graph.graph, table) for table in gr.vertex_collections()]
 
 def graph_edge_types(graph):
     workspace = db(graph.workspace)
-    graph = workspace.graph(graph.graph)
-    return [edges['edge_collection'] for edges in graph.edge_definitions()]
+    gr = workspace.graph(graph.graph)
+    return [EntityType(graph.workspace, graph.graph, edges['edge_collection']) for edges in gr.edge_definitions()]
+
+def type_properties(workspace, graph, table):
+    workspace = db(workspace)
+    metadata = workspace.collection("_graphs")
+    graph_meta = metadata.get(graph)
+
+    if (graph_meta.get('nodeTypes', None) is not None and
+        graph_meta['nodeTypes'].get(table, None)):
+        return graph_meta['nodeTypes'][table]
+    if (graph_meta.get('edgeTypes', None) is not None and
+        graph_meta['edgeTypes'].get(table, None)):
+        return graph_meta['edgeTypes'][table]
 
 def source(edge):
     workspace = db(edge.workspace)
@@ -222,7 +236,7 @@ def source(edge):
 def target(edge):
     workspace = db(edge.workspace)
     nodeTable = workspace.collection(edge.data['_to'].split('/')[0])
-    return Entity(edge.workspace, edge.graph, edge.data['_to'].split('/')[0], nodeTable.get(edge.data['_to']))
+    return Entity(edge.workspace, edge.graph, edge.data['_from'].split('/')[0], nodeTable.get(edge.data['_to']))
 
 def outgoing(node):
     workspace = db(node.workspace)
@@ -233,7 +247,8 @@ def outgoing(node):
         collection = workspace.collection(table)
         edges += [edge for edge in
                   graph.edges(table, node.data['_id'], direction='out')['edges']]
-    return [Entity(node.workspace, node.graph, edge['_id'].split('/')[0], edge) for edge in edges]
+    return [Entity(node.workspace, node.graph, edge.data['_id'].split('/')[0], edge)
+            for edge in edges]
 
 def incoming(node):
     workspace = db(node.workspace)
@@ -244,7 +259,8 @@ def incoming(node):
         collection = workspace.collection(table)
         edges += [edge for edge in
                   graph.edges(table, node.data['_id'], direction='in')['edges']]
-    return [Entity(node.workspace, node.graph, edge['_id'].split('/')[0], edge) for edge in edges]
+    return [Entity(node.workspace, node.graph, edge.data['_id'].split('/')[0], edge)
+            for edge in edges]
 
 def create_table(table, edges, fields=[], primary='_id'):
     workspace = db(table.workspace)
@@ -254,49 +270,35 @@ def create_table(table, edges, fields=[], primary='_id'):
         coll = workspace.create_collection(table.table, edge=edges)
     return table
 
-def create_node_type(entity_type):
+def create_type(entity_type, properties):
     workspace = db(entity_type.workspace)
+    table = workspace.collection(entity_type.table)
+    variety = 'edgeTypes' if table.properties()['edge'] else 'nodeTypes'
+
     metadata = workspace.collection("_graphs")
     graph_meta = metadata.get(entity_type.graph)
-    if graph_meta.get('nodeTypes', None) is None:
-        graph_meta['nodeTypes'] = {}
+    if graph_meta.get(variety, None) is None:
+        graph_meta[variety] = {}
 
-    graph_meta['nodeTypes'][entity_type.name] = [prop._asdict() for prop in entity_type.properties]
-    node_id_table = entity_type.properties[0].table
-    for edge_def in graph_meta['edgeDefinitions']:
-        if node_id_table not in edge_def['from']:
-            edge_def['from'].push(node_id_table)
-            edge_def['to'].push(node_id_table)
+    graph_meta[variety][entity_type.table] = properties
 
-    metadata.update(graph_meta)
-
-def create_edge_type(entity_type, edge_table):
-    workspace = db(entity_type.workspace)
-    metadata = workspace.collection("_graphs")
-    graph_meta = metadata.get(entity_type.graph)
-    if graph_meta.get('edgeTypes', None) is None:
-        graph_meta['edgeTypes'] = {}
-
-    possible_nodes = set()
-    for node_type in graph_meta.get('nodeTypes', []):
-        possible_nodes.add(graph_meta['nodeTypes'][node_type][0]['table'])
-
-    graph_meta['edgeTypes'][entity_type.name] = [prop._asdict() for prop in entity_type.properties]
-
-    for edge_def in graph_meta['edgeDefinitions']:
-        if edge_def['collection'] == edge_table:
-            break
-    else: # this else is for the for loop! indentation is correct!
-        graph_meta['edgeDefinitions'].append({
-            'collection': edge_table,
-            'from': list(possible_nodes),
-            'to': list(possible_nodes)
-        })
-
-    metadata.update(graph_meta)
-
-def create_type(entity_type, edge_table):
-    if edge_table is not None:
-        return create_edge_type(entity_type, edge_table)
+    if variety == 'edgeTypes':
+        possible_nodes = set()
+        for node_type in graph_meta.get('nodeTypes', []):
+            possible_nodes.add(graph_meta['nodeTypes'][node_type][0]['table'])
+        for edge_def in graph_meta['edgeDefinitions']:
+            if edge_def['collection'] == entity_type.table:
+                break
+        else: # this else is for the for loop! indentation is correct!
+            graph_meta['edgeDefinitions'].append({
+                'collection': entity_type.table,
+                'from': list(possible_nodes),
+                'to': list(possible_nodes)
+            })
     else:
-        return create_node_type(entity_type)
+        for edge_def in graph_meta['edgeDefinitions']:
+            if entity_type.table not in edge_def['from']:
+                edge_def['from'].push(entity_type.table)
+                edge_def['to'].push(entity_type.table)
+
+    metadata.update(graph_meta)

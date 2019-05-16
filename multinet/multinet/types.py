@@ -16,7 +16,7 @@ Graph = namedtuple('Graph', ['workspace', 'graph'])
 
 # label, table, key, workspace, graph, and name are all strings. properties is a list of Property objects.
 Property = namedtuple('Property', ['label', 'table', 'key'])
-EntityType = namedtuple('EntityType', ['workspace', 'graph', 'name', 'properties'])
+EntityType = namedtuple('EntityType', ['workspace', 'graph', 'table'])
 
 # numerical values representing where to start in a list of nodes/edges/rows and how many to return
 Cursor = namedtuple('Cursor', ['offset', 'limit'])

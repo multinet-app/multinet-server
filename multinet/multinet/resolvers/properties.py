@@ -8,7 +8,7 @@ def key(prop, info):
     return prop.key
 
 def add_resolvers(schema):
-    fields = schema.get_type('EntityType').fields
+    fields = schema.get_type('Property').fields
     fields['label'].resolver = label
     fields['table'].resolver = table
     fields['key'].resolver = key

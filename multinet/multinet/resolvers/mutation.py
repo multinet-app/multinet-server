@@ -1,3 +1,5 @@
+from girder import logprint
+
 from multinet import db
 from multinet.types import Graph, Table, EntityType, Property
 
@@ -15,10 +17,9 @@ def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[])
     db.create_table(table, edges)
     return table
 
-def entity_type(root, info, workspace, graph, name, properties, edgeTable=None):
-    entity_type = EntityType(workspace, graph, name,
-        [Property(prop['label'], prop['table'], prop['key']) for prop in properties])
-    db.create_type(entity_type, edgeTable)
+def entity_type(root, info, workspace, graph, table, properties):
+    entity_type = EntityType(workspace, graph, table)
+    db.create_type(entity_type, properties)
     return entity_type
 
 def add_resolvers(schema):

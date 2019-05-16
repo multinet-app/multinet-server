@@ -7,7 +7,7 @@ def workspace(root, info, name):
     db.create_workspace(name)
     return name
 
-def graph(root, info, workspace, name, nodeTypes, edgeTypes):
+def graph(root, info, workspace, name):
     graph = Graph(workspace, name)
     db.create_graph(graph)
     return graph

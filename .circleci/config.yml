@@ -5,20 +5,37 @@ jobs:
       - image: circleci/python:3-node
     steps:
       - checkout
+
+      # JavaScript tests for MultiNet client
       - restore_cache:
-          name: Restore Yarn Package Cache
+          name: Restore Yarn package cache
           keys:
             - yarn-packages-{{ checksum "client/yarn.lock" }}
       - run:
-          name: Install Yarn Dependencies
+          name: Install Yarn dependencies
           working_directory: client
           command: yarn install --frozen-lockfile
       - run:
-          name: JavaScript Lint Tests
+          name: JavaScript lint tests
           working_directory: client
           command: yarn lint
       - save_cache:
-          name: Save Yarn Package Cache
+          name: Save Yarn package cache
           key: yarn-packages-{{ checksum "client/yarn.lock" }}
           paths:
             - ~/.cache/yarn
+
+      # Python tests
+      - restore_cache:
+          key: pipenv-{{ checksum "Pipfile.lock" }}
+      - run:
+          name: Install Python dependencies
+          command: pipenv install
+      - run:
+          name: Python lint tests
+          working_directory: multinet
+          command: pipenv run tox -e flake8 -- --ignore=E501,D100,D101,D102,D103,D104,D107
+      - save_cache:
+          key: pipenv-{{ checksum "Pipfile.lock" }}
+          paths:
+            - ~/.local/share/virtualenvs

@@ -11,6 +11,8 @@ python-arango = "*"
 graphql-core = "*"
 newick = "*"
 uuid = "*"
+flake8 = "*"
+tox = "*"
 
 [requires]
 python_version = "3.7"

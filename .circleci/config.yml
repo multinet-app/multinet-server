@@ -1,0 +1,24 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3-node
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "client/yarn.lock" }}
+      - run:
+          name: Install Yarn Dependencies
+          working_directory: client
+          command: yarn install --frozen-lockfile
+      - run:
+          name: JavaScript Lint Tests
+          working_directory: client
+          command: yarn lint
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "client/yarn.lock" }}
+          paths:
+            - ~/.cache/yarn

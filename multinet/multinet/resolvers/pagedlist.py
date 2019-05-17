@@ -12,31 +12,38 @@ from multinet.types import RealizedQuery, Cursor
 # been already fetched, in which case a "realized query" can be passed in which
 # contains the full list of entities already
 
+
 def node_count(query, info):
     return db.countNodes(query)
 
+
 def nodes(query, info, offset=0, limit=10):
     if type(query) == RealizedQuery:
-        return query.values[offset:(offset+limit)]
+        return query.values[offset:(offset + limit)]
     return db.fetchNodes(query, Cursor(offset, limit))
+
 
 def edge_count(query, info):
     if type(query) == RealizedQuery:
         return len(query.values)
     return db.countEdges(query)
 
+
 def edges(query, info, offset=0, limit=10):
     if type(query) == RealizedQuery:
-        return query.values[offset:(offset+limit)]
+        return query.values[offset:(offset + limit)]
     return db.fetchEdges(query, Cursor(offset, limit))
+
 
 def row_count(query, info):
     if type(query) == RealizedQuery:
         return len(query.values)
     return db.countRows(query)
 
+
 def rows(query, info, offset=0, limit=10):
     return db.fetchRows(query, Cursor(offset, limit))
+
 
 def add_resolvers(schema):
     fields = schema.get_type('RowList').fields

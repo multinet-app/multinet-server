@@ -16,7 +16,7 @@
           </div>
           <div class = "list-link-wrap">
           <div v-for="table in tables" :key="table" class="list-link">
-            <router-link :to="`/${workspace}/table/${table}`">{{table}}</router-link>
+            <router-link :to="`/workspaces/${workspace}/table/${table}`">{{table}}</router-link>
           </div>
         </div>
       </div>
@@ -27,7 +27,7 @@
         </div>
         <div class = "list-link-wrap">
           <div v-for="graph in graphs" :key="graph" class="list-link">
-            <router-link :to="`/${workspace}/graph/${graph}`">{{graph}}</router-link>
+            <router-link :to="`/workspaces/${workspace}/graph/${graph}`">{{graph}}</router-link>
           </div>
         </div>
       </div>

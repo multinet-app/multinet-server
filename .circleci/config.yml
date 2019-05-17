@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Python lint tests
           working_directory: multinet
-          command: pipenv run tox -e flake8
+          command: pipenv run tox -e flake8 -- --ignore=E501,D100,D101,D102,D103,D104,D107
       - save_cache:
           key: pipenv-{{ checksum "Pipfile.lock" }}
           paths:

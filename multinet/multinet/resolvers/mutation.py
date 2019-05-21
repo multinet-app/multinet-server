@@ -1,7 +1,5 @@
-from girder import logprint
-
 from multinet import db
-from multinet.types import Graph, Table, EntityType, Property
+from multinet.types import Graph, Table, EntityType
 
 
 def workspace(root, info, name):

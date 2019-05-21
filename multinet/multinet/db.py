@@ -236,16 +236,16 @@ def graph_edge_types(graph):
     gr = workspace.graph(graph.graph)
     return [EntityType(graph.workspace, graph.graph, edges['edge_collection']) for edges in gr.edge_definitions()]
 
+
 def type_properties(workspace, graph, table):
     workspace = db(workspace)
     metadata = workspace.collection("_graphs")
     graph_meta = metadata.get(graph)
 
-    if (graph_meta.get('nodeTypes', None) is not None and
-        graph_meta['nodeTypes'].get(table, None)):
+    if graph_meta.get('nodeTypes', None) is not None and graph_meta['nodeTypes'].get(table, None):
         return graph_meta['nodeTypes'][table]
-    if (graph_meta.get('edgeTypes', None) is not None and
-        graph_meta['edgeTypes'].get(table, None)):
+
+    if graph_meta.get('edgeTypes', None) is not None and graph_meta['edgeTypes'].get(table, None):
         return graph_meta['edgeTypes'][table]
 
 
@@ -293,6 +293,7 @@ def create_table(table, edges, fields=[], primary='_id'):
         coll = workspace.create_collection(table.table, edge=edges)
     return coll
 
+
 def create_type(entity_type, properties):
     workspace = db(entity_type.workspace)
     table = workspace.collection(entity_type.table)
@@ -312,7 +313,7 @@ def create_type(entity_type, properties):
         for edge_def in graph_meta['edgeDefinitions']:
             if edge_def['collection'] == entity_type.table:
                 break
-        else: # this else is for the for loop! indentation is correct!
+        else:  # this else is for the for loop! indentation is correct!
             graph_meta['edgeDefinitions'].append({
                 'collection': entity_type.table,
                 'from': list(possible_nodes),

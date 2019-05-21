@@ -28,8 +28,10 @@ def source(edge, info):
 def target(edge, info):
     return db.target(edge)
 
+
 def entity_type(entity, info):
     return EntityType(entity.workspace, entity.graph, entity.entity_type)
+
 
 def add_resolvers(schema):
     fields = schema.get_type('Node').fields

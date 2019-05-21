@@ -2,7 +2,7 @@
 <div>
   <div class="nav">
     <div class="return-nav">
-      <router-link :to="`/${workspace}/`" class="Button"><i class="fas fa-home"></i> to main table view</router-link>
+      <router-link :to="`/workspaces/${workspace}/`" class="Button"><i class="fas fa-home"></i> to main table view</router-link>
     </div>
   </div>
   <div class="wrapper">
@@ -28,13 +28,9 @@
 </template>
 <script>
 import api from '@/api'
-import Button from '@/components/Button'
 
 export default {
   name: 'TableDetail',
-  components: {
-    'v-button':Button,
-  },
   props: ['workspace', 'table'],
   data () {
     return {

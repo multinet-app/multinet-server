@@ -1,11 +1,10 @@
 from girder import plugin, logprint
 from girder.api import access
-from girder.api.rest import Resource, RestException, getBodyJson
+from girder.api.rest import Resource, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 
 import csv
 from io import StringIO
-import json
 import logging
 from graphql import graphql
 import cherrypy
@@ -19,7 +18,7 @@ from . import db
 def graphql_query(query):
     result = graphql(schema, query)
     if result:
-        errors= [error.message for error in result.errors] if result.errors else []
+        errors = [error.message for error in result.errors] if result.errors else []
         logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
         for error in errors[:10]:
             logprint(error, level=logging.WARNING)
@@ -103,7 +102,8 @@ class MultiNet(Resource):
 
         edgecount = 0
         nodecount = 0
-        def read_tree (parent, node):
+
+        def read_tree(parent, node):
             nonlocal nodecount
             nonlocal edgecount
             key = node.name or uuid.uuid4().hex
@@ -123,6 +123,7 @@ class MultiNet(Resource):
         read_tree(None, tree[0])
 
         return dict(edgecount=edgecount, nodecount=nodecount)
+
 
 class GirderPlugin(plugin.GirderPlugin):
     DISPLAY_NAME = 'MultiNet'

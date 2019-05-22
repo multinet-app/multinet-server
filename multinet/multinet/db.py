@@ -301,7 +301,7 @@ def create_type(entity_type, properties):
 
     metadata = workspace.collection("_graphs")
     graph_meta = metadata.get(entity_type.graph)
-    if graph_meta.get(variety, None) is None:
+    if graph_meta.get(variety) is None:
         graph_meta[variety] = {}
 
     graph_meta[variety][entity_type.table] = properties

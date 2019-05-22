@@ -6,7 +6,14 @@ A Girder plugin proof-of-concept for a MultiNet API / web application
 ### Set Up Girder
 1. Clone this repository: `git clone
 https://github.com/multinet-app/multinet-girder; cd multinet-girder`
-2. Start the mongo and arango databases using docker-compose: `MULTINET_ROOT_PASSWORD=yourSecretPassword docker-compose up -d`
+2. Start the mongo and arango databases using docker-compose:
+   `MULTINET_ROOT_PASSWORD=yourSecretPassword docker-compose up -d` NOTE: macOS
+   users may encounter errors in this step regarding filemounts denied to the
+   Docker process; to solve this issue, create two directories somewhere (e.g.
+   `mkdir -p ~/.local/multinet/mongo`, `mkdir -p ~/.local/multinet/arango`), and
+   launch the Docker container using `MULTINET_ROOT_PASSWORD=yourSecretPassword
+   MONGO_DATA=~/.local/multinet/mongo ARANGO_DATA=~/.local/multinet/arango
+   docker-compose up -d`.
 2. Use pipenv to create a virtual environment and install the dependencies: `pipenv install`
 3. Start the pipenv shell to set up girder and run the websever: `pipenv shell`
 4. Build the Girder web client: `girder build`

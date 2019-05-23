@@ -7,6 +7,10 @@ def workspace(root, info, name):
     return name
 
 
+def delete_workspace(root, info, name):
+    return name if db.delete_workspace(name) else None
+
+
 def graph(root, info, workspace, name):
     graph = Graph(workspace, name)
     db.create_graph(graph)
@@ -28,6 +32,7 @@ def entity_type(root, info, workspace, graph, table, properties):
 def add_resolvers(schema):
     fields = schema.get_type('Mutation').fields
     fields['workspace'].resolver = workspace
+    fields['deleteWorkspace'].resolver = delete_workspace
     fields['graph'].resolver = graph
     fields['table'].resolver = table
     fields['entityType'].resolver = entity_type

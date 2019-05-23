@@ -30,6 +30,16 @@ def create_workspace(name, arango=None):
 
 
 @with_client
+def delete_workspace(name, arango=None):
+    sys = db('_system', arango=arango)
+    if sys.has_database(name):
+        sys.delete_database(name)
+        return True
+    else:
+        return False
+
+
+@with_client
 def get_workspaces(name, arango=None):
     sys = db('_system', arango=arango)
     if name and sys.has_database(name):

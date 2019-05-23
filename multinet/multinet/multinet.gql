@@ -99,6 +99,8 @@ type Query {
 
 type Mutation {
   workspace (name: String!): String!
+  deleteWorkspace (name: String!): String!
+
   graph (workspace: String!, name: String!): Graph!
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
   entityType (workspace: String!, graph: String!, table: String!, properties: [PropertyInput!]!): EntityType!

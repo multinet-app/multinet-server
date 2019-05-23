@@ -13,6 +13,7 @@ newick = "*"
 uuid = "*"
 flake8 = "*"
 tox = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"

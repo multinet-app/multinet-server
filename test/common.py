@@ -13,8 +13,12 @@ def multinet_request(query):
 
 
 def delete_workspace(name):
-    query = f'''mutation {{
+    return multinet_request(f'''mutation {{
         deleteWorkspace(name: "{name}")
-    }}'''
+    }}''')
 
-    return multinet_request(query)
+
+def create_workspace(name):
+    return multinet_request(f'''mutation {{
+        workspace(name: "{name}")
+    }}''')

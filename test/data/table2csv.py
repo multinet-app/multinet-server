@@ -48,7 +48,7 @@ if __name__ == '__main__':
         club_names = [club_name for club_name in row if row[club_name] == '1']
 
         for club_name in club_names:
-            membership.append({'_from': ids[member_name], '_to': ids[club_name]})
+            membership.append({'_from': f'members/{ids[member_name]}', '_to': f'clubs/{ids[club_name]}'})
 
     # Dump the tables to disk as csv files.
     for table_name in ['clubs', 'members', 'club_data', 'member_data', 'membership']:

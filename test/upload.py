@@ -1,7 +1,7 @@
 from pprint import pprint
 import sys
 
-from common import create_workspace, upload_csv, WORKSPACE
+from common import create_workspace, create_graph, create_type, upload_csv, WORKSPACE
 
 
 def error_message(msg):
@@ -27,6 +27,23 @@ if __name__ == '__main__':
         print(f'uploading {table}...')
         result = upload_csv(f'data/{table}.csv', WORKSPACE, table)
         if result.status_code != 200:
-            error_msg(result.json())
+            error_message(result.json())
             sys.exit(1)
     print('tables uploaded successfully')
+
+    # Create the graph.
+    print('creating graph...')
+    graph = create_graph(WORKSPACE, 'boston')
+    pprint(graph.json())
+
+    # Define the node data types.
+    props = [
+        {'label': 'name',
+         'table': 'members',
+         'key': 'name'},
+        {'label': 'name_length',
+         'table': 'member_data',
+         'key': 'name_length'}
+    ]
+    types = create_type(WORKSPACE, 'boston', 'members', props)
+    pprint(types.json())

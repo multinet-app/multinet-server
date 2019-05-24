@@ -25,6 +25,45 @@ def create_workspace(name):
     }}''')
 
 
+def create_graph(workspace, name):
+    return multinet_request(f'''mutation {{
+        graph(workspace: "{workspace}", name: "{name}") {{
+            name
+            nodeTypes {{
+                name
+                properties {{
+                    label
+                    table
+                    key
+                }}
+            }}
+            edgeTypes {{
+                name
+                properties {{
+                    label
+                    table
+                    key
+                }}
+            }}
+        }}
+    }}''')
+
+
+def create_type(workspace, graph, table, properties):
+    propertyArg = ', '.join(['{{label: "{0}", table: "{1}", key: "{2}"}}'.format(prop['label'], prop['table'], prop['key']) for prop in properties])
+
+    return multinet_request(f'''mutation {{
+        entityType(workspace: "{workspace}", graph: "{graph}", table: "{table}", properties: [{propertyArg}]) {{
+            name
+            properties {{
+                label
+                table
+                key
+            }}
+        }}
+    }}''')
+
+
 def upload_csv(filename, workspace, table):
     with open(filename) as f:
         raw = f.read()

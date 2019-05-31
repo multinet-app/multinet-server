@@ -8,3 +8,11 @@ if __name__ == '__main__':
     # Dump the nodes from the graph.
     nodes = graph_nodes(WORKSPACE, 'boston')
     pprint(nodes.json())
+
+    # Dump just the member nodes.
+    nodes = graph_nodes(WORKSPACE, 'boston', node_type='members')
+    pprint(nodes.json())
+
+    # And just the club nodes.
+    nodes = graph_nodes(WORKSPACE, 'boston', node_type='clubs')
+    pprint(nodes.json())

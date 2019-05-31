@@ -23,7 +23,7 @@ if __name__ == '__main__':
         print('created succesfully')
 
     # Upload the data tables.
-    for table in ['members', 'member_data', 'clubs', 'club_data', 'membership']:
+    for table in ['members', 'clubs', 'membership']:
         print(f'uploading {table}...')
         result = upload_csv(f'data/{table}.csv', WORKSPACE, table)
         if result.status_code != 200:

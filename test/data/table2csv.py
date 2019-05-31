@@ -33,13 +33,9 @@ if __name__ == '__main__':
     # Construct tables to a unique ID for each entity.
     ids = {name: idx for (idx, name) in enumerate(club_names + member_names)}
 
-    # Create name and data tables for the members.
+    # Create member and club tables.
     members = [{'_key': ids[name], 'name': namify_member(name)} for name in member_names]
-    member_data = [{'_key': ids[name], 'name_length': len(namify_member(name))} for name in member_names]
-
-    # Create name and data tables for the clubs.
     clubs = [{'_key': ids[name], 'name': namify_club(name)} for name in club_names]
-    club_data = [{'_key': ids[name], 'name_length': len(namify_club(name))} for name in club_names]
 
     # Create the membership table.
     membership = []
@@ -51,7 +47,7 @@ if __name__ == '__main__':
             membership.append({'_from': f'members/{ids[member_name]}', '_to': f'clubs/{ids[club_name]}'})
 
     # Dump the tables to disk as csv files.
-    for table_name in ['clubs', 'members', 'club_data', 'member_data', 'membership']:
+    for table_name in ['clubs', 'members', 'membership']:
         csvname = f'{table_name}.csv'
         table = eval(table_name)
 

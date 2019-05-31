@@ -35,7 +35,3 @@ if __name__ == '__main__':
     print('creating graph...')
     graph = create_graph(WORKSPACE, 'boston', ['members', 'clubs'], 'membership')
     pprint(graph.json())
-
-    # Dump the nodes from the graph.
-    nodes = graph_nodes(WORKSPACE, 'boston')
-    pprint(nodes.json())

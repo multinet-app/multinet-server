@@ -57,6 +57,30 @@ def graph_nodes(workspace, name, node_type=None, key=None, search=None):
     }}''')
 
 
+def graph_edges(workspace, name, key=None, search=None):
+    key_arg = f'key: "{key}"' if key else ''
+    search_arg = f'search: "{search}"' if search else ''
+
+    all_args = ', '.join(filter(None, [key_arg, search_arg]))
+    if all_args:
+        all_args = f'({all_args})'
+
+    return multinet_request(f'''query {{
+        graph(workspace: "{workspace}", name: "{name}") {{
+            edges{all_args} {{
+                total
+                data(offset: 0, limit: 10) {{
+                    key
+                    properties {{
+                        key
+                        value
+                    }}
+                }}
+            }}
+        }}
+    }}''')
+
+
 def upload_csv(filename, workspace, table):
     with open(filename) as f:
         raw = f.read()

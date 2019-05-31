@@ -24,8 +24,8 @@ def nodes(graph, info, nodeType=None, key=None, search=None):
     return EntityQuery(graph.workspace, graph.graph, nodeType, key, search)
 
 
-def edges(graph, info):
-    return EntityQuery(graph.workspace, graph.graph, None, None, None)
+def edges(graph, info, key=None, search=None):
+    return EntityQuery(graph.workspace, graph.graph, None, key, search)
 
 
 def add_resolvers(schema):

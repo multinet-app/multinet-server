@@ -78,7 +78,7 @@ type Graph {
   nodeTypes: [EntityType!]!
   edgeTypes: [EntityType!]!
   nodes(nodeType: String, key: String, search: String): NodeList!
-  edges: EdgeList!
+  edges(key: String, search: String): EdgeList!
 }
 
 type Workspace {

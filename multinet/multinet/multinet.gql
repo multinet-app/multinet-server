@@ -102,7 +102,6 @@ type Mutation {
 
   graph (workspace: String!, name: String!, node_tables: [String!]!, edge_table: String!): Graph
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
-  entityType (workspace: String!, graph: String!, table: String!, properties: [PropertyInput!]!): EntityType!
 }
 
 schema {

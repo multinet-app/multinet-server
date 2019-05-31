@@ -56,6 +56,20 @@ def workspace_tables(workspace, arango=None):
 
 
 @with_client
+def workspace_table(workspace, name, arango=None):
+    space = db(workspace, arango=arango)
+
+    tables = filter(lambda g: g['name'] == name, space.collections())
+    table = None
+    try:
+        table = next(tables)
+    except StopIteration:
+        pass
+
+    return table
+
+
+@with_client
 def workspace_graphs(workspace, arango=None):
     space = db(workspace, arango=arango)
     return [graph['name'] for graph in space.graphs()]
@@ -251,7 +265,9 @@ def countRows(query):
 def fetchRows(query, cursor):
     collection = table(query)
     if query.id:
-        return [collection.get(query.id)]
+        row = collection.get(query.id)
+        return [Row(query.workspace, query.table, row)] if row else []
+
     elif query.search:
         return []  # to be implemented
     else:

@@ -70,7 +70,7 @@ type Table {
   primaryKey: String!
   # a list of key strings as they would appear in Attribute
   fields: [String!]!
-  rows: RowList!
+  rows(key: String, search: String): RowList!
 }
 
 type Graph {

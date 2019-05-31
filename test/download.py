@@ -1,7 +1,7 @@
 from pprint import pprint
 import sys
 
-from common import WORKSPACE, graph_nodes, graph_edges
+from common import WORKSPACE, graph_nodes, graph_edges, table_rows
 
 
 if __name__ == '__main__':
@@ -28,3 +28,11 @@ if __name__ == '__main__':
     # Get a specific edge.
     edges = graph_edges(WORKSPACE, 'boston', key='membership/9701679')
     pprint(edges.json())
+
+    # Dump rows from a table.
+    rows = table_rows(WORKSPACE, 'members')
+    pprint(rows.json())
+
+    # Dump a specific row from a table.
+    rows = table_rows(WORKSPACE, 'members', key='members/142')
+    pprint(rows.json())

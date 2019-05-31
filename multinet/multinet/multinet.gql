@@ -52,17 +52,17 @@ type Row {
 
 type NodeList {
   total: Int!
-  nodes (offset: Int, limit: Int): [Node!]!
+  data (offset: Int, limit: Int): [Node!]!
 }
 
 type EdgeList {
   total: Int!
-  edges (offset: Int, limit: Int): [Edge!]!
+  data (offset: Int, limit: Int): [Edge!]!
 }
 
 type RowList {
   total: Int!
-  rows (offset: Int, limit: Int): [Row!]!
+  data (offset: Int, limit: Int): [Row!]!
 }
 
 type Table {
@@ -77,7 +77,7 @@ type Graph {
   name: String!
   nodeTypes: [EntityType!]!
   edgeTypes: [EntityType!]!
-  nodes: NodeList!
+  nodes(nodeType: String, key: String, search: String): NodeList!
   edges: EdgeList!
 }
 
@@ -88,9 +88,8 @@ type Workspace {
 }
 
 type Query {
-  nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String): NodeList!
-  edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String): EdgeList!
-  rows (workspace: String!, table: String!, key: String, search: String): RowList!
+  graph (workspace: String!, name: String!): Graph
+  table (workspace: String!, name: String!): Table
 
   workspaces (name: String): [Workspace!]!
   graphs (workspace: String!, name: String): [Graph!]!
@@ -101,7 +100,7 @@ type Mutation {
   workspace (name: String!): String!
   deleteWorkspace (name: String!): String
 
-  graph (workspace: String!, name: String!): Graph!
+  graph (workspace: String!, name: String!, node_tables: [String!]!, edge_table: String!): Graph
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
   entityType (workspace: String!, graph: String!, table: String!, properties: [PropertyInput!]!): EntityType!
 }

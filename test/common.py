@@ -25,40 +25,33 @@ def create_workspace(name):
     }}''')
 
 
-def create_graph(workspace, name):
+def create_graph(workspace, name, node_tables, edge_table):
     return multinet_request(f'''mutation {{
-        graph(workspace: "{workspace}", name: "{name}") {{
+        graph(workspace: "{workspace}", name: "{name}", node_tables: {json.dumps(node_tables)}, edge_table: "{edge_table}") {{
             name
-            nodeTypes {{
-                name
-                properties {{
-                    label
-                    table
-                    key
-                }}
-            }}
-            edgeTypes {{
-                name
-                properties {{
-                    label
-                    table
-                    key
-                }}
-            }}
         }}
     }}''')
 
 
-def create_type(workspace, graph, table, properties):
-    propertyArg = ', '.join(['{{label: "{0}", table: "{1}", key: "{2}"}}'.format(prop['label'], prop['table'], prop['key']) for prop in properties])
+def graph_nodes(workspace, name, node_type=None, key=None, search=None):
+    node_type_arg = f'nodeType: "{node_type}"' if node_type else ''
+    key_arg = f'key: "{key}"' if key else ''
+    search_arg = f'search: "{search}"' if search else ''
 
-    return multinet_request(f'''mutation {{
-        entityType(workspace: "{workspace}", graph: "{graph}", table: "{table}", properties: [{propertyArg}]) {{
-            name
-            properties {{
-                label
-                table
-                key
+    all_args = ', '.join(filter(None, [node_type_arg, key_arg, search_arg]))
+    if all_args:
+        all_args = f'({all_args})'
+
+    return multinet_request(f'''query {{
+        graph(workspace: "{workspace}", name: "{name}") {{
+            nodes{all_args} {{
+                total
+                data(offset: 0, limit: 10) {{
+                    key
+                    properties (keys: ["name"]) {{
+                        value
+                    }}
+                }}
             }}
         }}
     }}''')

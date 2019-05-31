@@ -20,7 +20,7 @@ def name(graph, info):
     return graph.graph
 
 
-def nodes(graph, info):
+def nodes(graph, info, nodeTypes=None, key=None, search=None):
     return EntityQuery(graph.workspace, graph.graph, None, None, None)
 
 

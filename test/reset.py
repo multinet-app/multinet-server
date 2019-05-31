@@ -6,7 +6,7 @@ from common import delete_workspace, WORKSPACE
 if __name__ == '__main__':
     print(f'deleting workspace "{WORKSPACE}"...')
 
-    result = delete_workspace(WORKSPACE)
+    result = delete_workspace(WORKSPACE).json()
 
     if result['errors']:
         print('errors encountered:\n', *result["errors"], sep='\n')

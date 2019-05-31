@@ -48,12 +48,12 @@ def rows(query, info, offset=0, limit=10):
 def add_resolvers(schema):
     fields = schema.get_type('RowList').fields
     fields['total'].resolver = row_count
-    fields['rows'].resolver = rows
+    fields['data'].resolver = rows
 
     fields = schema.get_type('NodeList').fields
     fields['total'].resolver = node_count
-    fields['nodes'].resolver = nodes
+    fields['data'].resolver = nodes
 
     fields = schema.get_type('EdgeList').fields
     fields['total'].resolver = edge_count
-    fields['edges'].resolver = edges
+    fields['data'].resolver = edges

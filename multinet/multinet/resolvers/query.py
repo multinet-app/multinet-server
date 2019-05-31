@@ -12,9 +12,18 @@ def graphs(root, info, workspace, name=""):
     return [Graph(workspace, graph) for graph in db.workspace_graphs(workspace) if not name or graph == name]
 
 
+# get a single graph by workspace/name
+def graph(root, info, workspace, name):
+    return Graph(workspace, name) if db.workspace_graph(workspace, name) else None
+
+
 # get a list of tables in a workspace
 def tables(root, info, workspace, name=""):
     return [Table(workspace, table) for table in db.workspace_tables(workspace) if not name or table == name]
+
+
+def table(root, info, workspace, name):
+    return Table(workspace, name) if db.workspace_table(workspace, name) else None
 
 
 # get a list of nodes in a graph
@@ -34,9 +43,8 @@ def rows(root, info, workspace, table, key=None, search=None):
 
 def add_resolvers(schema):
     fields = schema.get_type('Query').fields
-    fields['nodes'].resolver = nodes
-    fields['edges'].resolver = edges
-    fields['rows'].resolver = rows
     fields['workspaces'].resolver = workspaces
     fields['graphs'].resolver = graphs
+    fields['graph'].resolver = graph
     fields['tables'].resolver = tables
+    fields['table'].resolver = table

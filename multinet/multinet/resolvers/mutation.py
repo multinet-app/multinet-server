@@ -11,10 +11,9 @@ def delete_workspace(root, info, name):
     return name if db.delete_workspace(name) else None
 
 
-def graph(root, info, workspace, name):
+def graph(root, info, workspace, name, node_tables, edge_table):
     graph = Graph(workspace, name)
-    db.create_graph(graph)
-    return graph
+    return graph if db.create_graph(graph, node_tables, edge_table) else None
 
 
 def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[]):

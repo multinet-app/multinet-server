@@ -1,7 +1,7 @@
 from pprint import pprint
 import sys
 
-from common import create_workspace, create_graph, create_type, upload_csv, WORKSPACE
+from common import create_workspace, create_graph, graph_nodes, upload_csv, WORKSPACE
 
 
 def error_message(msg):
@@ -33,17 +33,9 @@ if __name__ == '__main__':
 
     # Create the graph.
     print('creating graph...')
-    graph = create_graph(WORKSPACE, 'boston')
+    graph = create_graph(WORKSPACE, 'boston', ['members', 'clubs'], 'membership')
     pprint(graph.json())
 
-    # Define the node data types.
-    props = [
-        {'label': 'name',
-         'table': 'members',
-         'key': 'name'},
-        {'label': 'name_length',
-         'table': 'member_data',
-         'key': 'name_length'}
-    ]
-    types = create_type(WORKSPACE, 'boston', 'members', props)
-    pprint(types.json())
+    # Dump the nodes from the graph.
+    nodes = graph_nodes(WORKSPACE, 'boston')
+    pprint(nodes.json())

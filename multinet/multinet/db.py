@@ -62,6 +62,20 @@ def workspace_graphs(workspace, arango=None):
 
 
 @with_client
+def workspace_graph(workspace, name, arango=None):
+    space = db(workspace, arango=arango)
+
+    graphs = filter(lambda g: g['name'] == name, space.graphs())
+    graph = None
+    try:
+        graph = next(graphs)
+    except StopIteration:
+        pass
+
+    return graph
+
+
+@with_client
 def table_fields(query, arango=None):
     workspace = db(query.workspace, arango=arango)
     if workspace.has_collection(query.table):
@@ -114,31 +128,68 @@ def edges(query, cursor, arango=None):
 
 
 def paged(tables, cursor, id=None):
+    # If id is set, we have to simply verify that: 1. one of the specified
+    # tables contains the id'd object and 2. the cursor has an offset of 0.
+    if id:
+        if cursor.offset > 0:
+            return [], 0
+
+        doc = None
+        for table in tables:
+            doc = table.get(id)
+            if doc:
+                break
+
+        if doc:
+            return [doc], 1
+        else:
+            return [], 0
+
+    # Need to retrieve up to cursor.limit items.
+    remaining = cursor.limit or -1
+    offset = cursor.offset
+
+    # We will step through the tables one by one collecting items.
+    which = 0
+
+    # Continue looking for items until we run out of tables, or we find the
+    # total number we need.
+    #
+    # NOTE: if `remaining` is set to -1, then it will never reach 0 and thus
+    # represents an unlimited query; similarly, if it is positive, then it
+    # *will* reach 0 eventually (given enough avaialble data) and thus
+    # represents a limited query.
     docs = []
-    total = 0
-    for table in tables:
-        count = 1 if id else table.count()
-        if (cursor.offset <= total + count) and (len(docs) < cursor.limit):
-            if id:
-                item = table.get(id)
-                if item:
-                    docs.append(item)
-                else:
-                    count = 0
-            else:
-                items = table.all(skip=(cursor.offset - total), limit=(cursor.limit - len(docs)))
-            docs += items
-        total += count
-    return docs, total
+    while remaining != 0 and which < len(tables):
+        # Select the table.
+        table = tables[which]
+
+        # Compute how many entries of this table are available, and grab the
+        # appropriate number.
+        available = table.count() - offset
+        if remaining < 0:
+            take = available
+        else:
+            take = min(available, remaining)
+        docs += table.all(skip=offset, limit=take)
+
+        remaining -= take
+        offset = 0
+        which += 1
+
+    return docs, len(docs)
 
 
 @with_client
-def create_graph(graph, arango=None):
+def create_graph(graph, node_tables, edge_table, arango=None):
     workspace = db(graph.workspace, arango=arango)
     if workspace.has_graph(graph.graph):
-        graph = workspace.graph(graph.graph)
+        return False
     else:
         graph = workspace.create_graph(graph.graph)
+        graph.create_edge_definition(edge_collection=edge_table, from_vertex_collections=node_tables, to_vertex_collections=node_tables)
+
+        return True
 
     # for table in node_types:
     #     if not graph.has_vertex_collection(table):

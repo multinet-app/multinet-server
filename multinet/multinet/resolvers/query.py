@@ -1,5 +1,5 @@
 from multinet import db
-from multinet.types import Graph, Table, EntityQuery, RowQuery
+from multinet.types import Graph, Table
 
 
 # get a list of workspaces a user has access to.

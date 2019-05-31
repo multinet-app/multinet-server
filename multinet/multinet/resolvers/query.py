@@ -26,21 +26,6 @@ def table(root, info, workspace, name):
     return Table(workspace, name) if db.workspace_table(workspace, name) else None
 
 
-# get a list of nodes in a graph
-def nodes(root, info, workspace, graph, nodeType=None, key=None, search=None):
-    return EntityQuery(workspace, graph, nodeType, key, search)
-
-
-# get a list of edges in a graph
-def edges(root, info, workspace, graph, edgeType=None, key=None, search=None):
-    return EntityQuery(workspace, graph, edgeType, key, search)
-
-
-# get a list of rows in a table
-def rows(root, info, workspace, table, key=None, search=None):
-    return RowQuery(workspace, table, key, search)
-
-
 def add_resolvers(schema):
     fields = schema.get_type('Query').fields
     fields['workspaces'].resolver = workspaces

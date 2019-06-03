@@ -5,26 +5,33 @@ type Attribute {
   value: String!
 }
 
-# type Property {
-#     label: String!
-#     key: String!
-# }
+type Property {
+  label: String!
+  table: String!
+  key: String!
+}
 
-# type EntityType {
-#     name: String!
-#     properties: [Property!]!
-# }
+input PropertyInput {
+  label: String!
+  table: String!
+  key: String!
+}
+
+type EntityType {
+  name: String!
+  properties: [Property!]!
+}
 
 interface Entity {
   # this is the id of the entity in all tables it's associated with
   key: String!
-  type: String!
+  type: EntityType!
   properties (keys: [String!]): [Attribute!]
 }
 
 type Node implements Entity {
   key: String!
-  type: String!
+  type: EntityType!
   outgoing (limit: Int, offset: Int): EdgeList!
   incoming (limit: Int, offset: Int): EdgeList!
   properties (keys: [String!]): [Attribute!]
@@ -32,7 +39,7 @@ type Node implements Entity {
 
 type Edge implements Entity {
   key: String!
-  type: String!
+  type: EntityType!
   source: Node!
   target: Node!
   properties (keys: [String!]): [Attribute!]
@@ -45,17 +52,17 @@ type Row {
 
 type NodeList {
   total: Int!
-  nodes (offset: Int, limit: Int): [Node!]!
+  data (offset: Int, limit: Int): [Node!]!
 }
 
 type EdgeList {
   total: Int!
-  edges (offset: Int, limit: Int): [Edge!]!
+  data (offset: Int, limit: Int): [Edge!]!
 }
 
 type RowList {
   total: Int!
-  rows (offset: Int, limit: Int): [Row!]!
+  data (offset: Int, limit: Int): [Row!]!
 }
 
 type Table {
@@ -63,15 +70,15 @@ type Table {
   primaryKey: String!
   # a list of key strings as they would appear in Attribute
   fields: [String!]!
-  rows: RowList!
+  rows(key: String, search: String): RowList!
 }
 
 type Graph {
   name: String!
-  nodeTypes: [String!]!
-  edgeTypes: [String!]!
-  nodes: NodeList!
-  edges: EdgeList!
+  nodeTypes: [EntityType!]!
+  edgeTypes: [EntityType!]!
+  nodes(nodeType: String, key: String, search: String): NodeList!
+  edges(key: String, search: String): EdgeList!
 }
 
 type Workspace {
@@ -81,9 +88,8 @@ type Workspace {
 }
 
 type Query {
-  nodes (workspace: String!, graph: String!, nodeType: String, key: String, search: String): NodeList!
-  edges (workspace: String!, graph: String!, edgeType: String, key: String, search: String): EdgeList!
-  rows (workspace: String!, table: String!, key: String, search: String): RowList!
+  graph (workspace: String!, name: String!): Graph
+  table (workspace: String!, name: String!): Table
 
   workspaces (name: String): [Workspace!]!
   graphs (workspace: String!, name: String): [Graph!]!
@@ -92,7 +98,9 @@ type Query {
 
 type Mutation {
   workspace (name: String!): String!
-  graph (workspace: String!, name: String!, nodeTypes: [String!]!, edgeTypes: [String!]!): Graph!
+  deleteWorkspace (name: String!): String
+
+  graph (workspace: String!, name: String!, node_tables: [String!]!, edge_table: String!): Graph
   table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
 }
 

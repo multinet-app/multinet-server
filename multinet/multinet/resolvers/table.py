@@ -5,8 +5,8 @@ from multinet.types import RowQuery
 # Each table has a logical set of fields and rows.
 
 
-def rows(table, info):
-    return RowQuery(table.workspace, table.table, None, None)
+def rows(table, info, key=None, search=None):
+    return RowQuery(table.workspace, table.table, key, search)
 
 
 def name(table, info):

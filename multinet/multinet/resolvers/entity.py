@@ -1,5 +1,5 @@
 from multinet import db
-from multinet.types import Attribute, RealizedQuery
+from multinet.types import Attribute, RealizedQuery, EntityType
 
 
 # The entities are nodes, edges, and rows. Entities share in common having a single
@@ -29,17 +29,21 @@ def target(edge, info):
     return db.target(edge)
 
 
+def entity_type(entity, info):
+    return EntityType(entity.workspace, entity.graph, entity.entity_type)
+
+
 def add_resolvers(schema):
     fields = schema.get_type('Node').fields
     fields['key'].resolver = lambda node, *_: node.data['_id']
-    fields['type'].resolver = lambda node, *_: node.entity_type
+    fields['type'].resolver = entity_type
     fields['outgoing'].resolver = outgoing
     fields['incoming'].resolver = incoming
     fields['properties'].resolver = attributes
 
     fields = schema.get_type('Edge').fields
     fields['key'].resolver = lambda edge, *_: edge.data['_id']
-    fields['type'].resolver = lambda edge, *_: edge.entity_type
+    fields['type'].resolver = entity_type
     fields['source'].resolver = source
     fields['target'].resolver = target
     fields['properties'].resolver = attributes

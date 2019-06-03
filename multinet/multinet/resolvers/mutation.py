@@ -7,11 +7,13 @@ def workspace(root, info, name):
     return name
 
 
-def graph(root, info, workspace, name, nodeTypes, edgeTypes):
+def delete_workspace(root, info, name):
+    return name if db.delete_workspace(name) else None
+
+
+def graph(root, info, workspace, name, node_tables, edge_table):
     graph = Graph(workspace, name)
-    # nodeTypes and edgeTypes are currently arrays of string table names, but will be converted
-    db.create_graph(graph, nodeTypes, edgeTypes)
-    return graph
+    return graph if db.create_graph(graph, node_tables, edge_table) else None
 
 
 def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[]):
@@ -23,5 +25,6 @@ def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[])
 def add_resolvers(schema):
     fields = schema.get_type('Mutation').fields
     fields['workspace'].resolver = workspace
+    fields['deleteWorkspace'].resolver = delete_workspace
     fields['graph'].resolver = graph
     fields['table'].resolver = table

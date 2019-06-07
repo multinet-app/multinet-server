@@ -14,6 +14,8 @@ uuid = "*"
 flake8 = "*"
 tox = "*"
 requests = "*"
+sphinx = "*"
+recommonmark = "*"
 
 [requires]
 python_version = "3.7"

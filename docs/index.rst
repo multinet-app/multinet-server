@@ -11,7 +11,6 @@ Welcome to Multinet
 
    installation
 
-
 Indices and tables
 ==================
 

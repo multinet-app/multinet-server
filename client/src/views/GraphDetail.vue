@@ -5,23 +5,23 @@
       <div style="border-style: solid; width: 100%;">
         <label>Node Types</label>
         <ul>
-          <li v-for="table in nodeTypes" :key="table">
-            <router-link :to="`/workspaces/${workspace}/table/${table}`">{{table}}</router-link>
+          <li v-for="table in nodeTypes" :key="table.name">
+            <router-link :to="`/workspaces/${workspace}/table/${table.name}`">{{table.name}}</router-link>
           </li>
         </ul>
       </div>
       <div style="border-style: solid; width: 100%">
         <label>Edge Types</label>
         <ul>
-          <li v-for="table in edgeTypes" :key="table">
-            <router-link :to="`/workspaces/${workspace}/table/${table}`">{{table}}</router-link>
+          <li v-for="table in edgeTypes" :key="table.name">
+            <router-link :to="`/workspaces/${workspace}/table/${table.name}`">{{table.name}}</router-link>
           </li>
         </ul>
       </div>
       <div style="border-style: solid; width: 100%">
         <label>Apps</label>
         <ul>
-          <li v-for="app in apps" :key="app">
+          <li v-for="app in apps" :key="app.name">
             <a :href="`${app.url}/?workspace=${workspace}&graph=${graph}`" target="_blank">{{app.name}}</a>
           </li>
         </ul>
@@ -86,11 +86,15 @@ export default {
     async update () {
       const response = await api().post('multinet/graphql', {query: `query {
         graphs (workspace: "${this.workspace}", name: "${this.graph}") {
-          nodeTypes
-          edgeTypes
+          nodeTypes {
+            name
+          }
+          edgeTypes {
+            name
+          }
           nodes {
             total
-            nodes (offset: ${this.offset} limit: ${this.limit}) {
+            data (offset: ${this.offset} limit: ${this.limit}) {
               key
             }
           }
@@ -99,7 +103,7 @@ export default {
 
       this.nodeTypes = response.data.data.graphs[0].nodeTypes;
       this.edgeTypes = response.data.data.graphs[0].edgeTypes;
-      this.nodes = response.data.data.graphs[0].nodes.nodes.map(node => node.key);
+      this.nodes = response.data.data.graphs[0].nodes.data.map(node => node.key);
       this.total = response.data.data.graphs[0].nodes.total;
     },
     turnPage (forward) {

@@ -20,7 +20,7 @@
 
         <v-layout row wrap>
           <v-flex class="text-md-center">
-            <v-btn @click="loadFile">create table</v-btn>
+            <v-btn :disabled="tableCreateDisabled" @click="createTable">create table</v-btn>
           </v-flex>
         </v-layout>
 
@@ -41,10 +41,10 @@
         </v-layout>
 
         <v-layout justify-center row wrap>
-          <v-flex md6>
+          <v-flex md3>
             <v-select
-              :model="nodeTables"
-              :items="tables"
+              v-model="graphNodeTables"
+              :items="nodeTables"
               chips
               deletable-chips
               clearable
@@ -52,11 +52,19 @@
               multiple
             />
           </v-flex>
+
+          <v-flex md3>
+            <v-select
+              v-model="graphEdgeTable"
+              :items="edgeTables"
+              solo
+            />
+          </v-flex>
         </v-layout>
 
         <v-layout justify-center row wrap>
           <v-flex class="text-md-center">
-            <v-btn @click="createGraph">create graph</v-btn>
+            <v-btn :disabled="graphCreateDisabled" @click="createGraph">create graph</v-btn>
           </v-flex>
         </v-layout>
 
@@ -85,29 +93,61 @@ export default {
       newTable: '',
       newGraph: '',
       tables: [],
-      graphs: [],
       nodeTables: [],
-      fileList : null,
+      edgeTables: [],
+      graphs: [],
+      fileList: [],
       fileTypes: {
         csv: {extension: ['csv'], queryCall: 'csv'},
         newick: {extension: ['phy', 'tree'], queryCall: 'newick'}
       },
       selectedType: null,
+      graphNodeTables: [],
+      graphEdgeTable: null,
     }
+  },
+  computed: {
+    graphCreateDisabled () {
+      return this.graphNodeTables.length == 0 || !this.graphEdgeTable || !this.newGraph;
+    },
+    tableCreateDisabled () {
+      return this.fileList.length == 0 || !this.selectedType || !this.newTable;
+    },
+  },
+  watch: {
+    workspace () {
+      this.update()
+    },
   },
   methods: {
     async update () {
       const response = await api().post('multinet/graphql', {query: `query {
         workspaces (name: "${this.workspace}") {
-          tables { name }
+          tables {
+            name
+            fields
+          }
           graphs { name }
         }
       }`});
-      this.tables = response.data.data.workspaces[0].tables.map(table => table.name);
-      this.graphs = response.data.data.workspaces[0].graphs.map(graph => graph.name);
+      const workspace = response.data.data.workspaces[0];
+
+      const getName = (obj) => obj.name;
+
+      this.tables = workspace.tables.map(getName);
+
+      this.nodeTables = workspace.tables
+        .filter(table => table.fields.indexOf('_from') === -1 || table.fields.indexOf('_to') === -1)
+        .map(getName);
+
+      this.edgeTables = workspace.tables
+        .filter(table => table.fields.indexOf('_from') > -1 && table.fields.indexOf('_to') > -1)
+        .map(getName);
+
+      this.graphs = workspace.graphs.map(getName);
     },
 
-    async loadFile(){
+    async createTable(){
       let queryType = this.fileTypes[this.selectedType].queryCall;
       await api().post(`multinet/${queryType}/${this.workspace}/${this.newTable}`,
       this.fileList[0],
@@ -119,19 +159,28 @@ export default {
       )
       this.update()
     },
-    createGraph () {
-      if (!this.newGraph) {
-        return;
+
+    async createGraph () {
+      const response = await api().post('multinet/graphql', {query: `mutation {
+        graph (workspace: "${this.workspace}", name: "${this.newGraph}", node_tables: ${JSON.stringify(this.graphNodeTables)}, edge_table: "${this.graphEdgeTable}") {
+          name
+        }
+      }`});
+
+      if (response.data.errors.length > 0) {
+        throw new Error(response.data.errors);
       }
+
+      if (!response.data.data.graph) {
+        throw new Error(`Graph "${this.newGraph}" already exists.`);
+      }
+
+      this.update();
     },
+
     handleFileInput(newFiles){
       this.fileList = newFiles[0]
       this.selectedType = newFiles[1]
-    }
-  },
-  watch: {
-    workspace () {
-      this.update()
     }
   },
   created () {

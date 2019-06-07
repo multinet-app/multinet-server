@@ -346,7 +346,7 @@ def outgoing(node):
     for table in edgeTables:
         edges += [edge for edge in
                   graph.edges(table, node.data['_id'], direction='out')['edges']]
-    return [Entity(node.workspace, node.graph, edge.data['_id'].split('/')[0], edge)
+    return [Entity(node.workspace, node.graph, edge['_id'].split('/')[0], edge)
             for edge in edges]
 
 
@@ -358,7 +358,7 @@ def incoming(node):
     for table in edgeTables:
         edges += [edge for edge in
                   graph.edges(table, node.data['_id'], direction='in')['edges']]
-    return [Entity(node.workspace, node.graph, edge.data['_id'].split('/')[0], edge)
+    return [Entity(node.workspace, node.graph, edge['_id'].split('/')[0], edge)
             for edge in edges]
 
 

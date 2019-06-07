@@ -13,7 +13,7 @@ def name(table, info):
     return table.table
 
 
-def fields(table, info):
+def _fields(table, info):
     return db.table_fields(table)
 
 
@@ -21,5 +21,5 @@ def add_resolvers(schema):
     fields = schema.get_type('Table').fields
     fields['name'].resolver = name
     fields['primaryKey'].resolver = lambda *_: '_id'
-    fields['fields'].resolver = fields
+    fields['fields'].resolver = _fields
     fields['rows'].resolver = rows

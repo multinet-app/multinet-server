@@ -1,0 +1,22 @@
+{
+  "name": "multinet-girder",
+  "version": "0.1.0",
+  "description": "A Girder plugin proof-of-concept for a MultiNet API / web application",
+  "scripts": {
+    "lint:js": "yarn --cwd client run lint",
+    "lint:py": "cd multinet && pipenv run tox -e flake8 -- --ignore=E501,D100,D101,D102,D103,D104,D107",
+    "start:server": "pipenv run girder serve --database mongodb://localhost:27017/multinet --port 9090",
+    "build:docs": "pipenv run make html -C docs",
+    "serve:docs": "pipenv run python -m http.server -d docs/_build/html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/multinet-app/multinet-girder.git"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/multinet-app/multinet-girder/issues"
+  },
+  "homepage": "https://github.com/multinet-app/multinet-girder#readme"
+}

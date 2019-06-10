@@ -5,12 +5,12 @@ A Girder plugin proof-of-concept for a MultiNet API / web application
 Installation
 =================
 
-Set Up Girder
-^^^^^^^^^^^^^
+Set Up Multinet/Girder
+^^^^^^^^^^^^^^^^^^^^^^
 1. Clone this repository: ``git clone
    https://github.com/multinet-app/multinet-girder; cd multinet-girder``.
 2. Start the mongo and arango databases using docker-compose:
-   ``MULTINET_APP_PASSWORD=yourSecretPassword docker-compose up -d``.  NOTE:
+   ``MULTINET_ROOT_PASSWORD=yourSecretPassword docker-compose up -d``.  NOTE:
    macOS users may encounter errors in this step regarding filemounts denied to
    the Docker process; to solve this issue, create two directories somewhere
    (e.g. ``mkdir -p ~/.local/multinet/mongo``, ``mkdir -p
@@ -19,15 +19,11 @@ Set Up Girder
    ARANGO_DATA=~/.local/multinet/arango docker-compose up -d``.
 3. Use pipenv to create a virtual environment and install the dependencies:
    ``pipenv install``.
-4. Start the pipenv shell to set up girder and run the websever: ``pipenv shell``.
-5. Build the Girder web client: ``girder build``.
-6. Serve the Girder client: ``MULTINET_APP_PASSWORD=yourSecretPassword girder
-   serve --database mongodb://localhost:27017/multinet --port 9090``.
-7. Open the Girder client and register a user (which will become an admin user):
-   http://localhost:9090.
-8. Click on "Admin Console" in the left sidebar, then "Plugins", then activte
-   the MultiNet plugin, then click the Restart button and wait for the page to
-   reload.
+4. Build the Girder web client: ``pipenv run girder build``.
+5. Start the Multinet server: ``MULTINET_APP_PASSWORD=yourSecretPassword yarn
+   start:server``.
+6. Open the Multinet Girder application and register a user (which will become
+   an admin user): http://localhost:9090.
 
 Run Sample Client
 ^^^^^^^^^^^^^^^^^

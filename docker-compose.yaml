@@ -12,7 +12,7 @@ services:
     ports:
       - "${ARANGO_PORT:-8529}:8529"
     environment:
-      - ARANGO_ROOT_PASSWORD=${MULTINET_ROOT_PASSWORD:-openSesame}
+      - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD:-letmein}
     volumes:
       - "${ARANGO_DATA:-/var/arangodb}:/var/lib/arangodb3"
       - "${ARANGO_DATA:-/var/arangodb}-apps:/var/lib/arangodb-apps"

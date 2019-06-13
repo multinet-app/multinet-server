@@ -19,7 +19,7 @@ def db(name, arango=None):
     return arango.db(
         name,
         username="root",
-        password=os.environ['MULTINET_APP_PASSWORD'])
+        password=os.environ.get('ARANGO_PASSWORD', 'letmein'))
 
 
 @with_client

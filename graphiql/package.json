@@ -1,0 +1,11 @@
+{
+  "name": "multinet-graphiql",
+  "version": "1.0.0",
+  "description": "GraphiQL client for Multinet client application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kitware Inc.",
+  "license": "Apache-2.0"
+}

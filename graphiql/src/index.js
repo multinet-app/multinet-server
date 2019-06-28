@@ -8,7 +8,13 @@ import 'graphiql/graphiql.css';
 const HOST = 'http://localhost:9090';
 
 function graphQLFetcher(graphQLParams) {
-  const json = JSON.stringify({'query': graphQLParams.query});
+  console.log(graphQLParams);
+
+  const json = JSON.stringify({
+    'query': graphQLParams.query,
+    'variables': graphQLParams.variables
+  });
+
   return fetch(`${HOST}/api/v1/multinet/graphql`, {
     method: 'post',
     headers: {

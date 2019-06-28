@@ -15,8 +15,8 @@ from .schema import schema
 from . import db
 
 
-def graphql_query(query):
-    result = graphql(schema, query)
+def graphql_query(query, variables=None):
+    result = graphql(schema, query, variables=variables or {})
     if result:
         errors = [error.message for error in result.errors] if result.errors else []
         logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
@@ -45,10 +45,16 @@ class MultiNet(Resource):
     )
     def graphql(self, params):
         logprint('Executing GraphQL Request', level=logging.INFO)
-        query = getBodyJson()['query']
-        logprint('request: %s' % query, level=logging.DEBUG)
 
-        return graphql_query(query)
+        # Grab the GraphQL parameters from the request body.
+        body = getBodyJson()
+        query = body['query']
+        variables = body.get('variables')
+
+        logprint('request: %s' % query, level=logging.DEBUG)
+        logprint('variables: %s' % variables, level=logging.DEBUG)
+
+        return graphql_query(query, variables)
 
     @access.public
     @autoDescribeRoute(

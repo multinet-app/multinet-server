@@ -1,11 +1,14 @@
+.. _multinet-girder:
+
+===============
 multinet-girder
-=================
+===============
 A Girder plugin proof-of-concept for a MultiNet API / web application
 
 .. highlight:: sh
 
 Installation
-=================
+============
 
 Set Up Multinet/Girder
 ----------------------

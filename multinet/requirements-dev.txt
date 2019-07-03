@@ -4,6 +4,7 @@ twine
 virtualenv
 flake8
 flake8-blind-except
+flake8-bugbear
 flake8-docstrings>=1.3
 coverage
 mock

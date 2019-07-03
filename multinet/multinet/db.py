@@ -107,7 +107,12 @@ def nodes(query, cursor, arango=None):
         if query.id:
             result = workspace.collection(query.entity_type).get(query.id)
             if result is not None:
-                return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+                return [Entity(
+                    query.workspace,
+                    query.graph,
+                    query.entity_type,
+                    workspace.collection(query.entity_type).get(query.id))
+                ], 1
             else:
                 return [], 0
         else:
@@ -128,11 +133,16 @@ def edges(query, cursor, arango=None):
     graph = workspace.graph(query.graph)
     if query.entity_type:
         if query.id:
-            return [Entity(query.workspace, query.graph, query.entity_type, workspace.collection(query.entity_type).get(query.id))], 1
+            return [Entity(
+                query.workspace,
+                query.graph,
+                query.entity_type,
+                workspace.collection(query.entity_type).get(query.id))
+            ], 1
         else:
             tables = [workspace.collection(query.entity_type)]
     else:
-        tables = [workspace.collection(edges['edge_collection']) for edges in graph.edge_definitions()]
+        tables = [workspace.collection(e['edge_collection']) for e in graph.edge_definitions()]
     if len(tables) == 0:
         return [], 0
 
@@ -201,7 +211,11 @@ def create_graph(graph, node_tables, edge_table, arango=None):
         return False
     else:
         graph = workspace.create_graph(graph.graph)
-        graph.create_edge_definition(edge_collection=edge_table, from_vertex_collections=node_tables, to_vertex_collections=node_tables)
+        graph.create_edge_definition(
+            edge_collection=edge_table,
+            from_vertex_collections=node_tables,
+            to_vertex_collections=node_tables
+        )
 
         return True
 
@@ -271,7 +285,10 @@ def fetchRows(query, cursor):
     elif query.search:
         return []  # to be implemented
     else:
-        return [Row(query.workspace, query.table, row) for row in collection.all(skip=cursor.offset, limit=cursor.limit)]
+        return [
+            Row(query.workspace, query.table, row)
+            for row in collection.all(skip=cursor.offset, limit=cursor.limit)
+        ]
 
 
 def countNodes(query):
@@ -311,7 +328,10 @@ def graph_node_types(graph):
 def graph_edge_types(graph):
     workspace = db(graph.workspace)
     gr = workspace.graph(graph.graph)
-    return [EntityType(graph.workspace, graph.graph, edges['edge_collection']) for edges in gr.edge_definitions()]
+    return [
+        EntityType(graph.workspace, graph.graph, edges['edge_collection'])
+        for edges in gr.edge_definitions()
+    ]
 
 
 def type_properties(workspace, graph, table):
@@ -329,13 +349,23 @@ def type_properties(workspace, graph, table):
 def source(edge):
     workspace = db(edge.workspace)
     nodeTable = workspace.collection(edge.data['_from'].split('/')[0])
-    return Entity(edge.workspace, edge.graph, edge.data['_from'].split('/')[0], nodeTable.get(edge.data['_from']))
+    return Entity(
+        edge.workspace,
+        edge.graph,
+        edge.data['_from'].split('/')[0],
+        nodeTable.get(edge.data['_from'])
+    )
 
 
 def target(edge):
     workspace = db(edge.workspace)
     nodeTable = workspace.collection(edge.data['_to'].split('/')[0])
-    return Entity(edge.workspace, edge.graph, edge.data['_from'].split('/')[0], nodeTable.get(edge.data['_to']))
+    return Entity(
+        edge.workspace,
+        edge.graph,
+        edge.data['_from'].split('/')[0],
+        nodeTable.get(edge.data['_to'])
+    )
 
 
 def outgoing(node):

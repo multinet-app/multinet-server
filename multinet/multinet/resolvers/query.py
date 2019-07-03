@@ -9,7 +9,11 @@ def workspaces(root, info, name=""):
 
 # get a list of graphs in a workspace
 def graphs(root, info, workspace, name=""):
-    return [Graph(workspace, graph) for graph in db.workspace_graphs(workspace) if not name or graph == name]
+    return [
+        Graph(workspace, graph)
+        for graph in db.workspace_graphs(workspace)
+        if not name or graph == name
+    ]
 
 
 # get a single graph by workspace/name
@@ -19,7 +23,11 @@ def graph(root, info, workspace, name):
 
 # get a list of tables in a workspace
 def tables(root, info, workspace, name=""):
-    return [Table(workspace, table) for table in db.workspace_tables(workspace) if not name or table == name]
+    return [
+        Table(workspace, table)
+        for table in db.workspace_tables(workspace)
+        if not name or table == name
+    ]
 
 
 def table(root, info, workspace, name):

@@ -83,8 +83,9 @@ class MultiNet(Resource):
 
     @access.public
     @autoDescribeRoute(
-        Description('Store tree data in database from nexus/newick style tree files. '
-                    'Two tables will be created with the given table name, <table>_edges and <table_nodes')
+        Description('Store tree in database from nexus/newick files. '
+                    'Two tables will be created with the given table name, '
+                    '<table>_edges and <table>_nodes')
         .param('workspace', 'Target workspace', required=True)
         .param('table', 'Target table', required=True)
         .param('data', 'Tree data', paramType='body', required=True)

@@ -6,7 +6,11 @@ from multinet.types import Attribute, RealizedQuery, EntityType
 # key and a set of key-value pairs. Each key-value pair represents a property on
 # nodes and edges or a cell on a row.
 def attributes(entity, info, keys=None):
-    return [Attribute(key, value) for key, value in entity.data.items() if (keys is None) or (key in keys)]
+    return [
+        Attribute(key, value)
+        for key, value in entity.data.items()
+        if (keys is None) or (key in keys)
+    ]
 
 
 # computes the outgoing edges of a node

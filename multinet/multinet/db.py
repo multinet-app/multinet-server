@@ -1,3 +1,4 @@
+"""Low-level database operations to fulfill GraphQL queries."""
 import os
 
 from arango import ArangoClient
@@ -6,6 +7,7 @@ from multinet.types import Row, Entity, EntityType, Cursor
 
 
 def with_client(fun):
+    """Call target function `fun`, passing in an authenticated ArangoClient object."""
     def wrapper(*args, **kwargs):
         kwargs['arango'] = kwargs.get('arango', ArangoClient(
             host=os.environ.get('ARANGO_HOST', 'localhost'),
@@ -16,6 +18,7 @@ def with_client(fun):
 
 @with_client
 def db(name, arango=None):
+    """Return a handle for Arango database `name`."""
     return arango.db(
         name,
         username='root',
@@ -24,6 +27,7 @@ def db(name, arango=None):
 
 @with_client
 def create_workspace(name, arango=None):
+    """Create a new workspace named `name`."""
     sys = db('_system', arango=arango)
     if not sys.has_database(name):
         sys.create_database(name)
@@ -31,6 +35,7 @@ def create_workspace(name, arango=None):
 
 @with_client
 def delete_workspace(name, arango=None):
+    """Delete the workspace named `name`."""
     sys = db('_system', arango=arango)
     if sys.has_database(name):
         sys.delete_database(name)
@@ -41,6 +46,7 @@ def delete_workspace(name, arango=None):
 
 @with_client
 def get_workspaces(name, arango=None):
+    """Return a list of all workspace names."""
     sys = db('_system', arango=arango)
     if name and sys.has_database(name):
         return [name]
@@ -51,12 +57,14 @@ def get_workspaces(name, arango=None):
 
 @with_client
 def workspace_tables(workspace, arango=None):
+    """Return a list of all table names in the workspace named `workspace`."""
     space = db(workspace, arango=arango)
     return [table['name'] for table in space.collections() if not table['name'].startswith('_')]
 
 
 @with_client
 def workspace_table(workspace, name, arango=None):
+    """Return a specific table named `name` in workspace `workspace`."""
     space = db(workspace, arango=arango)
 
     tables = filter(lambda g: g['name'] == name, space.collections())
@@ -71,12 +79,14 @@ def workspace_table(workspace, name, arango=None):
 
 @with_client
 def workspace_graphs(workspace, arango=None):
+    """Return a list of all graph names in workspace `workspace`."""
     space = db(workspace, arango=arango)
     return [graph['name'] for graph in space.graphs()]
 
 
 @with_client
 def workspace_graph(workspace, name, arango=None):
+    """Return a specific graph named `name` in workspace `workspace`."""
     space = db(workspace, arango=arango)
 
     graphs = filter(lambda g: g['name'] == name, space.graphs())
@@ -91,6 +101,7 @@ def workspace_graph(workspace, name, arango=None):
 
 @with_client
 def table_fields(query, arango=None):
+    """Return a list of column names for table `query.table` in workspace `query.workspace`."""
     workspace = db(query.workspace, arango=arango)
     if workspace.has_collection(query.table):
         sample = workspace.collection(query.table).random()
@@ -101,6 +112,7 @@ def table_fields(query, arango=None):
 
 @with_client
 def nodes(query, cursor, arango=None):
+    """Return node documents matching a paged node query."""
     workspace = db(query.workspace, arango=arango)
     graph = workspace.graph(query.graph)
     if query.entity_type:
@@ -129,6 +141,7 @@ def nodes(query, cursor, arango=None):
 
 @with_client
 def edges(query, cursor, arango=None):
+    """Return edge documents matching a paged edge query."""
     workspace = db(query.workspace, arango=arango)
     graph = workspace.graph(query.graph)
     if query.entity_type:
@@ -152,6 +165,15 @@ def edges(query, cursor, arango=None):
 
 
 def paged(tables, cursor, id=None):
+    """
+    Perform a query against one or more tables, slicing out a page of results.
+
+    `tables` - a list of tables from which to retrieve results.
+    `cursor.offset` - an int value giving an offset into the concatentated `tables`.
+    `cursor.limit` - the maximum number of documents to return. If set to 0, the
+        function will return as many documents as are available.
+    `id` - if given, will return only the IDed document, if it exists.
+    """
     # If id is set, we have to simply verify that: 1. one of the specified
     # tables contains the id'd object and 2. the cursor has an offset of 0.
     if id:
@@ -206,6 +228,7 @@ def paged(tables, cursor, id=None):
 
 @with_client
 def create_graph(graph, node_tables, edge_table, arango=None):
+    """Create a graph named `graph.graph`, using the `node_tables` and `edge_table` to define it."""
     workspace = db(graph.workspace, arango=arango)
     if workspace.has_graph(graph.graph):
         return False
@@ -246,6 +269,7 @@ def create_graph(graph, node_tables, edge_table, arango=None):
 
 @with_client
 def table(query, create=False, arango=None):
+    """Return a handle to table `query.table` in workspace `query.workspace`."""
     workspace = db(query.workspace, arango=arango)
     if workspace.has_collection(query.table):
         return workspace.collection(query.table)
@@ -257,6 +281,11 @@ def table(query, create=False, arango=None):
 
 @with_client
 def graph(graph, create=False, arango=None):
+    """Return graph `graph.graph` in workspace `graph.workspace`.
+
+    This function creates the graph if `create` is True and the graph does not
+    already exist.
+    """
     workspace = db(graph.workspace, arango=arango)
     if workspace.has_graph(graph.graph):
         return workspace.graph(graph.graph)
@@ -267,6 +296,7 @@ def graph(graph, create=False, arango=None):
 
 
 def countRows(query):
+    """Give the max number of rows that can come back from query `query`."""
     collection = table(query)
     if query.id:
         return 1
@@ -277,6 +307,7 @@ def countRows(query):
 
 
 def fetchRows(query, cursor):
+    """Return all rows in the table referenced by `query`."""
     collection = table(query)
     if query.id:
         row = collection.get(query.id)
@@ -292,6 +323,7 @@ def fetchRows(query, cursor):
 
 
 def countNodes(query):
+    """Return the number of nodes that will come back from `query`."""
     if query.search:
         return 0  # to be implemented
     else:
@@ -299,6 +331,7 @@ def countNodes(query):
 
 
 def fetchNodes(query, cursor):
+    """Return all nodes in the table referenced by `query`."""
     if query.search:
         return []  # to be implemented
     else:
@@ -306,6 +339,7 @@ def fetchNodes(query, cursor):
 
 
 def countEdges(query):
+    """Return the number of edges that will come back from `query`."""
     if query.search:
         return 0  # to be implemented
     else:
@@ -313,6 +347,7 @@ def countEdges(query):
 
 
 def fetchEdges(query, cursor):
+    """Return all edges in the table referenced by `query`."""
     if query.search:
         return []  # to be implemented
     else:
@@ -320,12 +355,14 @@ def fetchEdges(query, cursor):
 
 
 def graph_node_types(graph):
+    """Return a list of node types existing in graph `graph.graph`."""
     workspace = db(graph.workspace)
     gr = workspace.graph(graph.graph)
     return [EntityType(graph.workspace, graph.graph, table) for table in gr.vertex_collections()]
 
 
 def graph_edge_types(graph):
+    """Return a list of edge types existing in graph `graph.graph`."""
     workspace = db(graph.workspace)
     gr = workspace.graph(graph.graph)
     return [
@@ -335,6 +372,7 @@ def graph_edge_types(graph):
 
 
 def type_properties(workspace, graph, table):
+    """Return the properties associated with nodes or edges in graph `graph` and table `table`."""
     workspace = db(workspace)
     metadata = workspace.collection('_graphs')
     graph_meta = metadata.get(graph)
@@ -347,6 +385,7 @@ def type_properties(workspace, graph, table):
 
 
 def source(edge):
+    """Return the source node of edge `edge`."""
     workspace = db(edge.workspace)
     nodeTable = workspace.collection(edge.data['_from'].split('/')[0])
     return Entity(
@@ -358,6 +397,7 @@ def source(edge):
 
 
 def target(edge):
+    """Return the target node of edge `edge`."""
     workspace = db(edge.workspace)
     nodeTable = workspace.collection(edge.data['_to'].split('/')[0])
     return Entity(
@@ -369,6 +409,7 @@ def target(edge):
 
 
 def outgoing(node):
+    """Get all target nodes associated with edges for which `node` is a source."""
     workspace = db(node.workspace)
     graph = workspace.graph(node.graph)
     edgeTables = [table['edge_collection'] for table in graph.edge_definitions()]
@@ -381,6 +422,7 @@ def outgoing(node):
 
 
 def incoming(node):
+    """Get all source nodes associated with edges for which `node` is a target."""
     workspace = db(node.workspace)
     graph = workspace.graph(node.graph)
     edgeTables = [table['edge_collection'] for table in graph.edge_definitions()]
@@ -393,6 +435,12 @@ def incoming(node):
 
 
 def create_table(table, edges, fields=None, primary='_id'):
+    """
+    Create a table `table.table` in workspace `table.workspace`.
+
+    This function will make the table an edge definition table if `edges` is
+    True).
+    """
     if fields is None:
         fields = []
 
@@ -405,6 +453,7 @@ def create_table(table, edges, fields=None, primary='_id'):
 
 
 def create_type(entity_type, properties):
+    """Create a new edge or node type."""
     workspace = db(entity_type.workspace)
     table = workspace.collection(entity_type.table)
     variety = 'edgeTypes' if table.properties()['edge'] else 'nodeTypes'

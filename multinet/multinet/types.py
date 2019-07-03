@@ -1,3 +1,4 @@
+"""A mdoule holding the named tuple types used in the GraphQL schema."""
 from collections import namedtuple
 
 # key and value are both strings meant to represent a single cell of data.

@@ -392,7 +392,10 @@ def incoming(node):
             for edge in edges]
 
 
-def create_table(table, edges, fields=[], primary='_id'):
+def create_table(table, edges, fields=None, primary='_id'):
+    if fields is None:
+        fields = []
+
     workspace = db(table.workspace)
     if workspace.has_collection(table.table):
         coll = workspace.collection(table.table)

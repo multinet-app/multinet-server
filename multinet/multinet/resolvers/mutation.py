@@ -16,7 +16,10 @@ def graph(root, info, workspace, name, node_tables, edge_table):
     return graph if db.create_graph(graph, node_tables, edge_table) else None
 
 
-def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=[]):
+def table(root, info, workspace, name, edges=False, primaryKey='_id', fields=None):
+    if fields is None:
+        fields = []
+
     table = Table(workspace, name)
     db.create_table(table, edges)
     return table

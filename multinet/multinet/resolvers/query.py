@@ -3,12 +3,12 @@ from multinet.types import Graph, Table
 
 
 # get a list of workspaces a user has access to.
-def workspaces(root, info, name=""):
+def workspaces(root, info, name=''):
     return [workspace for workspace in db.get_workspaces(name) if not name or workspace == name]
 
 
 # get a list of graphs in a workspace
-def graphs(root, info, workspace, name=""):
+def graphs(root, info, workspace, name=''):
     return [
         Graph(workspace, graph)
         for graph in db.workspace_graphs(workspace)
@@ -22,7 +22,7 @@ def graph(root, info, workspace, name):
 
 
 # get a list of tables in a workspace
-def tables(root, info, workspace, name=""):
+def tables(root, info, workspace, name=''):
     return [
         Table(workspace, table)
         for table in db.workspace_tables(workspace)

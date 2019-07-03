@@ -8,8 +8,8 @@ from multinet.types import Row, Entity, EntityType, Cursor
 def with_client(fun):
     def wrapper(*args, **kwargs):
         kwargs['arango'] = kwargs.get('arango', ArangoClient(
-            host=os.environ.get("ARANGO_HOST", "localhost"),
-            port=int(os.environ.get("ARANGO_PORT", "8529"))))
+            host=os.environ.get('ARANGO_HOST', 'localhost'),
+            port=int(os.environ.get('ARANGO_PORT', '8529'))))
         return fun(*args, **kwargs)
     return wrapper
 
@@ -18,7 +18,7 @@ def with_client(fun):
 def db(name, arango=None):
     return arango.db(
         name,
-        username="root",
+        username='root',
         password=os.environ.get('ARANGO_PASSWORD', 'letmein'))
 
 
@@ -336,7 +336,7 @@ def graph_edge_types(graph):
 
 def type_properties(workspace, graph, table):
     workspace = db(workspace)
-    metadata = workspace.collection("_graphs")
+    metadata = workspace.collection('_graphs')
     graph_meta = metadata.get(graph)
 
     if graph_meta.get('nodeTypes', None) is not None and graph_meta['nodeTypes'].get(table, None):
@@ -409,7 +409,7 @@ def create_type(entity_type, properties):
     table = workspace.collection(entity_type.table)
     variety = 'edgeTypes' if table.properties()['edge'] else 'nodeTypes'
 
-    metadata = workspace.collection("_graphs")
+    metadata = workspace.collection('_graphs')
     graph_meta = metadata.get(entity_type.graph)
     if graph_meta.get(variety) is None:
         graph_meta[variety] = {}

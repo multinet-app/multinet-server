@@ -19,7 +19,7 @@ def graphql_query(query, variables=None):
     result = graphql(schema, query, variables=variables or {})
     if result:
         errors = [error.message for error in result.errors] if result.errors else []
-        logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
+        logprint('Errors in request: %s' % len(errors), level=logging.WARNING)
         for error in errors[:10]:
             logprint(error, level=logging.WARNING)
     else:
@@ -115,15 +115,15 @@ class MultiNet(Resource):
             nonlocal edgecount
             key = node.name or uuid.uuid4().hex
             if not nodetable.has(key):
-                nodetable.insert({"_key": key})
+                nodetable.insert({'_key': key})
             nodecount = nodecount + 1
             for desc in node.descendants:
                 read_tree(key, desc)
             if parent:
                 edgetable.insert({
-                    "_from": "%s/%s" % (nodetable_name, parent),
-                    "_to": "%s/%s" % (nodetable_name, key),
-                    "length": node.length
+                    '_from': '%s/%s' % (nodetable_name, parent),
+                    '_to': '%s/%s' % (nodetable_name, key),
+                    'length': node.length
                 })
                 edgecount += 1
 

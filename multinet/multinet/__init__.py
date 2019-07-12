@@ -1,3 +1,5 @@
+"""Defines the MultiNet Girder plugin."""
+
 from girder import plugin, logprint
 from girder.api import access
 from girder.api.rest import Resource, getBodyJson
@@ -16,10 +18,11 @@ from . import db
 
 
 def graphql_query(query, variables=None):
+    """Perform a GraphQL query using optional variable definitions."""
     result = graphql(schema, query, variables=variables or {})
     if result:
         errors = [error.message for error in result.errors] if result.errors else []
-        logprint("Errors in request: %s" % len(errors), level=logging.WARNING)
+        logprint('Errors in request: %s' % len(errors), level=logging.WARNING)
         for error in errors[:10]:
             logprint(error, level=logging.WARNING)
     else:
@@ -28,7 +31,14 @@ def graphql_query(query, variables=None):
 
 
 class MultiNet(Resource):
+    """Define the MultiNet API within Girder."""
+
     def __init__(self, port):
+        """
+        Initialize the plugin.
+
+        `port` - the port where Arango is running.
+        """
         super(MultiNet, self).__init__()
         self.resourceName = 'multinet'
         self.arango_port = port
@@ -44,6 +54,14 @@ class MultiNet(Resource):
         .param('query', 'GraphQL query text', paramType='body', required=True)
     )
     def graphql(self, params):
+        """
+        Perform a GraphQL query.
+
+        The body of the request is a JSON object containing a required `query`
+        property containing the text of the query itself, and an options
+        `variables` property, containing variable definitions for the body of
+        `query`.
+        """
         logprint('Executing GraphQL Request', level=logging.INFO)
 
         # Grab the GraphQL parameters from the request body.
@@ -64,6 +82,13 @@ class MultiNet(Resource):
         .param('data', 'CSV data', paramType='body', required=True)
     )
     def bulk(self, params, workspace=None, table=None):
+        """
+        Append CSV rows to a particular table in a particular workspace.
+
+        `workspace` - the target workspace.
+        `table` - the target table.
+        `data` - CSV text, passed in the request body.
+        """
         logprint('Bulk Loading', level=logging.INFO)
         rows = csv.DictReader(StringIO(cherrypy.request.body.read().decode('utf8')))
         workspace = db.db(workspace)
@@ -83,13 +108,21 @@ class MultiNet(Resource):
 
     @access.public
     @autoDescribeRoute(
-        Description('Store tree data in database from nexus/newick style tree files. '
-                    'Two tables will be created with the given table name, <table>_edges and <table_nodes')
+        Description('Store tree in database from nexus/newick files. '
+                    'Two tables will be created with the given table name, '
+                    '<table>_edges and <table>_nodes')
         .param('workspace', 'Target workspace', required=True)
         .param('table', 'Target table', required=True)
         .param('data', 'Tree data', paramType='body', required=True)
     )
     def tree(self, params, workspace=None, table=None, schema=None):
+        """
+        Store a newick tree into the database in coordinated node and edge tables.
+
+        `workspace` - the target workspace.
+        `table` - the target table.
+        `data` - the newick data, passed in the request body.
+        """
         logprint('Bulk Loading', level=logging.INFO)
         tree = newick.loads(cherrypy.request.body.read().decode('utf8'))
         workspace = db.db(workspace)
@@ -114,15 +147,15 @@ class MultiNet(Resource):
             nonlocal edgecount
             key = node.name or uuid.uuid4().hex
             if not nodetable.has(key):
-                nodetable.insert({"_key": key})
+                nodetable.insert({'_key': key})
             nodecount = nodecount + 1
             for desc in node.descendants:
                 read_tree(key, desc)
             if parent:
                 edgetable.insert({
-                    "_from": "%s/%s" % (nodetable_name, parent),
-                    "_to": "%s/%s" % (nodetable_name, key),
-                    "length": node.length
+                    '_from': '%s/%s' % (nodetable_name, parent),
+                    '_to': '%s/%s' % (nodetable_name, key),
+                    'length': node.length
                 })
                 edgecount += 1
 
@@ -132,8 +165,10 @@ class MultiNet(Resource):
 
 
 class GirderPlugin(plugin.GirderPlugin):
+    """Girder plugin infrastructure for MultiNet API."""
+
     DISPLAY_NAME = 'MultiNet'
 
     def load(self, info):
-        # add plugin loading logic here
+        """Load the plugin at Girder startup."""
         info['apiRoot'].multinet = MultiNet(port=8080)

@@ -1,3 +1,4 @@
+"""A module to read in a MultiNet GraphQL schema, along with the resolvers."""
 import os.path
 
 from graphql import build_ast_schema

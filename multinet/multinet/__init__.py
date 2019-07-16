@@ -27,7 +27,7 @@ def graphql_query(query, variables=None):
             logprint(error, level=logging.WARNING)
     else:
         errors = []
-    return dict(data=result.data, errors=errors)
+    return dict(data=result.data, errors=errors, query=query)
 
 
 class MultiNet(Resource):

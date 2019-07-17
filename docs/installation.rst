@@ -40,7 +40,7 @@ Set Up Multinet/Girder
 
 4. Build the Girder web client: ::
 
-       $ pipenv run girder-build
+       $ yarn build:girder
 
 5. Start the Multinet server: ::
 

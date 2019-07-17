@@ -6,6 +6,9 @@
     "lint:js": "yarn --cwd client run lint",
     "lint:py": "cd multinet && pipenv run lint",
     "start:server": "pipenv run girder-serve",
+    "start:client": "cd client && yarn serve",
+    "build:client": "cd client && yarn install",
+    "build:girder": "pipenv run girder-build",
     "build:docs": "pipenv run build-docs",
     "serve:docs": "pipenv run serve-docs",
     "test": "echo \"Error: no test specified\" && exit 1"

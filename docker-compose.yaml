@@ -3,7 +3,7 @@ services:
   mongodb:
     image: mongo:4.0.6
     ports:
-      - "27017:27017"
+      - "${EXTERNAL_MONGO_PORT}:27017"
     volumes:
       - "${MONGO_DATA:-/var/mongodb}:/data/db"
   arangodb:

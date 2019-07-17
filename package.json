@@ -4,10 +4,13 @@
   "description": "A Girder plugin proof-of-concept for a MultiNet API / web application",
   "scripts": {
     "lint:js": "yarn --cwd client run lint",
-    "lint:py": "cd multinet && pipenv run tox -e flake8",
-    "start:server": "pipenv run girder serve --database mongodb://localhost:27017/multinet --port 9090",
-    "build:docs": "pipenv run make html -C docs",
-    "serve:docs": "pipenv run python -m http.server -d docs/_build/html",
+    "lint:py": "cd multinet && pipenv run lint",
+    "start:server": "pipenv run girder-serve",
+    "start:client": "cd client && yarn serve",
+    "build:client": "cd client && yarn install",
+    "build:girder": "pipenv run girder-build",
+    "build:docs": "pipenv run build-docs",
+    "serve:docs": "pipenv run serve-docs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

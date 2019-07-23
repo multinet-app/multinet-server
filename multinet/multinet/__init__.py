@@ -100,7 +100,7 @@ class MultiNet(Resource):
             keys = [row['_key'] for row in rows]
             uniqueKeys = set(keys)
             if len(keys) != len(uniqueKeys):
-                raise RestException('CSV Validation Failed')
+                raise RestException('CSV Validation Failed: Non-unique key detected.')
 
         # Set the collection, paying attention to whether the data contains
         # _from/_to fields.

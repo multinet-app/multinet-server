@@ -32,6 +32,7 @@ def graphql_query(query, variables=None):
 
 
 def csv_validation(rows):
+    """Perform any necessary CSV validation, and raise appropriate exceptions"""
     # Check for key uniqueness
     if ('_key' in rows.fieldnames):
         keys = [row['_key'] for row in rows]

@@ -31,6 +31,22 @@ def graphql_query(query, variables=None):
     return dict(data=result.data, errors=errors, query=query)
 
 
+def csv_validation(rows):
+    # Check for key uniqueness
+    if ('_key' in rows.fieldnames):
+        keys = [row['_key'] for row in rows]
+        uniqueKeys = set()
+        duplicates = set()
+        for key in keys:
+            if key in uniqueKeys:
+                duplicates.add(key)
+            else:
+                uniqueKeys.add(key)
+
+        if (len(duplicates) > 0):
+            raise RestException(f'CSV Validation Failed: Duplicate Keys {", ".join(duplicates)}.')
+
+
 class MultiNet(Resource):
     """Define the MultiNet API within Girder."""
 
@@ -95,12 +111,8 @@ class MultiNet(Resource):
         rows = csv.DictReader(StringIO(cherrypy.request.body.read().decode('utf8')))
         workspace = db.db(workspace)
 
-        # Check for key uniqueness
-        if ('_key' in rows.fieldnames):
-            keys = [row['_key'] for row in rows]
-            uniqueKeys = set(keys)
-            if len(keys) != len(uniqueKeys):
-                raise RestException('CSV Validation Failed: Non-unique key detected.')
+        # Do any CSV validation necessary, and raise appropriate exceptions
+        csv_validation(rows)
 
         # Set the collection, paying attention to whether the data contains
         # _from/_to fields.

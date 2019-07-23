@@ -31,7 +31,7 @@ def graphql_query(query, variables=None):
     return dict(data=result.data, errors=errors, query=query)
 
 
-def csv_validation(rows):
+def validate_csv(rows):
     """Perform any necessary CSV validation, and raise appropriate exceptions."""
     # Check for key uniqueness
     if ('_key' in rows.fieldnames):
@@ -113,7 +113,7 @@ class MultiNet(Resource):
         workspace = db.db(workspace)
 
         # Do any CSV validation necessary, and raise appropriate exceptions
-        csv_validation(rows)
+        validate_csv(rows)
 
         # Set the collection, paying attention to whether the data contains
         # _from/_to fields.

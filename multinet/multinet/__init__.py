@@ -43,9 +43,8 @@ def validate_graph(query):
     edge_table = edge_table[0] if edge_table else None
 
     workspace = re.findall('workspace: \"(.+)\"', query)
-    workspace = workspace[0] if workspace else None
+    workspace = db.db(workspace[0]) if workspace else None
 
-    workspace = db.db(workspace)
     print(node_tables, edge_table, workspace)
 
     if (not node_tables or not edge_table or not workspace):

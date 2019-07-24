@@ -21,13 +21,13 @@ def graph(root, info, workspace, name, node_tables, edge_table):
 
     # Validate that all referenced tables exist
     edges = list(db.db(workspace).collection(edge_table).find({}))
-    invalid_from = [edge['_from'].split('/')[0] for edge in edges
-                    if edge['_from'].split('/')[0] not in node_tables]
-    invalid_to = [edge['_to'].split('/')[0] for edge in edges
-                  if edge['_to'].split('/')[0] not in node_tables]
+    invalid_from = set([edge['_from'].split('/')[0] for edge in edges
+                       if edge['_from'].split('/')[0] not in node_tables])
+    invalid_to = set([edge['_to'].split('/')[0] for edge in edges
+                     if edge['_to'].split('/')[0] not in node_tables])
 
     if (invalid_from or invalid_to):
-        raise GraphQLError(f"Undefined Tables Referenced: {', '.join(invalid_from + invalid_to)}")
+        raise GraphQLError(f"Undefined Tables Referenced: {', '.join(invalid_from | invalid_to)}")
 
     return graph if db.create_graph(graph, node_tables, edge_table) else None
 

@@ -32,14 +32,23 @@ def graphql_query(query, variables=None):
     return dict(data=result.data, errors=errors, query=query)
 
 
-def graph_validation(query):
+def validate_graph(query):
     print('query', query)
-    node_tables = json.loads(re.findall('node_tables: (\\[.+\\])', query)[0])
-    edge_table = re.findall('edge_table: \"(.+)\"', query)[0]
-    workspace = re.findall('workspace: \"(.+)\"', query)[0]
+
+    node_tables = re.findall('node_tables: (\\[.+\\])', query)
+    node_tables = json.loads(node_tables[0]) if node_tables else None
+
+    edge_table = re.findall('edge_table: \"(.+)\"', query)
+    edge_table = edge_table[0] if edge_table else None
+
+    workspace = re.findall('workspace: \"(.+)\"', query)
+    workspace = workspace[0] if workspace else None
 
     workspace = db.db(workspace)
     print(node_tables, edge_table, workspace)
+
+    if (not node_tables or not edge_table or not workspace):
+        return
 
     edge_table = workspace.collection(edge_table)
     res = list(edge_table.find({}))
@@ -95,7 +104,7 @@ class MultiNet(Resource):
         query = body['query']
         variables = body.get('variables')
 
-        print(graph_validation(query))
+        validate_graph(query)
 
         logprint('request: %s' % query, level=logging.DEBUG)
         logprint('variables: %s' % variables, level=logging.DEBUG)

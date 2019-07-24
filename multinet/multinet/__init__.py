@@ -7,8 +7,6 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.exceptions import RestException
 
 import csv
-import re
-import json
 from io import StringIO
 import logging
 from graphql import graphql
@@ -31,38 +29,6 @@ def graphql_query(query, variables=None):
     else:
         errors = []
     return dict(data=result.data, errors=errors, query=query)
-
-
-def validate_graph(query):
-    print('query', query)
-
-    node_tables = re.findall('node_tables: (\\[.+\\])', query)
-    node_tables = json.loads(node_tables[0]) if node_tables else None
-
-    edge_table = re.findall('edge_table: \"(.+)\"', query)
-    edge_table = edge_table[0] if edge_table else None
-
-    workspace = re.findall('workspace: \"(.+)\"', query)
-    workspace = db.db(workspace[0]) if workspace else None
-
-    print(node_tables, edge_table, workspace)
-
-    if (not node_tables or not edge_table or not workspace):
-        return
-
-    edge_table = workspace.collection(edge_table)
-    res = list(edge_table.find({}))
-    # Find all docs with _from
-    # With those results, check if any of those aren't
-    # in node_tables
-    # If so, throw error
-    print(res)
-    for table in node_tables:
-        print('table', table)
-        if workspace.has_collection(table):
-            print('YEET')
-        else:
-            print('NOS')
 
 
 class MultiNet(Resource):
@@ -103,8 +69,6 @@ class MultiNet(Resource):
         body = getBodyJson()
         query = body['query']
         variables = body.get('variables')
-
-        validate_graph(query)
 
         logprint('request: %s' % query, level=logging.DEBUG)
         logprint('variables: %s' % variables, level=logging.DEBUG)

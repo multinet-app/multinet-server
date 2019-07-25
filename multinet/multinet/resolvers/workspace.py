@@ -10,7 +10,6 @@ from multinet.types import Table, Graph
 
 def name(workspace, info):
     """Return the name of a workspace."""
-    print('PPPP', workspace, info.field_name)
     return workspace
 
 

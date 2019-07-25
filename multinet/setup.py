@@ -6,10 +6,6 @@ from setuptools import setup, find_packages
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
-requirements = [
-    'girder>=3.0.0a1'
-]
-
 setup(
     author="MultiNet Team",
     author_email='multinet@multinet.app',
@@ -25,7 +21,11 @@ setup(
         'Programming Language :: Python :: 3.7'
     ],
     description='A Girder plugin proof-of-concept for a MultNet API / web application',
-    install_requires=requirements,
+    install_requires=[
+        'girder>=3.0.0a1',
+        'python-arango',
+        'graphql-core'
+    ],
     license='Apache Software License 2.0',
     long_description=readme,
     long_description_content_type='text/x-rst',

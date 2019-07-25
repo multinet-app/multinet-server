@@ -4,6 +4,7 @@ from girder import plugin, logprint
 from girder.api import access
 from girder.api.rest import Resource, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
+from girder.exceptions import RestException
 
 import csv
 from io import StringIO
@@ -28,6 +29,23 @@ def graphql_query(query, variables=None):
     else:
         errors = []
     return dict(data=result.data, errors=errors, query=query)
+
+
+def validate_csv(rows):
+    """Perform any necessary CSV validation, and raise appropriate exceptions."""
+    # Check for key uniqueness
+    if ('_key' in rows.fieldnames):
+        keys = [row['_key'] for row in rows]
+        uniqueKeys = set()
+        duplicates = set()
+        for key in keys:
+            if key in uniqueKeys:
+                duplicates.add(key)
+            else:
+                uniqueKeys.add(key)
+
+        if (len(duplicates) > 0):
+            raise RestException(f'CSV Validation Failed: Duplicate Keys {", ".join(duplicates)}.')
 
 
 class MultiNet(Resource):
@@ -80,6 +98,7 @@ class MultiNet(Resource):
         .param('workspace', 'Target workspace', required=True)
         .param('table', 'Target table', required=True)
         .param('data', 'CSV data', paramType='body', required=True)
+        .errorResponse()
     )
     def bulk(self, params, workspace=None, table=None):
         """
@@ -92,6 +111,9 @@ class MultiNet(Resource):
         logprint('Bulk Loading', level=logging.INFO)
         rows = csv.DictReader(StringIO(cherrypy.request.body.read().decode('utf8')))
         workspace = db.db(workspace)
+
+        # Do any CSV validation necessary, and raise appropriate exceptions
+        validate_csv(rows)
 
         # Set the collection, paying attention to whether the data contains
         # _from/_to fields.

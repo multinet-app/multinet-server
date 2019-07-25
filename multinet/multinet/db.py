@@ -103,7 +103,7 @@ def workspace_graph(workspace, name, arango=None):
 def table_fields(query, arango=None):
     """Return a list of column names for table `query.table` in workspace `query.workspace`."""
     workspace = db(query.workspace, arango=arango)
-    if workspace.has_collection(query.table):
+    if workspace.has_collection(query.table) and workspace.collection(query.table).count() > 0:
         sample = workspace.collection(query.table).random()
         return sample.keys()
     else:

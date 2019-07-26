@@ -6,7 +6,6 @@ from girder.api.rest import Resource, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 from girder.exceptions import RestException
 
-import arango
 import csv
 from io import StringIO
 import itertools
@@ -292,9 +291,9 @@ class MultiNet(Resource):
         (nodes, edges) = analyze_nested_json(data, int_nodetable_name, leaf_nodetable_name)
 
         # Upload the data to the database.
-        edge_results = edgetable.insert_many(edges)
-        int_node_results = int_nodetable.insert_many(nodes[0])
-        leaf_node_results = leaf_nodetable.insert_many(nodes[1])
+        edgetable.insert_many(edges)
+        int_nodetable.insert_many(nodes[0])
+        leaf_nodetable.insert_many(nodes[1])
 
         return dict(edgecount=len(edges), int_nodecount=len(nodes[0]), leaf_nodecount=len(nodes[1]))
 

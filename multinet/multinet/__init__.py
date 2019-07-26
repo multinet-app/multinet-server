@@ -6,8 +6,11 @@ from girder.api.rest import Resource, getBodyJson
 from girder.api.describe import Description, autoDescribeRoute
 from girder.exceptions import RestException
 
+import arango
 import csv
 from io import StringIO
+import itertools
+import json
 import logging
 from graphql import graphql
 import cherrypy
@@ -48,6 +51,63 @@ def validate_csv(rows):
             raise RestException(f'CSV Validation Failed: Duplicate Keys {", ".join(duplicates)}.')
 
 
+def analyze_nested_json(data, table_name):
+    """
+    Transform nested JSON data into MultiNet format.
+
+    `data` - the text of a nested_json file
+    `(nodes, edges)` - a node and edge table describing the tree.
+    """
+    id = itertools.count(100)
+    data = json.loads(data)
+
+    def keyed(rec):
+        if '_key' in rec:
+            return rec
+
+        keyed = dict(rec)
+        keyed['_key'] = str(next(id))
+
+        return keyed
+
+    keyed_root = keyed(data.get('node_data', {}))
+
+    try:
+        nodetable.insert(keyed_root)
+    except arango.exceptions.DocumentInsertError:
+        logwarn('error root ' + pformat(keyed_root))
+
+    nodes = [keyed_root]
+    edges = []
+
+    def helper(root_key, children):
+        # Precondition: the node keyed by `root_key` is already in the node
+        # table.
+        #
+        # Process the children.
+        child_keys = []
+        for child in children:
+            # First add the child node to the node table.
+            node = keyed(child.get('node_data', {}))
+            nodes.append(node)
+            child_keys.append(node['_key'])
+
+            # Next, add a link from the child to the root; include edge data in
+            # this record.
+            edge = dict(child.get('edge_data', {}))
+            edge['_from'] = f'{table_name}/{node["_key"]}'
+            edge['_to'] = f'{table_name}/{root_key}'
+            edges.append(edge)
+
+        # Recursively add the child trees.
+        for key, child in zip(child_keys, children):
+            helper(key, child.get('children', []))
+
+    # Kick off the analysis.
+    helper(keyed_root['_key'], data.get('children', []))
+    return (nodes, edges)
+
+
 class MultiNet(Resource):
     """Define the MultiNet API within Girder."""
 
@@ -65,6 +125,9 @@ class MultiNet(Resource):
 
         # Newick tree operations.
         self.route('POST', ('newick', ':workspace', ':table'), self.tree)
+
+        # Nested JSON.
+        self.route('POST', ('nested_json', ':workspace', ':table'), self.nested_json)
 
     @access.public
     @autoDescribeRoute(
@@ -184,6 +247,49 @@ class MultiNet(Resource):
         read_tree(None, tree[0])
 
         return dict(edgecount=edgecount, nodecount=nodecount)
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Store a nested_json file in database. '
+                    'Two tables will be created with the given table name, '
+                    '<table>_edges and <table>_nodes.')
+        .param('workspace', 'Target workspace', required=True)
+        .param('table', 'Target table', required=True)
+        .param('data', 'nested_json data', paramType='body', dataType='string', required=True)
+    )
+    def nested_json(self, params, workspace=None, table=None):
+        """
+        Store a nested_json tree into the database in coordinated node and edge tables.
+
+        `workspace` - the target workspace.
+        `table` - the target table.
+        `data` - the nested_json data, passed in the request body.
+        """
+        # Set up the parameters.
+        data = cherrypy.request.body.read().decode('utf8')
+        workspace = db.db(workspace)
+        edgetable_name = f'{table}_edges'
+        nodetable_name = f'{table}_nodes'
+
+        # Set up the database targets.
+        if workspace.has_collection(edgetable_name):
+            edgetable = workspace.collection(edgetable_name)
+        else:
+            edgetable = workspace.create_collection(edgetable_name, edge=True)
+
+        if workspace.has_collection(nodetable_name):
+            nodetable = workspace.collection(nodetable_name)
+        else:
+            nodetable = workspace.create_collection(nodetable_name)
+
+        # Analyze the nested_json data into a node and edge table.
+        (nodes, edges) = analyze_nested_json(data, nodetable_name, edgetable, nodetable)
+
+        # Upload the data to the database.
+        edge_results = edgetable.insert_many(edges)
+        node_results = nodetable.insert_many(nodes)
+
+        return dict(edgecount=len(edges), nodecount=len(nodes))
 
 
 class GirderPlugin(plugin.GirderPlugin):

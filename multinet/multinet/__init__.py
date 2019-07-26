@@ -70,41 +70,34 @@ def analyze_nested_json(data, table_name):
 
         return keyed
 
-    keyed_root = keyed(data.get('node_data', {}))
-
-    try:
-        nodetable.insert(keyed_root)
-    except arango.exceptions.DocumentInsertError:
-        logwarn('error root ' + pformat(keyed_root))
-
-    nodes = [keyed_root]
+    # The helper function will collect nodes and edges into these two lists.
+    nodes = []
     edges = []
 
-    def helper(root_key, children):
-        # Precondition: the node keyed by `root_key` is already in the node
-        # table.
-        #
-        # Process the children.
-        child_keys = []
-        for child in children:
-            # First add the child node to the node table.
-            node = keyed(child.get('node_data', {}))
-            nodes.append(node)
-            child_keys.append(node['_key'])
+    def helper(tree):
+        # Grab the root node of the subtree, and the child nodes.
+        root = keyed(tree.get('node_data', {}))
+        children = tree.get('children', [])
 
-            # Next, add a link from the child to the root; include edge data in
-            # this record.
+        # Capture the root node.
+        nodes.append(root)
+
+        # Capture edges for each child.
+        for child in children:
+            child_data = keyed(child.get('node_data', {}))
+
             edge = dict(child.get('edge_data', {}))
-            edge['_from'] = f'{table_name}/{node["_key"]}'
-            edge['_to'] = f'{table_name}/{root_key}'
+            edge['_from'] = f'{table_name}/{child_data["_key"]}'
+            edge['_to'] = f'{table_name}/{root["_key"]}'
             edges.append(edge)
 
-        # Recursively add the child trees.
-        for key, child in zip(child_keys, children):
-            helper(key, child.get('children', []))
+        # Recursively add the child subtrees.
+        for child in children:
+            helper(child)
+
 
     # Kick off the analysis.
-    helper(keyed_root['_key'], data.get('children', []))
+    helper(data)
     return (nodes, edges)
 
 
@@ -283,7 +276,7 @@ class MultiNet(Resource):
             nodetable = workspace.create_collection(nodetable_name)
 
         # Analyze the nested_json data into a node and edge table.
-        (nodes, edges) = analyze_nested_json(data, nodetable_name, edgetable, nodetable)
+        (nodes, edges) = analyze_nested_json(data, nodetable_name)
 
         # Upload the data to the database.
         edge_results = edgetable.insert_many(edges)

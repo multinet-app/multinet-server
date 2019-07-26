@@ -3,8 +3,6 @@
     fill-height
     fluid
   >
-    <sidebar />
-
     <v-content>
       <div class="getting-started">
         <v-icon
@@ -21,16 +19,6 @@
     </v-content>
   </v-container>
 </template>
-
-<script>
-import Sidebar from '@/components/Sidebar'
-
-export default {
-  components: {
-    Sidebar
-  }
-}
-</script>
 
 <style>
 .getting-started {

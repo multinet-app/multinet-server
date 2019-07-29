@@ -9,7 +9,6 @@ from girder.exceptions import RestException
 import csv
 import re
 from io import StringIO
-import itertools
 import json
 import logging
 from graphql import graphql
@@ -65,8 +64,8 @@ def validate_csv(rows):
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                raise RestException(f"{BASE_ERROR_MSG} Invalid format on fields "
-                                    f"({', '.join(fields)}) in row {i+2}")
+                raise RestException(f'{BASE_ERROR_MSG} Invalid format on fields '
+                                    f'({", ".join(fields)}) in row {i+2}')
     else:
         raise RestException(f'{BASE_ERROR_MSG} Invalid Header Row Format')
 

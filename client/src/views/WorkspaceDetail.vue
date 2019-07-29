@@ -1,7 +1,5 @@
 <template>
   <v-container fluid>
-    <sidebar />
-
     <v-content>
       <v-toolbar app>
         <v-hover>
@@ -131,7 +129,7 @@
             <v-card-text>
               <v-layout row wrap>
                 <v-flex>
-                  <v-text-field v-model="newGraph" placeholder="name your graph" solo />
+                  <v-text-field v-model="newGraph" placeholder="name your graph" solo :error-messages="graphCreationErrors"/>
                 </v-flex>
               </v-layout>
 
@@ -177,14 +175,12 @@
 <script>
 import api from '@/api';
 import FileInput from '@/components/FileInput'
-import Sidebar from '@/components/Sidebar'
 import ItemPanel from '@/components/ItemPanel'
 
 export default {
   name: 'WorkspaceDetail',
   components: {
     'file-input': FileInput,
-    Sidebar,
     ItemPanel,
   },
   props: ['workspace','title'],
@@ -200,11 +196,13 @@ export default {
       fileList: [],
       fileTypes: {
         csv: {extension: ['csv'], queryCall: 'csv'},
-        newick: {extension: ['phy', 'tree'], queryCall: 'newick'}
+        newick: {extension: ['phy', 'tree'], queryCall: 'newick'},
+        nested_json: {extension: ['json'], queryCall: 'nested_json'},
       },
       selectedType: null,
       graphNodeTables: [],
       graphEdgeTable: null,
+      graphCreationErrors: [],
       tableCreationError: null,
     }
   },
@@ -288,12 +286,18 @@ export default {
       }`});
 
       if (response.data.errors.length > 0) {
+        this.graphCreationErrors = response.data.errors;
         throw new Error(response.data.errors);
       }
 
       if (!response.data.data.graph) {
-        throw new Error(`Graph "${this.newGraph}" already exists.`);
+        const message = `Graph "${this.newGraph}" already exists.`
+
+        this.graphCreationErrors = [message];
+        throw new Error(message);
       }
+
+      this.graphCreationErrors = [];
 
       this.update();
     },

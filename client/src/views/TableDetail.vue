@@ -1,7 +1,5 @@
 <template>
   <v-container fluid>
-    <sidebar />
-
     <v-content>
       <div class="nav">
         <div class="return-nav">
@@ -32,13 +30,9 @@
 </template>
 <script>
 import api from '@/api'
-import Sidebar from '@/components/Sidebar'
 
 export default {
   name: 'TableDetail',
-  components: {
-    Sidebar
-  },
   props: ['workspace', 'table'],
   data () {
     return {

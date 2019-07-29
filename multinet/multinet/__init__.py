@@ -9,6 +9,7 @@ from girder.exceptions import RestException
 import csv
 import re
 from io import StringIO
+import itertools
 import json
 import logging
 from graphql import graphql

@@ -7,6 +7,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.exceptions import RestException
 
 import csv
+import re
 from io import StringIO
 import logging
 from graphql import graphql
@@ -33,8 +34,11 @@ def graphql_query(query, variables=None):
 
 def validate_csv(rows):
     """Perform any necessary CSV validation, and raise appropriate exceptions."""
-    # Check for key uniqueness
-    if ('_key' in rows.fieldnames):
+    BASE_ERROR_MSG = 'CSV Validation Failed:'
+
+    if '_key' in rows.fieldnames and 'name' in rows.fieldnames:
+        # Node Table, check for key uniqueness
+
         keys = [row['_key'] for row in rows]
         uniqueKeys = set()
         duplicates = set()
@@ -45,7 +49,24 @@ def validate_csv(rows):
                 uniqueKeys.add(key)
 
         if (len(duplicates) > 0):
-            raise RestException(f'CSV Validation Failed: Duplicate Keys {", ".join(duplicates)}.')
+            raise RestException(f'{BASE_ERROR_MSG} Duplicate Keys {", ".join(duplicates)}.')
+    elif '_from' in rows.fieldnames and '_to' in rows.fieldnames:
+        # Edge Table, check that each cell has the correct format
+        validCell = re.compile('[^/]+/[^/]+')
+
+        for i, row in enumerate(rows):
+            fields = []
+            if not validCell.match(row['_from']):
+                fields.append('_from')
+            if not validCell.match(row['_to']):
+                fields.append('_to')
+
+            if fields:
+                # i+2 -> +1 for index offset, +1 due to header row
+                raise RestException(f"{BASE_ERROR_MSG} Invalid format on fields "
+                                    f"({', '.join(fields)}) in row {i+2}")
+    else:
+        raise RestException(f'{BASE_ERROR_MSG} Invalid Header Row Format')
 
 
 class MultiNet(Resource):

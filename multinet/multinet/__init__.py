@@ -54,13 +54,13 @@ def validate_csv(rows):
             raise RestException(f'{BASE_ERROR_MSG} Duplicate Keys {", ".join(duplicates)}.')
     elif '_from' in rows.fieldnames and '_to' in rows.fieldnames:
         # Edge Table, check that each cell has the correct format
-        validCell = re.compile('[^/]+/[^/]+')
+        valid_cell = re.compile('[^/]+/[^/]+')
 
         for i, row in enumerate(rows):
             fields = []
-            if not validCell.match(row['_from']):
+            if not valid_cell.match(row['_from']):
                 fields.append('_from')
-            if not validCell.match(row['_to']):
+            if not valid_cell.match(row['_to']):
                 fields.append('_to')
 
             if fields:

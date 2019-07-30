@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 multinet = {path = "./multinet",editable = true}
 python-arango = "*"
-graphql-core = "*"
+graphql-core = "==2.2.1"
 newick = "*"
 uuid = "*"
 flake8 = "*"

@@ -4,6 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+black = "*"
+sphinx = "*"
+flake8 = "*"
+tox = "*"
 
 [packages]
 multinet = {path = "./multinet",editable = true}
@@ -11,10 +15,7 @@ python-arango = "*"
 graphql-core = "*"
 newick = "*"
 uuid = "*"
-flake8 = "*"
-tox = "*"
 requests = "*"
-sphinx = "*"
 recommonmark = "*"
 
 [requires]
@@ -29,3 +30,4 @@ girder-serve = "girder serve --database mongodb://localhost:${EXTERNAL_MONGO_POR
 build-docs = "make html -C docs"
 serve-docs = "python -m http.server ${DOC_SERVE_PORT} -d docs/_build/html"
 lint = "tox -e flake8"
+format = "black ."

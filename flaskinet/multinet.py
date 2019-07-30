@@ -2,6 +2,8 @@ import csv
 from graphql import graphql
 from io import StringIO
 import json
+import newick
+import uuid
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -52,7 +54,7 @@ def _graphql():
     return result
 
 
-@bp.route('/csv/<workspace>/<table>', methods=['GET', 'POST'])
+@bp.route('/csv/<workspace>/<table>', methods=['POST'])
 def bulk(workspace, table):
     app.logger.info('Bulk Loading')
 
@@ -79,8 +81,53 @@ def bulk(workspace, table):
 
 
 @bp.route('/newick/<workspace>/<table>', methods=['POST'])
-def newick(workspace, table):
-    pass
+def _newick(workspace, table):
+    """
+    Store a newick tree into the database in coordinated node and edge tables.
+
+    `workspace` - the target workspace.
+    `table` - the target table.
+    `data` - the newick data, passed in the request body.
+    """
+    app.logger.info('newick tree')
+    tree = newick.loads(request.data.decode('utf8'))
+    workspace = db.db(workspace)
+    edgetable_name = '%s_edges' % table
+    nodetable_name = '%s_nodes' % table
+    if workspace.has_collection(edgetable_name):
+        edgetable = workspace.collection(edgetable_name)
+    else:
+        # Note that edge=True must be set or the _from and _to keys
+        # will be ignored below.
+        edgetable = workspace.create_collection(edgetable_name, edge=True)
+    if workspace.has_collection(nodetable_name):
+        nodetable = workspace.collection(nodetable_name)
+    else:
+        nodetable = workspace.create_collection(nodetable_name)
+
+    edgecount = 0
+    nodecount = 0
+
+    def read_tree(parent, node):
+        nonlocal nodecount
+        nonlocal edgecount
+        key = node.name or uuid.uuid4().hex
+        if not nodetable.has(key):
+            nodetable.insert({'_key': key})
+        nodecount = nodecount + 1
+        for desc in node.descendants:
+            read_tree(key, desc)
+        if parent:
+            edgetable.insert({
+                '_from': '%s/%s' % (nodetable_name, parent),
+                '_to': '%s/%s' % (nodetable_name, key),
+                'length': node.length
+            })
+            edgecount += 1
+
+    read_tree(None, tree[0])
+
+    return dict(edgecount=edgecount, nodecount=nodecount)
 
 
 @bp.route('/nested_json/<workspace>/<table>', methods=['POST'])

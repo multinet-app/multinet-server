@@ -28,7 +28,25 @@ def graphql_query(query, variables=None):
 
 
 def validate_csv(rows):
-    pass
+    """Perform any necessary CSV validation, and raise appropriate exceptions."""
+    duplicates = []
+
+    # Check for key uniqueness
+    if ('_key' in rows.fieldnames):
+        keys = [row['_key'] for row in rows]
+        uniqueKeys = set()
+        duplicates = set()
+        for key in keys:
+            if key in uniqueKeys:
+                duplicates.add(key)
+            else:
+                uniqueKeys.add(key)
+
+        duplicates = list(duplicates)
+        # if duplicates:
+            # raise RestException(f'CSV Validation Failed: Duplicate Keys {", ".join(duplicates)}.')
+
+    return duplicates
 
 
 @bp.route('/graphql', methods=['POST'])
@@ -64,7 +82,11 @@ def bulk(workspace, table):
     workspace = db.db(workspace)
 
     # Do any CSV validation necessary, and raise appropriate exceptions
-    validate_csv(rows)
+    dupes = validate_csv(rows)
+    if dupes:
+        payload = {'message': 'CSV Validation Failed',
+                   'duplicates': dupes}
+        return (payload, '400 Bad CSV Data')
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

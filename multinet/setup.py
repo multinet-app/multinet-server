@@ -3,7 +3,7 @@
 
 from setuptools import setup, find_packages
 
-with open('README.rst') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
@@ -23,16 +23,16 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
     ],
-    description='A Girder plugin proof-of-concept for a MultNet API / web application',
+    description='Multinet API / web application',
     install_requires=requirements,
     license='Apache Software License 2.0',
     long_description=readme,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     include_package_data=True,
     keywords='multinet',
     name='multinet',
     packages=find_packages(exclude=['test', 'test.*']),
-    url='https://github.com/multinet-app/multinet-girder',
+    url='https://github.com/multinet-app/multinet',
     version='0.1.0',
     zip_safe=False
 )

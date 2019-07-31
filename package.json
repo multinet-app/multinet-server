@@ -1,7 +1,7 @@
 {
-  "name": "multinet-girder",
+  "name": "multinet",
   "version": "0.1.0",
-  "description": "A Girder plugin proof-of-concept for a MultiNet API / web application",
+  "description": "MultiNet API / web application",
   "scripts": {
     "lint:js": "yarn --cwd client run lint",
     "lint:py": "cd multinet && pipenv run lint",
@@ -14,11 +14,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/multinet-app/multinet-girder.git"
+    "url": "git+https://github.com/multinet-app/multinet.git"
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/multinet-app/multinet-girder/issues"
+    "url": "https://github.com/multinet-app/multinet/issues"
   },
-  "homepage": "https://github.com/multinet-app/multinet-girder#readme"
+  "homepage": "https://github.com/multinet-app/multinet#readme"
 }

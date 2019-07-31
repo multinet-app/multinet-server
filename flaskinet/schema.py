@@ -1,1 +1,0 @@
-../multinet/multinet/schema.py

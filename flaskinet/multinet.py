@@ -30,7 +30,7 @@ def graphql_query(query, variables=None):
 
 def validate_csv(rows):
     """Perform any necessary CSV validation, and raise appropriate exceptions."""
-    if '_key' in rows.fieldnames and 'name' in rows.fieldnames:
+    if '_key' in rows.fieldnames:
         # Node Table, check for key uniqueness
 
         keys = [row['_key'] for row in rows]
@@ -65,11 +65,8 @@ def validate_csv(rows):
 
         return {'error': 'syntax' if detail else None,
                 'detail': detail}
-    else:
-        return {'error': 'invalid',
-                'detail': []}
 
-
+    return {'error': None}
 
 
 def analyze_nested_json(data, int_table_name, leaf_table_name):
@@ -170,9 +167,6 @@ def bulk(workspace, table):
     elif result['error'] == 'syntax':
         payload = {'message': 'Bad syntax',
                    'rows': result['detail']}
-        return (payload, '400 Bad CSV Data')
-    elif result['error'] == 'invalid':
-        payload = {'message': 'Invalid format'}
         return (payload, '400 Bad CSV Data')
 
     # Set the collection, paying attention to whether the data contains

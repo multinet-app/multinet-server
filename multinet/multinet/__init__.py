@@ -1,3 +1,4 @@
+"""Flask factory for Multinet app."""
 from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
@@ -6,6 +7,7 @@ from . import multinet
 
 
 def create_app(config=None):
+    """Create a Multinet app instance."""
     print(__name__)
     app = Flask(__name__)
     CORS(app)

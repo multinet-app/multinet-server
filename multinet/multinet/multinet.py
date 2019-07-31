@@ -1,3 +1,4 @@
+"""Flask blueprint for Multinet REST API."""
 import csv
 from graphql import graphql
 from io import StringIO
@@ -152,6 +153,14 @@ def _graphql():
 
 @bp.route('/csv/<workspace>/<table>', methods=['POST'])
 def bulk(workspace, table):
+    """
+    Store a CSV file into the database as a node or edge table.
+
+    `workspace` - the target workspace
+    `table` - the target table
+    `data` - the CSV data, passed in the request body. If the CSV data contains
+             `_from` and `_to` fields, it will be treated as an edge table.
+    """
     app.logger.info('Bulk Loading')
 
     body = request.data.decode('utf8')

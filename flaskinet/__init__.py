@@ -1,5 +1,6 @@
 from flask import Flask
 from flask.logging import default_handler
+from flask_cors import CORS
 
 from . import multinet
 
@@ -7,6 +8,7 @@ from . import multinet
 def create_app(config=None):
     print(__name__)
     app = Flask(__name__)
+    CORS(app)
 
     # Set up logging.
     app.logger.addHandler(default_handler)

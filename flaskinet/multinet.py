@@ -4,6 +4,7 @@ from io import StringIO
 import itertools
 import json
 import newick
+import re
 import uuid
 
 from flask import Blueprint, request

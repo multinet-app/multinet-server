@@ -30,10 +30,9 @@ def graphql_query(query, variables=None):
 
 def validate_csv(rows):
     """Perform any necessary CSV validation, and raise appropriate exceptions."""
-    duplicates = []
+    if '_key' in rows.fieldnames and 'name' in rows.fieldnames:
+        # Node Table, check for key uniqueness
 
-    # Check for key uniqueness
-    if ('_key' in rows.fieldnames):
         keys = [row['_key'] for row in rows]
         uniqueKeys = set()
         duplicates = set()
@@ -43,9 +42,34 @@ def validate_csv(rows):
             else:
                 uniqueKeys.add(key)
 
-        duplicates = list(duplicates)
+        if (len(duplicates) > 0):
+            return {'error': 'duplicate',
+                    'detail': list(duplicates)}
+    elif '_from' in rows.fieldnames and '_to' in rows.fieldnames:
+        # Edge Table, check that each cell has the correct format
+        valid_cell = re.compile('[^/]+/[^/]+')
 
-    return duplicates
+        detail = []
+
+        for i, row in enumerate(rows):
+            fields = []
+            if not valid_cell.match(row['_from']):
+                fields.append('_from')
+            if not valid_cell.match(row['_to']):
+                fields.append('_to')
+
+            if fields:
+                # i+2 -> +1 for index offset, +1 due to header row
+                detail.append({'fields': fields,
+                               'row': i + 2})
+
+        return {'error': 'syntax' if detail else None,
+                'detail': detail}
+    else:
+        return {'error': 'invalid',
+                'detail': []}
+
+
 
 
 def analyze_nested_json(data, int_table_name, leaf_table_name):
@@ -138,10 +162,17 @@ def bulk(workspace, table):
     workspace = db.db(workspace)
 
     # Do any CSV validation necessary, and raise appropriate exceptions
-    dupes = validate_csv(rows)
-    if dupes:
-        payload = {'message': 'CSV Validation Failed',
-                   'duplicates': dupes}
+    result = validate_csv(rows)
+    if result['error'] == 'duplicate':
+        payload = {'message': 'Duplicated keys',
+                   'duplicates': result['detail']}
+        return (payload, '400 Bad CSV Data')
+    elif result['error'] == 'syntax':
+        payload = {'message': 'Bad syntax',
+                   'rows': result['detail']}
+        return (payload, '400 Bad CSV Data')
+    elif result['error'] == 'invalid':
+        payload = {'message': 'Invalid format'}
         return (payload, '400 Bad CSV Data')
 
     # Set the collection, paying attention to whether the data contains

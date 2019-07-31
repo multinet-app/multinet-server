@@ -31,7 +31,7 @@ def graphql_query(query, variables=None):
     else:
         data = result.data
 
-    return dict(data=result.data, errors=errors, query=query)
+    return dict(data=data, errors=errors, query=query)
 
 
 def validate_csv(rows):

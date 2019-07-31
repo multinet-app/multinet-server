@@ -19,6 +19,9 @@ bp = Blueprint('multinet', __name__, url_prefix='/multinet')
 
 def graphql_query(query, variables=None):
     """Perform a GraphQL query using optional variable definitions."""
+    data = None
+    errors = []
+
     result = graphql(schema, query, variables=variables or {})
     if result:
         errors = [error.message for error in result.errors] if result.errors else []
@@ -26,7 +29,8 @@ def graphql_query(query, variables=None):
         for error in errors[:10]:
             app.logger.warn(error)
     else:
-        errors = []
+        data = result.data
+
     return dict(data=result.data, errors=errors, query=query)
 
 

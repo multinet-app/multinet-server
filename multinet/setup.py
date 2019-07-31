@@ -7,7 +7,6 @@ with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'girder>=3.0.0a1'
 ]
 
 setup(
@@ -30,15 +29,10 @@ setup(
     long_description=readme,
     long_description_content_type='text/x-rst',
     include_package_data=True,
-    keywords='girder-plugin, multinet',
+    keywords='multinet',
     name='multinet',
     packages=find_packages(exclude=['test', 'test.*']),
     url='https://github.com/multinet-app/multinet-girder',
     version='0.1.0',
-    zip_safe=False,
-    entry_points={
-        'girder.plugin': [
-            'multinet = multinet:GirderPlugin'
-        ]
-    }
+    zip_safe=False
 )

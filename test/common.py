@@ -4,7 +4,7 @@ import requests
 
 WORKSPACE = 'test-multinet'
 
-api_url = 'http://localhost:5000/api/v1/multinet'
+api_url = 'http://localhost:5000/api/multinet'
 graphql_url = f'{api_url}/graphql'
 csv_url = f'{api_url}/csv'
 

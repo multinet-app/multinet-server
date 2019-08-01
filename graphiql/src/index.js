@@ -15,7 +15,7 @@ function graphQLFetcher(graphQLParams) {
     'variables': graphQLParams.variables
   });
 
-  return fetch(`${HOST}/api/v1/multinet/graphql`, {
+  return fetch(`${HOST}/api/multinet/graphql`, {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',

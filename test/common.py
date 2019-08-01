@@ -1,10 +1,12 @@
+import os
 import json
 import requests
 
 
 WORKSPACE = 'test-multinet'
 
-api_url = 'http://localhost:5000/api/multinet'
+flask_serve_port = os.environ.get('FLASK_SERVE_PORT', 5000)
+api_url = f'http://localhost:{flask_serve_port}/api/multinet'
 graphql_url = f'{api_url}/graphql'
 csv_url = f'{api_url}/csv'
 

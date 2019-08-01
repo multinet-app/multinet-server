@@ -8,7 +8,6 @@ from . import multinet
 
 def create_app(config=None):
     """Create a Multinet app instance."""
-    print(__name__)
     app = Flask(__name__)
     CORS(app)
 

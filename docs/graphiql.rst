@@ -10,7 +10,7 @@ playing around with Multinet's GraphQL API.
 Installation
 ============
 
-1. Build and run the Multinet server (:ref:`multinet-girder`).
+1. Build and run the Multinet server (:ref:`multinet`).
 
 2. Install the dependencies: ::
 

@@ -1,53 +1,44 @@
-.. _multinet-girder:
+.. _multinet:
 
-===============
-multinet-girder
-===============
-A Girder plugin proof-of-concept for a MultiNet API / web application
+========
+Multinet
+========
+The Multinet API and web application
 
 .. highlight:: sh
 
 Installation
 ============
 
-Set Up Multinet/Girder
-----------------------
+Set Up Multinet
+---------------
 
 1. Clone this repository: ::
 
-       $ git clone https://github.com/multinet-app/multinet-girder
-       $ cd multinet-girder
+       $ git clone https://github.com/multinet-app/multinet
+       $ cd multinet
 
-2. Start the mongo and arango databases using docker-compose: ::
+2. Start the Arango database using docker-compose: ::
 
        $ docker-compose up
 
-   NOTE: macOS users may encounter errors in this step regarding
-   filemounts denied to the Docker process; to solve this issue, create two
-   directories somewhere, e.g.::
+   NOTE: macOS users may encounter errors in this step regarding filemounts
+   denied to the Docker process; to solve this issue, create a data directory
+   somewhere, e.g.::
 
-       $ mkdir -p ~/.local/multinet/mongo
        $ mkdir -p ~/.local/multinet/arango
 
    and then launch the Docker container using::
 
-       $ MONGO_DATA=~/.local/multinet/mongo ARANGO_DATA=~/.local/multinet/arango
-       docker-compose up -d
+       $ ARANGO_DATA=~/.local/multinet/arango docker-compose up -d
 
-3. Use pipenv to create a virtual environment and install the dependencies: ::
+4. Use pipenv to create a virtual environment and install the dependencies: ::
 
        $ pipenv install
-
-4. Build the Girder web client: ::
-
-       $ yarn build:girder
 
 5. Start the Multinet server: ::
 
        $ yarn start:server
-
-6. Open the Multinet Girder application and register a user (which will become
-   an admin user) at http://localhost:9090.
 
 A Note on Passwords
 ~~~~~~~~~~~~~~~~~~~
@@ -82,7 +73,7 @@ Run Sample Client
 
    $ yarn install
 
-3. Serve the application: ::
+3. Build and serve the application: ::
 
    $ yarn serve
 

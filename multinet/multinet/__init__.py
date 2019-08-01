@@ -18,9 +18,13 @@ def create_app(config=None):
     # Register blueprints.
     app.register_blueprint(multinet.bp)
 
-    @app.route('/hello')
-    def hello():
-        app.logger.debug('heyo')
-        return 'hello, world'
+    @app.route('/about')
+    def about():
+        return '''
+            <h1>Multinet API</h1>
+            <div>
+                See <a href="https://multinet.app">Multinet website</a> for details.
+            </div>
+        '''
 
     return app

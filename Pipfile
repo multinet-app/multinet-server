@@ -4,11 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "*"
-sphinx = "==2.1.2"
 flake8 = "==3.7.8"
+black = "*"
+flake8-black = "*"
+sphinx = "==2.1.2"
 tox = "==3.13.2"
 recommonmark = "==0.5.0"
+pre-commit = "*"
 
 [packages]
 multinet = {path = "./multinet",editable = true}

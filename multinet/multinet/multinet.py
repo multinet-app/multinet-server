@@ -43,7 +43,6 @@ def validate_csv(rows):
     """Perform any necessary CSV validation, and raise appropriate exceptions."""
     if '_key' in rows.fieldnames:
         # Node Table, check for key uniqueness
-
         keys = [row['_key'] for row in rows]
         uniqueKeys = set()
         duplicates = set()
@@ -74,10 +73,11 @@ def validate_csv(rows):
                 detail.append({'fields': fields,
                                'row': i + 2})
 
-        return {'error': 'syntax' if detail else None,
-                'detail': detail}
+        if detail:
+            return {'error': 'syntax',
+                    'detail': detail}
 
-    return {'error': None}
+    return None
 
 
 def analyze_nested_json(data, int_table_name, leaf_table_name):
@@ -179,14 +179,8 @@ def bulk(workspace, table):
 
     # Do any CSV validation necessary, and raise appropriate exceptions
     result = validate_csv(rows)
-    if result['error'] == 'duplicate':
-        payload = {'message': 'Duplicated keys',
-                   'duplicates': result['detail']}
-        return (payload, '400 Bad CSV Data')
-    elif result['error'] == 'syntax':
-        payload = {'message': 'Bad syntax',
-                   'rows': result['detail']}
-        return (payload, '400 Bad CSV Data')
+    if result:
+        return (result, '400 CSV Validation Failed')
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

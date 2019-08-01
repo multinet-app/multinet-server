@@ -19,11 +19,11 @@ def create_app(config=None):
 
     @app.route('/about')
     def about():
-        return (
-            '<h1>Multinet API</h1>'
-            '<div>'
-            '    See <a href="https://multinet.app">Multinet website</a> for details.'
-            '</div>'
-        )
+        return '''
+            <h1>Multinet API</h1>
+            <div>
+                See <a href="https://multinet.app">Multinet website</a> for details.
+            </div>
+        '''
 
     return app

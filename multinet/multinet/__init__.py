@@ -15,7 +15,7 @@ def create_app(config=None):
     app.logger.addHandler(default_handler)
 
     # Register blueprints.
-    app.register_blueprint(multinet.bp)
+    app.register_blueprint(multinet.bp, url_prefix='/multinet')
 
     @app.route('/about')
     def about():

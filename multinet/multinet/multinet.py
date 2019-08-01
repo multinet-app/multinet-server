@@ -14,7 +14,7 @@ from flask import current_app as app
 from .schema import schema
 from . import db
 
-bp = Blueprint('multinet', __name__, url_prefix='/multinet')
+bp = Blueprint('multinet', __name__)
 
 
 def graphql_query(query, variables=None):

@@ -25,11 +25,16 @@ def graphql_query(query, variables=None):
     result = graphql(schema, query, variables=variables or {})
     if result:
         errors = [error.message for error in result.errors] if result.errors else []
-        app.logger.warn('Errors in request: %s' % len(errors))
-        for error in errors[:10]:
-            app.logger.warn(error)
-    else:
         data = result.data
+
+        if errors:
+            app.logger.error('Errors in request: %s' % len(errors))
+            for error in errors[:10]:
+                app.logger.error(error)
+
+            excess = len(errors) - 10
+            if excess > 0:
+                app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
 
     return dict(data=data, errors=errors, query=query)
 

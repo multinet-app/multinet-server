@@ -98,4 +98,4 @@ def create_graph(workspace, graph):
                  'detail': list(invalid_from | invalid_to)}
         return (error, '400 Edge Table Validation Failed')
 
-    return graph if db.create_graph2(workspace, graph, node_tables, edge_table) else None
+    return graph if db.create_graph(workspace, graph, node_tables, edge_table) else None

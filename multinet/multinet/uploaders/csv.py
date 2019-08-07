@@ -75,7 +75,7 @@ def upload(workspace, table):
         return (result, '400 CSV Validation Failed')
 
     # Set the collection, paying attention to whether the data contains
-    # _from/_to fields.  coll = None
+    # _from/_to fields.
     workspace = db.db(workspace)
     if workspace.has_collection(table):
         coll = workspace.collection(table)

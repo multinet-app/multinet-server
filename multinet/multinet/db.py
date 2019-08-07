@@ -1,4 +1,5 @@
 """Low-level database operations to fulfill GraphQL queries."""
+from dataclasses import dataclass
 import os
 
 from arango import ArangoClient
@@ -224,6 +225,19 @@ def paged(tables, cursor, id=None):
         which += 1
 
     return docs, len(docs)
+
+
+@with_client
+def create_graph2(workspace, graph, node_tables, edge_table, arango=None):
+    """Proxy to create_graph()."""
+    @dataclass
+    class Graph:
+        workspace: str
+        graph: str
+
+    graph = Graph(workspace, graph)
+
+    return create_graph(graph, node_tables, edge_table, arango=arango)
 
 
 @with_client

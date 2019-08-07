@@ -12,7 +12,7 @@ bp = Blueprint('csv', __name__)
 
 
 def validate_csv(rows):
-    """Perform any necessary CSV validation, and raise appropriate exceptions."""
+    """Perform any necessary CSV validation, and return appropriate errors."""
     fieldnames = rows[0].keys()
     if '_key' in fieldnames:
         # Node Table, check for key uniqueness
@@ -69,6 +69,11 @@ def upload(workspace, table):
     body = request.data.decode('utf8')
     rows = list(csv.DictReader(StringIO(body)))
 
+    # Perform validation.
+    result = validate_csv(rows)
+    if result:
+        return (result, '400 CSV Validation Failed')
+
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.  coll = None
     workspace = db.db(workspace)
@@ -78,11 +83,6 @@ def upload(workspace, table):
         fieldnames = rows[0].keys()
         edges = '_from' in fieldnames and '_to' in fieldnames
         coll = workspace.create_collection(table, edge=edges)
-
-    # Do any CSV validation necessary, and raise appropriate exceptions
-    result = validate_csv(rows)
-    if result:
-        return (result, '400 CSV Validation Failed')
 
     # Insert the data into the collection.
     results = coll.insert_many(rows)

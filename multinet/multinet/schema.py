@@ -13,8 +13,7 @@ from .resolvers import (
     table,
     graph,
     workspace,
-    query,
-    mutation
+    query
 )
 
 schema_text = None
@@ -32,4 +31,3 @@ table.add_resolvers(schema)
 graph.add_resolvers(schema)
 workspace.add_resolvers(schema)
 query.add_resolvers(schema)
-mutation.add_resolvers(schema)

@@ -96,15 +96,6 @@ type Query {
   tables (workspace: String!, name: String): [Table!]!
 }
 
-type Mutation {
-  workspace (name: String!): String!
-  deleteWorkspace (name: String!): String
-
-  graph (workspace: String!, name: String!, node_tables: [String!]!, edge_table: String!): Graph
-  table (workspace: String!, name: String!, edges: Boolean!, fields: [String!]!, primaryKey: String): Table!
-}
-
 schema {
   query: Query
-  mutation: Mutation
 }

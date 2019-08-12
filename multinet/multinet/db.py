@@ -110,10 +110,7 @@ def workspace_graph(workspace, name, arango=None):
 
 @with_client
 def table_fields(query, arango=None):
-    """
-    Return a list of column names for table
-    `query.table` in workspace`query.workspace`.
-    """
+    """Return a list of column names for `query.table` in `query.workspace`."""
     workspace = db(query.workspace, arango=arango)
     if (
         workspace.has_collection(query.table)
@@ -265,10 +262,7 @@ def paged(tables, cursor, id=None):
 
 @with_client
 def create_graph(workspace, graph, node_tables, edge_table, arango=None):
-    """
-    Create a graph named `graph.graph`, using the `node_tables`
-    and `edge_table` to define it.
-    """
+    """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     workspace = db(workspace, arango=arango)
     if workspace.has_graph(graph):
         return False
@@ -391,10 +385,7 @@ def graph_edge_types(graph):
 
 
 def type_properties(workspace, graph, table):
-    """
-    Return the properties associated with nodes or
-    edges in graph `graph` and table `table`.
-    """
+    """Return the properties associated with nodes/edges in `graph` and `table`."""
     workspace = db(workspace)
     metadata = workspace.collection("_graphs")
     graph_meta = metadata.get(graph)

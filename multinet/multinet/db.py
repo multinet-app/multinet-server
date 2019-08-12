@@ -227,13 +227,13 @@ def paged(tables, cursor, id=None):
 
 
 @with_client
-def create_graph(graph, node_tables, edge_table, arango=None):
+def create_graph(workspace, graph, node_tables, edge_table, arango=None):
     """Create a graph named `graph.graph`, using the `node_tables` and `edge_table` to define it."""
-    workspace = db(graph.workspace, arango=arango)
-    if workspace.has_graph(graph.graph):
+    workspace = db(workspace, arango=arango)
+    if workspace.has_graph(graph):
         return False
     else:
-        graph = workspace.create_graph(graph.graph)
+        graph = workspace.create_graph(graph)
         graph.create_edge_definition(
             edge_collection=edge_table,
             from_vertex_collections=node_tables,
@@ -241,30 +241,6 @@ def create_graph(graph, node_tables, edge_table, arango=None):
         )
 
         return True
-
-    # for table in node_types:
-    #     if not graph.has_vertex_collection(table):
-    #         graph.create_vertex_collection(table)
-    #
-    # for table in edge_types:
-    #     if graph.has_edge_definition(table):
-    #         graph.replace_edge_definition(
-    #             edge_collection=table,
-    #             from_vertex_collections=node_types,
-    #             to_vertex_collections=node_types)
-    #     else:
-    #         graph.create_edge_definition(
-    #             edge_collection=table,
-    #             from_vertex_collections=node_types,
-    #             to_vertex_collections=node_types)
-    #
-    # for table in graph.edge_definitions():
-    #     if table['edge_collection'] not in edge_types:
-    #         graph.delete_edge_definition(table, purge=False)
-    #
-    # for table in graph.vertex_collections():
-    #     if table not in node_types:
-    #         graph.delete_vertex_collection(table)
 
 
 @with_client

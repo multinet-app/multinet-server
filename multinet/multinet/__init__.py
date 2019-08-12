@@ -4,6 +4,7 @@ from flask.logging import default_handler
 from flask_cors import CORS
 
 from . import multinet
+from . import uploaders
 
 
 def create_app(config=None):
@@ -16,6 +17,9 @@ def create_app(config=None):
 
     # Register blueprints.
     app.register_blueprint(multinet.bp, url_prefix='/multinet')
+    app.register_blueprint(uploaders.csv.bp, url_prefix='/multinet/csv')
+    app.register_blueprint(uploaders.newick.bp, url_prefix='/multinet/newick')
+    app.register_blueprint(uploaders.nested_json.bp, url_prefix='/multinet/nested_json')
 
     @app.route('/about')
     def about():

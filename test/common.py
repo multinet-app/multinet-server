@@ -1,12 +1,14 @@
+import os
 import json
 import requests
 
 
 WORKSPACE = 'test-multinet'
 
-girder_url = 'http://localhost:9090/api/v1/multinet'
-graphql_url = f'{girder_url}/graphql'
-csv_url = f'{girder_url}/csv'
+flask_serve_port = os.environ.get('FLASK_SERVE_PORT', 5000)
+api_url = f'http://localhost:{flask_serve_port}/api/multinet'
+graphql_url = f'{api_url}/graphql'
+csv_url = f'{api_url}/csv'
 
 
 def multinet_request(query):

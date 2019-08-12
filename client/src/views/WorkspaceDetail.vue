@@ -1,7 +1,5 @@
 <template>
   <v-container fluid>
-    <sidebar />
-
     <v-content>
       <v-toolbar app>
         <v-hover>
@@ -177,14 +175,12 @@
 <script>
 import api from '@/api';
 import FileInput from '@/components/FileInput'
-import Sidebar from '@/components/Sidebar'
 import ItemPanel from '@/components/ItemPanel'
 
 export default {
   name: 'WorkspaceDetail',
   components: {
     'file-input': FileInput,
-    Sidebar,
     ItemPanel,
   },
   props: ['workspace','title'],
@@ -200,7 +196,8 @@ export default {
       fileList: [],
       fileTypes: {
         csv: {extension: ['csv'], queryCall: 'csv'},
-        newick: {extension: ['phy', 'tree'], queryCall: 'newick'}
+        newick: {extension: ['phy', 'tree'], queryCall: 'newick'},
+        nested_json: {extension: ['json'], queryCall: 'nested_json'},
       },
       selectedType: null,
       graphNodeTables: [],
@@ -277,23 +274,13 @@ export default {
     },
 
     async createGraph () {
-      const response = await api().post('multinet/graphql', {query: `mutation {
-        graph (
-          workspace: "${this.workspace}",
-          name: "${this.newGraph}",
-          node_tables: ${JSON.stringify(this.graphNodeTables)},
-          edge_table: "${this.graphEdgeTable}"
-        ) {
-          name
-        }
-      }`});
+      const { workspace, newGraph } = this;
+      const response = await api().post(`/multinet/workspace/${workspace}/graph/${newGraph}`, {
+        node_tables: this.graphNodeTables,
+        edge_table: this.graphEdgeTable,
+      });
 
-      if (response.data.errors.length > 0) {
-        this.graphCreationErrors = response.data.errors;
-        throw new Error(response.data.errors);
-      }
-
-      if (!response.data.data.graph) {
+      if (!response) {
         const message = `Graph "${this.newGraph}" already exists.`
 
         this.graphCreationErrors = [message];

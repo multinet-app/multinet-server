@@ -1,7 +1,5 @@
 <template>
   <v-container fluid>
-    <sidebar />
-
     <v-content>
       <h1>Node: {{`${this.workspace}/${this.graph}/${this.node}`}}</h1>
       <div style="border-style: solid;">
@@ -53,13 +51,9 @@
 
 <script>
 import api from '@/api'
-import Sidebar from '@/components/Sidebar'
 
 export default {
   name: 'NodeDetail',
-  components: {
-    Sidebar
-  },
   props: ['workspace', 'graph', 'type', 'node'],
   data () {
     return {

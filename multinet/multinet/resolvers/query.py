@@ -3,12 +3,16 @@ from multinet import db
 from multinet.types import Graph, Table
 
 
-def workspaces(root, info, name=''):
+def workspaces(root, info, name=""):
     """Return list of workspace names accessible to the user."""
-    return [workspace for workspace in db.get_workspaces(name) if not name or workspace == name]
+    return [
+        workspace
+        for workspace in db.get_workspaces(name)
+        if not name or workspace == name
+    ]
 
 
-def graphs(root, info, workspace, name=''):
+def graphs(root, info, workspace, name=""):
     """Return a list of graphs in a workspace."""
     return [
         Graph(workspace, graph)
@@ -22,7 +26,7 @@ def graph(root, info, workspace, name):
     return Graph(workspace, name) if db.workspace_graph(workspace, name) else None
 
 
-def tables(root, info, workspace, name=''):
+def tables(root, info, workspace, name=""):
     """Return a list of tables in a workspace."""
     return [
         Table(workspace, table)
@@ -38,9 +42,9 @@ def table(root, info, workspace, name):
 
 def add_resolvers(schema):
     """Add query resolvers to the schema object."""
-    fields = schema.get_type('Query').fields
-    fields['workspaces'].resolver = workspaces
-    fields['graphs'].resolver = graphs
-    fields['graph'].resolver = graph
-    fields['tables'].resolver = tables
-    fields['table'].resolver = table
+    fields = schema.get_type("Query").fields
+    fields["workspaces"].resolver = workspaces
+    fields["graphs"].resolver = graphs
+    fields["graph"].resolver = graph
+    fields["tables"].resolver = tables
+    fields["table"].resolver = table

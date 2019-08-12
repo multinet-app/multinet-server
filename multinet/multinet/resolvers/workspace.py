@@ -25,7 +25,7 @@ def graphs(workspace, info):
 
 def add_resolvers(schema):
     """Add workspace resolvers to the schema object."""
-    fields = schema.get_type('Workspace').fields
-    fields['name'].resolver = name
-    fields['tables'].resolver = tables
-    fields['graphs'].resolver = graphs
+    fields = schema.get_type("Workspace").fields
+    fields["name"].resolver = name
+    fields["tables"].resolver = tables
+    fields["graphs"].resolver = graphs

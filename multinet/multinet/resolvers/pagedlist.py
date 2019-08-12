@@ -24,7 +24,7 @@ def node_count(query, info):
 def nodes(query, info, offset=0, limit=10):
     """Retrieve a page of nodes for a particular query."""
     if type(query) == RealizedQuery:
-        return query.values[offset:(offset + limit)]
+        return query.values[offset : (offset + limit)]
     return db.fetchNodes(query, Cursor(offset, limit))
 
 
@@ -38,7 +38,7 @@ def edge_count(query, info):
 def edges(query, info, offset=0, limit=10):
     """Retrieve a page of edges for a particular query."""
     if type(query) == RealizedQuery:
-        return query.values[offset:(offset + limit)]
+        return query.values[offset : (offset + limit)]
     return db.fetchEdges(query, Cursor(offset, limit))
 
 
@@ -56,14 +56,14 @@ def rows(query, info, offset=0, limit=10):
 
 def add_resolvers(schema):
     """Add the paged query resolvers to the schema object."""
-    fields = schema.get_type('RowList').fields
-    fields['total'].resolver = row_count
-    fields['data'].resolver = rows
+    fields = schema.get_type("RowList").fields
+    fields["total"].resolver = row_count
+    fields["data"].resolver = rows
 
-    fields = schema.get_type('NodeList').fields
-    fields['total'].resolver = node_count
-    fields['data'].resolver = nodes
+    fields = schema.get_type("NodeList").fields
+    fields["total"].resolver = node_count
+    fields["data"].resolver = nodes
 
-    fields = schema.get_type('EdgeList').fields
-    fields['total'].resolver = edge_count
-    fields['data'].resolver = edges
+    fields = schema.get_type("EdgeList").fields
+    fields["total"].resolver = edge_count
+    fields["data"].resolver = edges

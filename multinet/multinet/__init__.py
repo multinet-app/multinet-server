@@ -16,12 +16,12 @@ def create_app(config=None):
     app.logger.addHandler(default_handler)
 
     # Register blueprints.
-    app.register_blueprint(multinet.bp, url_prefix='/multinet')
-    app.register_blueprint(uploaders.csv.bp, url_prefix='/multinet/csv')
-    app.register_blueprint(uploaders.newick.bp, url_prefix='/multinet/newick')
-    app.register_blueprint(uploaders.nested_json.bp, url_prefix='/multinet/nested_json')
+    app.register_blueprint(multinet.bp, url_prefix="/multinet")
+    app.register_blueprint(uploaders.csv.bp, url_prefix="/multinet/csv")
+    app.register_blueprint(uploaders.newick.bp, url_prefix="/multinet/newick")
+    app.register_blueprint(uploaders.nested_json.bp, url_prefix="/multinet/nested_json")
 
-    @app.route('/about')
+    @app.route("/about")
     def about():
         return """
             <h1>Multinet API</h1>

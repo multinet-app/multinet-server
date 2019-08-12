@@ -25,8 +25,8 @@ def _fields(table, info):
 
 def add_resolvers(schema):
     """Add table resolvers to the schema object."""
-    fields = schema.get_type('Table').fields
-    fields['name'].resolver = name
-    fields['primaryKey'].resolver = lambda *_: '_id'
-    fields['fields'].resolver = _fields
-    fields['rows'].resolver = rows
+    fields = schema.get_type("Table").fields
+    fields["name"].resolver = name
+    fields["primaryKey"].resolver = lambda *_: "_id"
+    fields["fields"].resolver = _fields
+    fields["rows"].resolver = rows

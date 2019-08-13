@@ -17,7 +17,8 @@ jobs:
           command: yarn install --frozen-lockfile
       - run:
           name: JavaScript lint tests
-          command: yarn lint:js
+          working_directory: client
+          command: yarn run lint
       - save_cache:
           name: Save Yarn package cache
           key: yarn-packages-{{ checksum "client/yarn.lock" }}
@@ -29,10 +30,20 @@ jobs:
           key: pipenv-{{ checksum "Pipfile.lock" }}
       - run:
           name: Install Python dependencies
+          working_directory: multinet
           command: pipenv install -d
       - run:
+          name: Activate Virtualenv
+          working_directory: multinet
+          command: pipenv shell
+      - run:
           name: Python lint tests
-          command: yarn lint:py
+          working_directory: multinet
+          command: pipenv run lint
+      - run:
+          name: Deactivate Virtualenv
+          working_directory: multinet
+          command: exit
       - save_cache:
           key: pipenv-{{ checksum "Pipfile.lock" }}
           paths:

@@ -45,20 +45,20 @@ def entity_type(entity, info):
 
 def add_resolvers(schema):
     """Add the entity resolvers to the schema object."""
-    fields = schema.get_type('Node').fields
-    fields['key'].resolver = lambda node, *_: node.data['_id']
-    fields['type'].resolver = entity_type
-    fields['outgoing'].resolver = outgoing
-    fields['incoming'].resolver = incoming
-    fields['properties'].resolver = attributes
+    fields = schema.get_type("Node").fields
+    fields["key"].resolver = lambda node, *_: node.data["_id"]
+    fields["type"].resolver = entity_type
+    fields["outgoing"].resolver = outgoing
+    fields["incoming"].resolver = incoming
+    fields["properties"].resolver = attributes
 
-    fields = schema.get_type('Edge').fields
-    fields['key'].resolver = lambda edge, *_: edge.data['_id']
-    fields['type'].resolver = entity_type
-    fields['source'].resolver = source
-    fields['target'].resolver = target
-    fields['properties'].resolver = attributes
+    fields = schema.get_type("Edge").fields
+    fields["key"].resolver = lambda edge, *_: edge.data["_id"]
+    fields["type"].resolver = entity_type
+    fields["source"].resolver = source
+    fields["target"].resolver = target
+    fields["properties"].resolver = attributes
 
-    fields = schema.get_type('Row').fields
-    fields['key'].resolver = lambda row, *_: row.data['_id']
-    fields['columns'].resolver = attributes
+    fields = schema.get_type("Row").fields
+    fields["key"].resolver = lambda row, *_: row.data["_id"]
+    fields["columns"].resolver = attributes

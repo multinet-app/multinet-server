@@ -7,10 +7,10 @@ from .. import db
 from flask import Blueprint, request
 from flask import current_app as app
 
-bp = Blueprint('newick', __name__)
+bp = Blueprint("newick", __name__)
 
 
-@bp.route('/<workspace>/<table>', methods=['POST'])
+@bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace, table):
     """
     Store a newick tree into the database in coordinated node and edge tables.
@@ -19,11 +19,11 @@ def upload(workspace, table):
     `table` - the target table.
     `data` - the newick data, passed in the request body.
     """
-    app.logger.info('newick tree')
-    tree = newick.loads(request.data.decode('utf8'))
+    app.logger.info("newick tree")
+    tree = newick.loads(request.data.decode("utf8"))
     workspace = db.db(workspace)
-    edgetable_name = '%s_edges' % table
-    nodetable_name = '%s_nodes' % table
+    edgetable_name = "%s_edges" % table
+    nodetable_name = "%s_nodes" % table
     if workspace.has_collection(edgetable_name):
         edgetable = workspace.collection(edgetable_name)
     else:
@@ -43,16 +43,18 @@ def upload(workspace, table):
         nonlocal edgecount
         key = node.name or uuid.uuid4().hex
         if not nodetable.has(key):
-            nodetable.insert({'_key': key})
+            nodetable.insert({"_key": key})
         nodecount = nodecount + 1
         for desc in node.descendants:
             read_tree(key, desc)
         if parent:
-            edgetable.insert({
-                '_from': '%s/%s' % (nodetable_name, parent),
-                '_to': '%s/%s' % (nodetable_name, key),
-                'length': node.length
-            })
+            edgetable.insert(
+                {
+                    "_from": "%s/%s" % (nodetable_name, parent),
+                    "_to": "%s/%s" % (nodetable_name, key),
+                    "length": node.length,
+                }
+            )
             edgecount += 1
 
     read_tree(None, tree[0])

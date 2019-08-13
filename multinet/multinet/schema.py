@@ -13,11 +13,11 @@ from .resolvers import (
     table,
     graph,
     workspace,
-    query
+    query,
 )
 
 schema_text = None
-with open(os.path.join(os.path.dirname(__file__), 'multinet.gql')) as f:
+with open(os.path.join(os.path.dirname(__file__), "multinet.gql")) as f:
     schema_text = f.read()
 
 schema = build_ast_schema(parse(schema_text))

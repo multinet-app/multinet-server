@@ -29,7 +29,7 @@ jobs:
           key: pipenv-{{ checksum "Pipfile.lock" }}
       - run:
           name: Install Python dependencies
-          command: pipenv install
+          command: pipenv install -d
       - run:
           name: Python lint tests
           command: yarn lint:py

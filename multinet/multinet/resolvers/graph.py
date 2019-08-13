@@ -53,9 +53,9 @@ def edges(graph, info, key=None, search=None):
 
 def add_resolvers(schema):
     """Add graph resolvers to the schema object."""
-    fields = schema.get_type('Graph').fields
-    fields['name'].resolver = name
-    fields['edgeTypes'].resolver = edge_types
-    fields['nodeTypes'].resolver = node_types
-    fields['nodes'].resolver = nodes
-    fields['edges'].resolver = edges
+    fields = schema.get_type("Graph").fields
+    fields["name"].resolver = name
+    fields["edgeTypes"].resolver = edge_types
+    fields["nodeTypes"].resolver = node_types
+    fields["nodes"].resolver = nodes
+    fields["edges"].resolver = edges

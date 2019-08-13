@@ -1,6 +1,6 @@
 import pytest
 
 
-@pytest.mark.plugin('multinet')
+@pytest.mark.plugin("multinet")
 def test_true(server):
-    assert 'multinet' == 'multinet'
+    assert "multinet" == "multinet"

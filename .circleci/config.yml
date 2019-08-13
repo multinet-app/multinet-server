@@ -28,6 +28,7 @@ jobs:
       # Python tests
       - restore_cache:
           key: pipenv-{{ checksum "Pipfile.lock" }}
+          working_directory: multinet
       - run:
           name: Install Python dependencies
           working_directory: multinet

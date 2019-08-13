@@ -33,10 +33,6 @@ jobs:
           working_directory: multinet
           command: pipenv install -d
       - run:
-          name: Activate Virtualenv
-          working_directory: multinet
-          command: pipenv shell
-      - run:
           name: Python lint tests
           working_directory: multinet
           command: pipenv run lint

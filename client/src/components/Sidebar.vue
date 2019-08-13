@@ -34,7 +34,7 @@
             <template v-slot:activator="{ on }">
               <v-scroll-x-transition>
                 <v-btn
-                  flat
+                  text
                   icon
                   v-if="somethingChecked"
                   v-on="on"
@@ -53,14 +53,13 @@
         v-for="space in workspaces"
         :key="space"
       >
-        <v-list-tile
+        <v-list-item
           active-class="grey lighten-4"
-          avatar
           ripple
           slot-scope="{ hover }"
           :to="`/workspaces/${space}/`"
         >
-          <v-list-tile-avatar @click.prevent>
+          <v-list-item-action @click.prevent>
             <v-fade-transition hide-on-leave>
               <v-icon
                 color="primary"
@@ -73,12 +72,12 @@
                 v-model="checkbox[space]"
               ></v-checkbox>
             </v-fade-transition>
-          </v-list-tile-avatar>
+          </v-list-item-action>
 
-          <v-list-tile-content>
-            <v-list-tile-title>{{space}}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
+          <v-list-item-content>
+            <v-list-item-title>{{space}}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-hover>
     </v-list>
   </v-navigation-drawer>
@@ -126,8 +125,4 @@ export default {
 </script>
 
 <style scoped>
-.ws-checkbox.v-input--selection-controls {
-  margin-top: 19px;
-  margin-left: 8px;
-}
 </style>

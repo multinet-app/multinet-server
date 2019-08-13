@@ -1,10 +1,10 @@
 <template>
   <v-list
-    dark
+    class="item-panel"
     subheader
   >
-    <v-subheader class="pr-2">
-      {{title}}
+    <v-subheader class="px-0">
+      <h2 class="black--text">{{title}}</h2>
 
       <v-spacer />
 
@@ -12,7 +12,7 @@
           <template v-slot:activator="{ on }">
             <v-scroll-x-transition>
               <v-btn
-                flat
+                text
                 icon
                 v-if="anySelected"
                 v-on="on"
@@ -32,14 +32,13 @@
         v-for="item in items"
         :key="item"
       >
-        <v-list-tile
+        <v-list-item
           active-class="grey lighten-4"
-          avatar
           ripple
           slot-scope="{ hover }"
           :to="`/workspaces/${workspace}/${routeType}/${item}`"
         >
-          <v-list-tile-avatar @click.prevent>
+          <v-list-item-action @click.prevent>
             <v-fade-transition hide-on-leave>
               <v-icon
                 color="blue lighten-1"
@@ -52,12 +51,12 @@
                 v-model="checkbox[item]"
               ></v-checkbox>
             </v-fade-transition>
-          </v-list-tile-avatar>
+          </v-list-item-action>
 
-          <v-list-tile-content>
-            <v-list-tile-title>{{item}}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
+          <v-list-item-content>
+            <v-list-item-title>{{item}}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
       </v-hover>
     </template>
     <div
@@ -109,8 +108,12 @@ export default {
 </script>
 
 <style scoped>
-.ws-detail-checkbox.v-input--selection-controls {
-  margin-top: 19px;
-  margin-left: 8px;
+.v-list.item-panel {
+  background: none;
+}
+
+.ws-detail-empty-list {
+  padding: 40px 40px 55px;
+  text-align: center;
 }
 </style>

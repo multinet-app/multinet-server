@@ -1,10 +1,10 @@
 <template>
   <v-list
-    dark
+    class="item-panel"
     subheader
   >
-    <v-subheader class="pr-2">
-      {{title}}
+    <v-subheader class="px-0">
+      <h2 class="black--text">{{title}}</h2>
 
       <v-spacer />
 
@@ -39,7 +39,7 @@
           slot-scope="{ hover }"
           :to="`/workspaces/${workspace}/${routeType}/${item}`"
         >
-          <v-list-tile-avatar @click.prevent>
+          <v-list-tile-action @click.prevent>
             <v-fade-transition hide-on-leave>
               <v-icon
                 color="blue lighten-1"
@@ -52,7 +52,7 @@
                 v-model="checkbox[item]"
               ></v-checkbox>
             </v-fade-transition>
-          </v-list-tile-avatar>
+          </v-list-tile-action>
 
           <v-list-tile-content>
             <v-list-tile-title>{{item}}</v-list-tile-title>
@@ -109,8 +109,12 @@ export default {
 </script>
 
 <style scoped>
-.ws-detail-checkbox.v-input--selection-controls {
-  margin-top: 19px;
-  margin-left: 8px;
+.v-list.item-panel {
+  background: none;
+}
+
+.ws-detail-empty-list {
+  padding: 40px 40px 55px;
+  text-align: center;
 }
 </style>

@@ -21,7 +21,7 @@ def create_app(config=None):
     app.register_blueprint(uploaders.newick.bp, url_prefix='/multinet/newick')
     app.register_blueprint(uploaders.nested_json.bp, url_prefix='/multinet/nested_json')
 
-    @app.route('/about')
+    @app.route('/')
     def about():
         return """
             <h1>Multinet API</h1>

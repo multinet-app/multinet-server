@@ -13,3 +13,8 @@ pydocstyle<4
 pytest>=3.6
 pytest-cov==2.5
 pytest-xdist
+flask
+flask-cors
+graphql-core
+python-arango
+newick

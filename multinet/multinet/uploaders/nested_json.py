@@ -6,7 +6,7 @@ from .. import db
 
 from flask import Blueprint, request
 
-bp = Blueprint('nested_json', __name__)
+bp = Blueprint("nested_json", __name__)
 
 
 def analyze_nested_json(data, int_table_name, leaf_table_name):
@@ -20,11 +20,11 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
     data = json.loads(data)
 
     def keyed(rec):
-        if '_key' in rec:
+        if "_key" in rec:
             return rec
 
         # keyed = dict(rec)
-        rec['_key'] = str(next(id))
+        rec["_key"] = str(next(id))
 
         return rec
 
@@ -34,8 +34,8 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
 
     def helper(tree):
         # Grab the root node of the subtree, and the child nodes.
-        root = keyed(tree.get('node_data', {}))
-        children = tree.get('children', [])
+        root = keyed(tree.get("node_data", {}))
+        children = tree.get("children", [])
 
         # Capture the root node into one of two tables.
         if children:
@@ -46,15 +46,17 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
         # Capture edges for each child.
         for child in children:
             # Grab the child data.
-            child_data = keyed(child.get('node_data', {}))
+            child_data = keyed(child.get("node_data", {}))
 
             # Determine which table the child is in.
-            child_table_name = int_table_name if child.get('children') else leaf_table_name
+            child_table_name = (
+                int_table_name if child.get("children") else leaf_table_name
+            )
 
             # Record the edge record.
-            edge = dict(child.get('edge_data', {}))
-            edge['_from'] = f'{child_table_name}/{child_data["_key"]}'
-            edge['_to'] = f'{int_table_name}/{root["_key"]}'
+            edge = dict(child.get("edge_data", {}))
+            edge["_from"] = f'{child_table_name}/{child_data["_key"]}'
+            edge["_to"] = f'{int_table_name}/{root["_key"]}'
             edges.append(edge)
 
         # Recursively add the child subtrees.
@@ -66,7 +68,7 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
     return (nodes, edges)
 
 
-@bp.route('/<workspace>/<table>', methods=['POST'])
+@bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace, table):
     """
     Store a nested_json tree into the database in coordinated node and edge tables.
@@ -76,11 +78,11 @@ def upload(workspace, table):
     `data` - the nested_json data, passed in the request body.
     """
     # Set up the parameters.
-    data = request.data.decode('utf8')
+    data = request.data.decode("utf8")
     workspace = db.db(workspace)
-    edgetable_name = f'{table}_edges'
-    int_nodetable_name = f'{table}_internal_nodes'
-    leaf_nodetable_name = f'{table}_leaf_nodes'
+    edgetable_name = f"{table}_edges"
+    int_nodetable_name = f"{table}_internal_nodes"
+    leaf_nodetable_name = f"{table}_leaf_nodes"
 
     # Set up the database targets.
     if workspace.has_collection(edgetable_name):
@@ -106,4 +108,6 @@ def upload(workspace, table):
     int_nodetable.insert_many(nodes[0])
     leaf_nodetable.insert_many(nodes[1])
 
-    return dict(edgecount=len(edges), int_nodecount=len(nodes[0]), leaf_nodecount=len(nodes[1]))
+    return dict(
+        edgecount=len(edges), int_nodecount=len(nodes[0]), leaf_nodecount=len(nodes[1])
+    )

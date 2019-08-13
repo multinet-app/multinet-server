@@ -18,7 +18,7 @@ def key(prop, info):
 
 def add_resolvers(schema):
     """Add the property resolvers to the schema object."""
-    fields = schema.get_type('Property').fields
-    fields['label'].resolver = label
-    fields['table'].resolver = table
-    fields['key'].resolver = key
+    fields = schema.get_type("Property").fields
+    fields["label"].resolver = label
+    fields["table"].resolver = table
+    fields["key"].resolver = key

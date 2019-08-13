@@ -4,6 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "==3.7.8"
+black = "*"
+flake8-black = "*"
+flake8-docstrings = "*"
+sphinx = "==2.1.2"
+tox = "==3.13.2"
+recommonmark = "==0.5.0"
+pre-commit = "*"
 
 [packages]
 multinet = {path = "./multinet",editable = true}
@@ -11,11 +19,7 @@ python-arango = "==4.4.0"
 graphql-core = "==2.2.1"
 newick = "==0.9.2"
 uuid = "==1.30"
-flake8 = "==3.7.8"
-tox = "==3.13.2"
 requests = "==2.22.0"
-sphinx = "==2.1.2"
-recommonmark = "==0.5.0"
 flask = "==1.1.1"
 flask-cors = "==3.0.8"
 
@@ -30,3 +34,4 @@ flask-serve = "flask run -p ${FLASK_SERVE_PORT}"
 build-docs = "make html -C docs"
 serve-docs = "python -m http.server ${DOC_SERVE_PORT} -d docs/_build/html"
 lint = "tox -e flake8"
+format = "black ."

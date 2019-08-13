@@ -37,10 +37,6 @@ jobs:
           name: Python lint tests
           working_directory: multinet
           command: pipenv run lint
-      - run:
-          name: Deactivate Virtualenv
-          working_directory: multinet
-          command: exit
       - save_cache:
           key: pipenv-{{ checksum "Pipfile.lock" }}
           paths:

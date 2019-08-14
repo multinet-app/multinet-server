@@ -2,7 +2,7 @@
 from graphql import graphql
 import json
 
-from flask import Blueprint, request
+from flask import Blueprint, request, abort
 from flask import current_app as app
 
 from .schema import schema
@@ -30,6 +30,9 @@ def graphql_query(query, variables=None):
             if excess > 0:
                 app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
 
+            raise ValueError("Error when connecting to the DB.")
+            return
+
     return dict(data=data, errors=errors, query=query)
 
 
@@ -52,7 +55,13 @@ def _graphql():
     app.logger.debug("request: %s" % query)
     app.logger.debug("variables: %s" % variables)
 
-    result = graphql_query(query, variables)
+    try:
+        result = graphql_query(query, variables)
+    except ValueError as e:
+        for arg in e.args:
+            app.logger.error(arg)
+        abort(500)
+
     return result
 
 

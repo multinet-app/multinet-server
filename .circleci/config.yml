@@ -27,16 +27,16 @@ jobs:
 
       # Python tests
       - restore_cache:
-          key: pipenv-{{ checksum "multinet/Pipfile.lock" }}
+          key: pipenv-{{ checksum "server/Pipfile.lock" }}
       - run:
           name: Install Python dependencies
-          working_directory: multinet
+          working_directory: server
           command: pipenv install --dev --deploy
       - run:
           name: Python lint tests
-          working_directory: multinet
+          working_directory: server
           command: pipenv run lint
       - save_cache:
-          key: pipenv-{{ checksum "multinet/Pipfile.lock" }}
+          key: pipenv-{{ checksum "server/Pipfile.lock" }}
           paths:
             - ~/.cache/pipenv

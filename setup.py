@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""This is the setup module for the multinet package."""
 
 from setuptools import setup, find_packages
 

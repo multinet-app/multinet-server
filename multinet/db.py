@@ -1,9 +1,28 @@
 """Low-level database operations to fulfill GraphQL queries."""
 import os
+import sys
 
 from arango import ArangoClient
+from requests.exceptions import ConnectionError
+
+from flask import current_app as app
 
 from multinet.types import Row, Entity, EntityType, Cursor
+
+
+def test_db(arango):
+    app.logger.info("in test_db")
+
+    try:
+        arango.db("_system",
+                  username="root",
+                  password=os.environ.get("ARANGO_PASSWORD", "letmein")
+                  ).has_database('test')
+    except ConnectionError:
+        app.logger.error("db connection issues")
+        return False
+
+    return True
 
 
 def with_client(fun):
@@ -52,12 +71,15 @@ def delete_workspace(name, arango=None):
 @with_client
 def get_workspaces(name, arango=None):
     """Return a list of all workspace names."""
-    sys = db("_system", arango=arango)
-    if name and sys.has_database(name):
-        return [name]
+    if test_db(arango):
+        sys = db("_system", arango=arango)
+        if name and sys.has_database(name):
+            return [name]
 
-    workspaces = sys.databases()
-    return [workspace for workspace in workspaces if workspace != "_system"]
+        workspaces = sys.databases()
+        return [workspace for workspace in workspaces if workspace != "_system"]
+    else:
+        return None
 
 
 @with_client

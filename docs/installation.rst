@@ -49,7 +49,16 @@ Set Up Multinet
 
        $ pipenv install
 
-7. Start the Multinet server: ::
+7. Install the pre-commit hook: ::
+
+       $ pipenv run pre-commit install
+
+   This hook will run the Black formatter in check mode, as well as linting
+   tests, and abort the commit if there are style errors in the code. You can
+   fix these manually, or run ``black`` via ``pipenv run format`` to fix them
+   automatically.
+
+8. Start the Multinet server: ::
 
        $ pipenv run serve
 

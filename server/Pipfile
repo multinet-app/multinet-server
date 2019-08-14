@@ -31,7 +31,7 @@ python_version = "3.7"
 allow_prereleases = true
 
 [scripts]
-flask-serve = "flask run -p ${FLASK_SERVE_PORT}"
+flask = "flask run -p ${FLASK_SERVE_PORT}"
 build-docs = "make html -C ../docs"
 serve-docs = "python -m http.server ${DOC_SERVE_PORT} -d ../docs/_build/html"
 lint = "tox -e flake8"

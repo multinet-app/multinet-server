@@ -15,7 +15,7 @@ recommonmark = "==0.5.0"
 pre-commit = "*"
 
 [packages]
-multinet = {path = ".",editable = true}
+multinet = {path = ".", editable = true}
 python-arango = "==4.4.0"
 graphql-core = "==2.2.1"
 newick = "==0.9.2"

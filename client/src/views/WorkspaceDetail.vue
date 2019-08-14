@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-content>
-      <v-toolbar app>
+      <v-app-bar app>
         <v-hover>
           <v-toolbar-title
             class="ws-detail-title"
@@ -56,7 +56,7 @@
               autofocus
               background-color="transparent"
               class="ws-rename"
-              flat
+              text
               @focus="$event.target.select()"
               solo
               :value="workspace"
@@ -70,10 +70,9 @@
         <v-btn icon>
           <v-icon>more_vert</v-icon>
         </v-btn>
-      </v-toolbar>
+      </v-app-bar>
 
       <v-layout
-        row
         wrap
       >
         <v-flex
@@ -83,34 +82,75 @@
         >
           <v-card
             color="transparent"
-            flat
+            text
           >
-            <v-card-title>
-              <h2>Create Tables</h2>
-            </v-card-title>
-
-            <v-card-text>
-              <v-layout row wrap>
-                <v-flex>
-                  <v-text-field v-model="newTable" placeholder="name your table" solo :error-messages="tableCreationError"/>
-                </v-flex>
-              </v-layout>
-              <v-layout row wrap>
-                <v-flex>
-                  <file-input @handle-file-input="handleFileInput" v-bind:types="fileTypes"/>
-                </v-flex>
-              </v-layout>
-              <v-btn :disabled="tableCreateDisabled" @click="createTable">create table</v-btn>
-            </v-card-text>
-
             <item-panel
-              title="Your Tables"
+              title="Tables"
               :items="tables"
               :workspace="workspace"
               route-type="table"
               icon="table_chart"
             />
+            <v-dialog
+              v-model="tableDialog"
+              width="700"
+            >
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  block
+                  class="pl-3 pr-2"
+                  color="blue darken-2"
+                  dark
+                  depressed
+                  large
+                  v-on="on"
+                >
+                  New Table
+                  <v-spacer />
+                  <v-icon
+                    right
+                    size="20px"
+                  >add_circle</v-icon>
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card>
+                  <v-card-title
+                    class="headline pb-0 pt-3"
+                    primary-title
+                  >
+                    Create Table
+                  </v-card-title>
 
+                  <v-card-text class="px-4 pt-4 pb-1">
+                    <v-layout wrap>
+                      <v-flex>
+                        <v-text-field
+                          filled
+                          v-model="newTable"
+                          label="Table name"
+                          :error-messages="tableCreationError"
+                        />
+                      </v-flex>
+                    </v-layout>
+                    <v-layout wrap>
+                      <v-flex>
+                        <file-input @handle-file-input="handleFileInput" v-bind:types="fileTypes"/>
+                      </v-flex>
+                    </v-layout>
+                  </v-card-text>
+
+                  <v-divider></v-divider>
+
+                  <v-card-actions class="px-4 py-3">
+                    <v-spacer></v-spacer>
+                    <v-btn :disabled="tableCreateDisabled" @click="createTable">
+                      Create Table
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-card>
+            </v-dialog>
           </v-card>
         </v-flex>
         <v-flex
@@ -120,50 +160,99 @@
         >
           <v-card
             color="transparent"
-            flat
+            text
           >
-            <v-card-title>
-              <h2>Create Graphs</h2>
-            </v-card-title>
-
-            <v-card-text>
-              <v-layout row wrap>
-                <v-flex>
-                  <v-text-field v-model="newGraph" placeholder="name your graph" solo :error-messages="graphCreationErrors"/>
-                </v-flex>
-              </v-layout>
-
-              <v-layout row wrap>
-                <v-flex md6>
-                  <v-select
-                    v-model="graphNodeTables"
-                    :items="nodeTables"
-                    chips
-                    deletable-chips
-                    clearable
-                    solo
-                    multiple
-                  />
-                </v-flex>
-
-                <v-flex md6>
-                  <v-select
-                    v-model="graphEdgeTable"
-                    :items="edgeTables"
-                    solo
-                  />
-                </v-flex>
-                <v-btn :disabled="graphCreateDisabled" @click="createGraph">create graph</v-btn>
-              </v-layout>
-            </v-card-text>
-
             <item-panel
-              title="Your Graphs"
+              title="Graphs"
               :items="graphs"
               :workspace="workspace"
               route-type="graph"
               icon="timeline"
               />
+              <v-dialog
+                v-model="graphDialog"
+                width="700"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    block
+                    class="pl-3 pr-2"
+                    color="blue darken-2"
+                    dark
+                    depressed
+                    large
+                    v-on="on"
+                  >
+                    New Graph
+                    <v-spacer />
+                    <v-icon
+                      right
+                      size="20px"
+                    >add_circle</v-icon>
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card>
+                    <v-card-title
+                      class="headline pb-0 pt-3"
+                      primary-title
+                    >
+                      Create Graph
+                    </v-card-title>
+
+                    <v-card-text class="px-4 pt-4 pb-1">
+                      <v-layout wrap>
+                        <v-flex>
+                          <v-text-field
+                            filled
+                            label="Graph name"
+                            v-model="newGraph"
+                            :error-messages="graphCreationErrors"
+                          />
+                        </v-flex>
+                      </v-layout>
+
+                      <v-layout wrap>
+                        <v-flex>
+                          <v-select
+                            filled
+                            chips
+                            class="choose-tables"
+                            clearable
+                            deletable-chips
+                            label="Choose node tables"
+                            multiple
+                            v-model="graphNodeTables"
+                            :items="nodeTables"
+                          />
+                        </v-flex>
+                      </v-layout>
+
+                      <v-layout wrap>
+                        <v-flex>
+                          <v-select
+                            filled
+                            label="Choose edge table"
+                            v-model="graphEdgeTable"
+                            :items="edgeTables"
+                          />
+                        </v-flex>
+                      </v-layout>
+                    </v-card-text>
+
+                    <v-divider></v-divider>
+
+                    <v-card-actions class="px-4 py-3">
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        depressed
+                        :disabled="graphCreateDisabled"
+                        @click="createGraph"
+                      >create graph</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-card>
+              </v-dialog>
 
           </v-card>
         </v-flex>
@@ -187,6 +276,8 @@ export default {
   data () {
     return {
       editing: false,
+      tableDialog: false,
+      graphDialog: false,
       newTable: '',
       newGraph: '',
       tables: [],
@@ -305,7 +396,12 @@ export default {
 </script>
 
 <style scoped>
-.list-link a{
+.help-icon {
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.list-link a {
   text-decoration: none;
   letter-spacing:1px;
   text-transform:uppercase;
@@ -319,11 +415,6 @@ export default {
   letter-spacing: 0;
   width: 95%;
 }
-
-.ws-detail-empty-list {
-  padding: 40px 40px 55px;
-  text-align: center;
-}
 </style>
 
 <style>
@@ -332,5 +423,9 @@ export default {
   letter-spacing: 2px !important;
   margin-bottom: 2px;
   padding-left: 0 !important;
+}
+
+.choose-tables.v-select .v-select__selections {
+  min-height: auto !important;
 }
 </style>

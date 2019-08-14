@@ -30,15 +30,28 @@ Set Up Multinet
 
    and then launch the Docker container using::
 
-       $ ARANGO_DATA=~/.local/multinet/arango docker-compose up -d
+       $ ARANGO_DATA=~/.local/multinet/arango docker-compose up
 
-4. Use pipenv to create a virtual environment and install the dependencies: ::
+4. Enter the server directory: ::
+
+       $ cd server
+
+5. Inspect the ``.env`` file, which contains a few useful environment variable
+   declarations. The most important one at the moment is ``FLASK_SERVE_PORT``,
+   which controls which local port the server will listen on for incoming
+   connections. This same variable also controls how the client application
+   proxies API requests so they are routed correctly to the server.
+
+   If the port listed in this file is not free on your system, edit the value to
+   an alternative port number.
+
+6. Use pipenv to create a virtual environment and install the dependencies: ::
 
        $ pipenv install
 
-5. Start the Multinet server: ::
+7. Start the Multinet server: ::
 
-       $ yarn start:server
+       $ pipenv run serve
 
 A Note on Passwords
 ~~~~~~~~~~~~~~~~~~~
@@ -49,7 +62,7 @@ required startup data, including a password. The default password is
 ``letmein``, but it can be set to something different through the
 ``ARANGO_PASSWORD`` environment variable.
 
-When the Multinet server is started in Step 5, it will operate using the default
+When the Multinet server is started in Step 7, it will operate using the default
 password to communicate with Arango. Therefore, if you launched Arango using a
 custom password, you should launch the server with that same password, also via
 an ``ARANGO_PASSWORD`` environment variable.
@@ -65,7 +78,7 @@ then the corresponding command to launch the server in Step 5 will look like::
 Run Sample Client
 -----------------
 
-1. Move into the client code directory: ::
+1. From the top-level directory, move into the client code directory: ::
 
    $ cd client
 

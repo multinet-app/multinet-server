@@ -29,9 +29,8 @@ def graphql_query(query, variables=None):
             excess = len(errors) - 10
             if excess > 0:
                 app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
-
-            raise ValueError("Error when connecting to the DB.")
-            return
+    else:
+        errors.append("connection issue")
 
     return dict(data=data, errors=errors, query=query)
 
@@ -55,11 +54,9 @@ def _graphql():
     app.logger.debug("request: %s" % query)
     app.logger.debug("variables: %s" % variables)
 
-    try:
-        result = graphql_query(query, variables)
-    except ValueError as e:
-        for arg in e.args:
-            app.logger.error(arg)
+    result = graphql_query(query, variables)
+
+    if result["errors"]:
         abort(500)
 
     return result

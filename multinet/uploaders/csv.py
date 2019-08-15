@@ -3,13 +3,13 @@ import csv
 from io import StringIO
 import re
 
-from .. import db, multinet
+from .. import db, api
 
 from flask import Blueprint, request
 from flask import current_app as app
 
 bp = Blueprint("csv", __name__)
-bp.before_request(multinet.require_db)
+bp.before_request(api.require_db)
 
 
 def validate_csv(rows):

@@ -1,5 +1,5 @@
-"""Tests the db.py file in the multinet directory"""
-import pytest
+"""Tests the db.py file in the multinet directory."""
+# import pytest
 
 from multinet import db
 
@@ -12,10 +12,10 @@ from multinet import db
 
 def test_create_workspace():
     """Test that this workspace exists after function call."""
-    name = 'test_workspace_131312'
-    sys = db.db('_system')
-    print('sys', sys)
+    name = "test_workspace_131312"
+    sys = db.db("_system")
+    print("sys", sys)
 
-    assert(not sys.has_database(name))
+    assert not sys.has_database(name)
     db.create_workspace(name)
-    assert(sys.has_database(name))
+    assert sys.has_database(name)

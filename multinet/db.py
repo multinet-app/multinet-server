@@ -1,6 +1,5 @@
 """Low-level database operations to fulfill GraphQL queries."""
 import os
-import sys
 
 from arango import ArangoClient
 from requests.exceptions import ConnectionError
@@ -10,23 +9,20 @@ from flask import current_app as app
 from multinet.types import Row, Entity, EntityType, Cursor
 
 
-def test_db(arango):
-    app.logger.info("in test_db")
-
-    try:
-        arango.db("_system",
-                  username="root",
-                  password=os.environ.get("ARANGO_PASSWORD", "letmein")
-                  ).has_database('test')
-    except ConnectionError:
-        app.logger.error("db connection issues")
-        return False
-
-    return True
-
-
 def with_client(fun):
     """Call target function `fun`, passing in an authenticated ArangoClient object."""
+
+    def require_db(arango):
+        try:
+            arango.db("_system",
+                      username="root",
+                      password=os.environ.get("ARANGO_PASSWORD", "letmein")
+                      ).has_database("test")
+        except ConnectionError:
+            app.logger.error("db connection issues")
+            return False
+
+        return True
 
     def wrapper(*args, **kwargs):
         kwargs["arango"] = kwargs.get(
@@ -36,7 +32,11 @@ def with_client(fun):
                 port=int(os.environ.get("ARANGO_PORT", "8529")),
             ),
         )
-        return fun(*args, **kwargs)
+
+        if require_db(kwargs["arango"]):
+            return fun(*args, **kwargs)
+        else:
+            return
 
     return wrapper
 
@@ -71,15 +71,12 @@ def delete_workspace(name, arango=None):
 @with_client
 def get_workspaces(name, arango=None):
     """Return a list of all workspace names."""
-    if test_db(arango):
-        sys = db("_system", arango=arango)
-        if name and sys.has_database(name):
-            return [name]
+    sys = db("_system", arango=arango)
+    if name and sys.has_database(name):
+        return [name]
 
-        workspaces = sys.databases()
-        return [workspace for workspace in workspaces if workspace != "_system"]
-    else:
-        return None
+    workspaces = sys.databases()
+    return [workspace for workspace in workspaces if workspace != "_system"]
 
 
 @with_client

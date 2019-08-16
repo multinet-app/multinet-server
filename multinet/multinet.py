@@ -17,7 +17,7 @@ def graphql_query(query, variables=None):
     errors = []
 
     result = graphql(schema, query, variables=variables or {})
-    if result:
+    if result.data:
         errors = [error.message for error in result.errors] if result.errors else []
         data = result.data
 
@@ -30,7 +30,7 @@ def graphql_query(query, variables=None):
             if excess > 0:
                 app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
     else:
-        errors.append("connection issue")
+        abort(500)
 
     return dict(data=data, errors=errors, query=query)
 
@@ -55,9 +55,6 @@ def _graphql():
     app.logger.debug("variables: %s" % variables)
 
     result = graphql_query(query, variables)
-
-    if result["errors"]:
-        abort(500)
 
     return result
 

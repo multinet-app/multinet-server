@@ -14,10 +14,11 @@ def with_client(fun):
 
     def require_db(arango):
         try:
-            arango.db("_system",
-                      username="root",
-                      password=os.environ.get("ARANGO_PASSWORD", "letmein")
-                      ).has_database("test")
+            arango.db(
+                "_system",
+                username="root",
+                password=os.environ.get("ARANGO_PASSWORD", "letmein"),
+            ).has_database("test")
         except ConnectionError:
             app.logger.error("db connection issues")
             return False

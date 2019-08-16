@@ -110,4 +110,4 @@ def create_graph(workspace, graph):
     if db.create_graph(workspace, graph, node_tables, edge_table):
         return graph
     else:
-        return (f"Graph {graph} already exists", 400)
+        return (graph, "409 Graph Already Exists")

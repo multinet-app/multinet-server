@@ -9,7 +9,7 @@
           >
             <v-fade-transition hide-on-leave>
               <v-icon
-                class="ml-2 mr-3"
+                class="ml-4 mr-5"
                 color="grey lighten-1"
                 v-if="!hover && !editing"
               >library_books</v-icon>
@@ -59,6 +59,7 @@
               text
               @focus="$event.target.select()"
               solo
+              flat
               :value="workspace"
               v-if="editing"
             />
@@ -82,6 +83,7 @@
         >
           <v-card
             color="transparent"
+            flat
             text
           >
             <item-panel
@@ -98,7 +100,6 @@
               <template v-slot:activator="{ on }">
                 <v-btn
                   block
-                  class="pl-3 pr-2"
                   color="blue darken-2"
                   dark
                   depressed
@@ -160,6 +161,7 @@
         >
           <v-card
             color="transparent"
+            flat
             text
           >
             <item-panel
@@ -176,7 +178,6 @@
                 <template v-slot:activator="{ on }">
                   <v-btn
                     block
-                    class="pl-3 pr-2"
                     color="blue darken-2"
                     dark
                     depressed
@@ -418,11 +419,14 @@ export default {
 </style>
 
 <style>
+.ws-rename.v-text-field {
+  height: 64px; /* match toolbar height */
+}
+
 .ws-rename.v-text-field.v-text-field--enclosed .v-input__slot {
   font-size: 20px;
   letter-spacing: 2px !important;
-  margin-bottom: 2px;
-  padding-left: 0 !important;
+  padding-top: 14px;
 }
 
 .choose-tables.v-select .v-select__selections {

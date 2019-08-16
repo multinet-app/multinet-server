@@ -107,4 +107,7 @@ def create_graph(workspace, graph):
         error = {"error": "undefined_tables", "detail": list(invalid_from | invalid_to)}
         return (error, "400 Edge Table Validation Failed")
 
-    return graph if db.create_graph(workspace, graph, node_tables, edge_table) else None
+    if db.create_graph(workspace, graph, node_tables, edge_table):
+        return graph
+    else:
+        return (f"Graph {graph} already exists", 400)

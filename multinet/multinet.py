@@ -72,6 +72,7 @@ def delete_workspace(workspace):
 @bp.route("/workspace/<workspace>/graph/<graph>", methods=["POST"])
 def create_graph(workspace, graph):
     """Create a graph."""
+
     # Get parameters from request body.
     body = request.data.decode("utf8")
     try:
@@ -86,26 +87,47 @@ def create_graph(workspace, graph):
     if missing:
         return (missing, "400 Missing Required Parameters")
 
-    # Validate that all referenced tables exist
-    edges = list(db.db(workspace).collection(edge_table).find({}))
-    invalid_from = set(
-        [
-            edge["_from"].split("/")[0]
-            for edge in edges
-            if edge["_from"].split("/")[0] not in node_tables
-        ]
-    )
-    invalid_to = set(
-        [
-            edge["_to"].split("/")[0]
-            for edge in edges
-            if edge["_to"].split("/")[0] not in node_tables
-        ]
-    )
+    errors = []
 
-    if invalid_from or invalid_to:
-        error = {"error": "undefined_tables", "detail": list(invalid_from | invalid_to)}
-        return (error, "400 Edge Table Validation Failed")
+    loadedWorkspace = db.db(workspace)
+    existing_tables = set([x["name"] for x in loadedWorkspace.collections()])
+    edges = loadedWorkspace.collection(edge_table).all()
+
+    # Iterate through each edge and check for undefined tables
+    valid_tables = dict()
+    invalid_tables = set()
+    for edge in edges:
+        nodes = (edge["_from"].split("/"), edge["_to"].split("/"))
+
+        for (table, key) in nodes:
+            if table not in existing_tables:
+                invalid_tables.add(table)
+            elif table in valid_tables:
+                valid_tables[table].add(key)
+            else:
+                valid_tables[table] = {key}
+
+    if invalid_tables:
+        for table in invalid_tables:
+            errors.append(f"Reference to undefined table: {table}")
+
+    # Iterate through each node table and check for nonexistent keys
+    for table in valid_tables:
+        existing_keys = set(
+            [x["_key"] for x in loadedWorkspace.collection(table).all()]
+        )
+        nonexistent_keys = valid_tables[table] - existing_keys
+
+        if len(nonexistent_keys) > 0:
+            errors.append(
+                f"Nonexistent keys {', '.join(nonexistent_keys)} "
+                f"referenced in table: {table}"
+            )
+
+    # TODO: Update this with the proper JSON schema
+    if errors:
+        payload = {"error": "Graph Validation Failed", "detail": errors}
+        return (payload, 400)
 
     if db.create_graph(workspace, graph, node_tables, edge_table):
         return graph

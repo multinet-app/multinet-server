@@ -87,13 +87,15 @@ def create_graph(workspace, graph):
     if missing:
         return (missing, "400 Missing Required Parameters")
 
-    errors = []
-
     loadedWorkspace = db.db(workspace)
+    if loadedWorkspace.has_graph(graph):
+        return (graph, "409 Graph Already Exists")
+
     existing_tables = set([x["name"] for x in loadedWorkspace.collections()])
     edges = loadedWorkspace.collection(edge_table).all()
 
     # Iterate through each edge and check for undefined tables
+    errors = []
     valid_tables = dict()
     invalid_tables = set()
     for edge in edges:

@@ -2,7 +2,7 @@
 from graphql import graphql
 import json
 
-from flask import Blueprint, request, Response
+from flask import Blueprint, request
 from flask import current_app as app
 
 from .schema import schema
@@ -14,7 +14,7 @@ bp = Blueprint("multinet", __name__)
 def require_db():
     """Check if the db is live."""
     if not db.check_db():
-        return Response(None, "500 Database Not Live")
+        return ("", "500 Database Not Live")
 
 
 bp.before_request(require_db)

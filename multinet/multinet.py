@@ -41,6 +41,10 @@ def _graphql(query=None, variables=None):
     app.logger.debug("request: %s" % query)
     app.logger.debug("variables: %s" % variables)
 
+    if query is None:
+        body = request.data.decode("utf8")
+        return (body, "400 Malformed Request Body")
+
     result = graphql_query(query, variables)
     return result
 

@@ -4,26 +4,11 @@ import os
 from arango import ArangoClient
 from requests.exceptions import ConnectionError
 
-from flask import current_app as app
-
 from multinet.types import Row, Entity, EntityType, Cursor
 
 
 def with_client(fun):
     """Call target function `fun`, passing in an authenticated ArangoClient object."""
-
-    def require_db(arango):
-        try:
-            arango.db(
-                "_system",
-                username="root",
-                password=os.environ.get("ARANGO_PASSWORD", "letmein"),
-            ).has_database("test")
-        except ConnectionError:
-            app.logger.error("db connection issues")
-            return False
-
-        return True
 
     def wrapper(*args, **kwargs):
         kwargs["arango"] = kwargs.get(
@@ -33,13 +18,19 @@ def with_client(fun):
                 port=int(os.environ.get("ARANGO_PORT", "8529")),
             ),
         )
-
-        if require_db(kwargs["arango"]):
-            return fun(*args, **kwargs)
-        else:
-            return
+        return fun(*args, **kwargs)
 
     return wrapper
+
+
+@with_client
+def check_db(arango=None):
+    """Check the database to see if it's alive."""
+    try:
+        db("_system", arango=arango).has_database("test")
+        return True
+    except ConnectionError:
+        return False
 
 
 @with_client

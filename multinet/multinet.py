@@ -2,13 +2,24 @@
 from graphql import graphql
 import json
 
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, Response
 from flask import current_app as app
 
 from .schema import schema
 from . import db
 
 bp = Blueprint("multinet", __name__)
+
+
+def require_db():
+    """Check if the db is live."""
+    if db.check_db():
+        return
+    else:
+        return Response(None, "500 Database Not Live")
+
+
+bp.before_request(require_db)
 
 
 def graphql_query(query, variables=None):
@@ -29,8 +40,6 @@ def graphql_query(query, variables=None):
             excess = len(errors) - 10
             if excess > 0:
                 app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
-    else:
-        abort(500)
 
     return dict(data=data, errors=errors, query=query)
 

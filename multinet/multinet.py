@@ -12,6 +12,15 @@ from . import db
 bp = Blueprint("multinet", __name__)
 
 
+def require_db():
+    """Check if the db is live."""
+    if not db.check_db():
+        return ("", "500 Database Not Live")
+
+
+bp.before_request(require_db)
+
+
 def graphql_query(query, variables=None):
     """Perform a GraphQL query using optional variable definitions."""
     data = None

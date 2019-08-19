@@ -2,12 +2,13 @@
 import uuid
 import newick
 
-from .. import db
+from .. import db, multinet
 
 from flask import Blueprint, request
 from flask import current_app as app
 
 bp = Blueprint("newick", __name__)
+bp.before_request(multinet.require_db)
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])

@@ -2,11 +2,12 @@
 import itertools
 import json
 
-from .. import db
+from .. import db, multinet
 
 from flask import Blueprint, request
 
 bp = Blueprint("nested_json", __name__)
+bp.before_request(multinet.require_db)
 
 
 def analyze_nested_json(data, int_table_name, leaf_table_name):

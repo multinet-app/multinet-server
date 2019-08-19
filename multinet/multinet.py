@@ -1,9 +1,10 @@
 """Flask blueprint for Multinet REST API."""
 from graphql import graphql
-import json
 
 from flask import Blueprint, request
 from flask import current_app as app
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 
 from .schema import schema
 from . import db
@@ -34,21 +35,9 @@ def graphql_query(query, variables=None):
 
 
 @bp.route("/graphql", methods=["POST"])
-def _graphql():
+@use_kwargs({"query": fields.Str(), "variables": fields.Dict()})
+def _graphql(query=None, variables=None):
     app.logger.info("Executing GraphQL Request")
-
-    # Grab the GraphQL parameters from the request body.
-    query = request.data.decode("utf8")
-    variables = None
-    try:
-        app.logger.info("trying to parse json")
-        body = json.loads(query)
-        query = body["query"]
-        variables = body.get("variables")
-    except json.decoder.JSONDecodeError:
-        app.logger.info("couldnt do it")
-        pass
-
     app.logger.debug("request: %s" % query)
     app.logger.debug("variables: %s" % variables)
 
@@ -70,17 +59,13 @@ def delete_workspace(workspace):
 
 
 @bp.route("/workspace/<workspace>/graph/<graph>", methods=["POST"])
-def create_graph(workspace, graph):
+@use_kwargs({"node_tables": fields.List(fields.Str()), "edge_table": fields.Str()})
+def create_graph(workspace, graph, node_tables=None, edge_table=None):
     """Create a graph."""
-    # Get parameters from request body.
-    body = request.data.decode("utf8")
-    try:
-        params = json.loads(body)
-    except json.decoder.JSONDecodeError:
-        return (body, "400 Malformed Request Body")
 
-    node_tables = params.get("node_tables")
-    edge_table = params.get("edge_table")
+    if not node_tables or not edge_table:
+        body = request.data.decode("utf8")
+        return (body, "400 Malformed Request Body")
 
     missing = [arg for arg in [node_tables, edge_table] if arg is None]
     if missing:

@@ -5,14 +5,11 @@ from multinet.types import Graph, Table
 
 def workspaces(root, info, name=""):
     """Return list of workspace names accessible to the user."""
-    if db.get_workspaces(name) is not None:
-        return [
-            workspace
-            for workspace in db.get_workspaces(name)
-            if not name or workspace == name
-        ]
-    else:
-        return
+    return [
+        workspace
+        for workspace in db.get_workspaces(name)
+        if not name or workspace == name
+    ]
 
 
 def graphs(root, info, workspace, name=""):

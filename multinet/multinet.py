@@ -13,9 +13,7 @@ bp = Blueprint("multinet", __name__)
 
 def require_db():
     """Check if the db is live."""
-    if db.check_db():
-        return
-    else:
+    if not db.check_db():
         return Response(None, "500 Database Not Live")
 
 
@@ -28,7 +26,7 @@ def graphql_query(query, variables=None):
     errors = []
 
     result = graphql(schema, query, variables=variables or {})
-    if result.data:
+    if result:
         errors = [error.message for error in result.errors] if result.errors else []
         data = result.data
 
@@ -64,7 +62,6 @@ def _graphql():
     app.logger.debug("variables: %s" % variables)
 
     result = graphql_query(query, variables)
-
     return result
 
 

@@ -130,7 +130,5 @@ def create_graph(workspace, graph):
     if errors:
         return (errors, "400 Graph Validation Failed")
 
-    if db.create_graph(workspace, graph, node_tables, edge_table):
-        return graph
-    else:
-        return (graph, "409 Graph Already Exists")
+    db.create_graph(workspace, graph, node_tables, edge_table)
+    return graph

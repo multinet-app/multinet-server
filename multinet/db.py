@@ -272,6 +272,15 @@ def paged(tables, cursor, id=None):
 
 
 @with_client
+def aql_query(workspace, query, arango=None):
+    """Perform an AQL query in the given workspace."""
+    aql = db(workspace, arango=arango).aql
+
+    cursor = aql.execute(query)
+    return cursor
+
+
+@with_client
 def create_graph(workspace, graph, node_tables, edge_table, arango=None):
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     workspace = db(workspace, arango=arango)

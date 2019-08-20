@@ -66,7 +66,7 @@ def create_workspace(workspace):
     return workspace
 
 
-@bp.route("/workspace/<workspace>/aql", methods=["POST"])
+@bp.route("/workspaces/<workspace>/aql", methods=["POST"])
 def aql(workspace):
     """Perform an AQL query in the given workspace."""
     query = request.data.decode("utf8")

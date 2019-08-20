@@ -70,6 +70,9 @@ def create_workspace(workspace):
 def aql(workspace):
     """Perform an AQL query in the given workspace."""
     query = request.data.decode("utf8")
+    if not query:
+        return (query, "400 Malformed Request Body")
+
     result = db.aql_query(workspace, query)
 
     def generate():

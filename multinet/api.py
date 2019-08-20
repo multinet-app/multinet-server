@@ -13,6 +13,18 @@ from . import db
 bp = Blueprint("multinet", __name__)
 
 
+def generate(iterator):
+    """A generator to incrementally turn an iterator contents into a JSON list."""
+    yield "["
+
+    comma = ""
+    for row in iterator:
+        yield f"{comma}{json.dumps(row)}"
+        comma = ","
+
+    yield "]"
+
+
 def require_db():
     """Check if the db is live."""
     if not db.check_db():
@@ -39,7 +51,7 @@ def graphql_query(query, variables=None):
 
             excess = len(errors) - 10
             if excess > 0:
-                app.logger.error(f'{excess} more error{"s" if excess > 1 else ""}')
+                app.logger.error(f"{excess} more error{'s' if excess > 1 else ''}")
 
     return dict(data=data, errors=errors, query=query)
 
@@ -59,7 +71,47 @@ def _graphql(query=None, variables=None):
     return result
 
 
-@bp.route("/workspace/<workspace>", methods=["POST"])
+@bp.route("/workspaces", methods=["GET"])
+def get_workspaces():
+    return json.dumps(db.get_workspaces())
+
+
+def lookup_workspace(workspace):
+    """Retrieve a single workspace, with a status code."""
+    result = db.get_workspace(workspace)
+    return (workspace, 404 if result is None else 200)
+
+
+@bp.route("/workspaces/<workspace>", methods=["GET"])
+def get_workspace(workspace):
+    """Retrieve a single workspace."""
+    return lookup_workspace(workspace)
+
+
+@bp.route("/workspaces/<workspace>/tables", methods=["GET"])
+@use_kwargs({"fields": fields.Str()})
+def get_workspace_tables(workspace, fields=""):
+    """Retrieve the tables of a single workspace."""
+    (result, code) = lookup_workspace(workspace)
+    if code == 404:
+        return (result, code)
+
+    tables = db.workspace_tables(workspace, fields)
+    return Response(generate(tables), mimetype="text/json")
+
+
+@bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
+def get_workspace_graphs(workspace):
+    """Retrieve the graphs of a single workspace."""
+    (result, code) = lookup_workspace(workspace)
+    if code == 404:
+        return (result, code)
+
+    graphs = db.workspace_graphs(workspace)
+    return Response(generate(graphs), mimetype="text/json")
+
+
+@bp.route("/workspaces/<workspace>", methods=["POST"])
 def create_workspace(workspace):
     """Create a new workspace."""
     db.create_workspace(workspace)
@@ -72,26 +124,16 @@ def aql(workspace):
     query = request.data.decode("utf8")
     result = db.aql_query(workspace, query)
 
-    def generate():
-        yield "["
-
-        comma = ""
-        for row in result:
-            yield f"{comma}{json.dumps(row)}"
-            comma = ","
-
-        yield "]"
-
-    return Response(generate(), mimetype="text/json")
+    return Response(generate(result), mimetype="text/json")
 
 
-@bp.route("/workspace/<workspace>", methods=["DELETE"])
+@bp.route("/workspaces/<workspace>", methods=["DELETE"])
 def delete_workspace(workspace):
     """Delete a workspace."""
     return workspace if db.delete_workspace(workspace) else None
 
 
-@bp.route("/workspace/<workspace>/graph/<graph>", methods=["POST"])
+@bp.route("/workspaces/<workspace>/graph/<graph>", methods=["POST"])
 @use_kwargs({"node_tables": fields.List(fields.Str()), "edge_table": fields.Str()})
 def create_graph(workspace, graph, node_tables=None, edge_table=None):
     """Create a graph."""

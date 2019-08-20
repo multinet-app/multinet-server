@@ -61,25 +61,35 @@ def delete_workspace(name, arango=None):
 
 
 @with_client
-def get_workspaces(name, arango=None):
-    """Return a list of all workspace names."""
-    sys = db("_system", arango=arango)
-    if name and sys.has_database(name):
-        return [name]
-
-    workspaces = sys.databases()
-    return [workspace for workspace in workspaces if workspace != "_system"]
+def get_workspace(name, arango=None):
+    """Return a single workspace, if it exists."""
+    sysdb = db("_system", arango=arango)
+    return name if sysdb.has_database(name) else None
 
 
 @with_client
-def workspace_tables(workspace, arango=None):
+def get_workspaces(arango=None):
+    """Return a list of all workspace names."""
+    sys = db("_system", arango=arango)
+    return [workspace for workspace in sys.databases() if workspace != "_system"]
+
+
+@with_client
+def workspace_tables(workspace, fields=True, arango=None):
     """Return a list of all table names in the workspace named `workspace`."""
     space = db(workspace, arango=arango)
-    return [
-        table["name"]
+    tables = [
+        {"table": table["name"]}
         for table in space.collections()
         if not table["name"].startswith("_")
     ]
+
+    if fields:
+        for table in tables:
+            fields = table_fields(workspace, table["table"])
+            table["fields"] = fields
+
+    return tables
 
 
 @with_client
@@ -120,15 +130,12 @@ def workspace_graph(workspace, name, arango=None):
 
 
 @with_client
-def table_fields(query, arango=None):
+def table_fields(workspace, table, arango=None):
     """Return a list of column names for `query.table` in `query.workspace`."""
-    workspace = db(query.workspace, arango=arango)
-    if (
-        workspace.has_collection(query.table)
-        and workspace.collection(query.table).count() > 0
-    ):
-        sample = workspace.collection(query.table).random()
-        return sample.keys()
+    workspace = db(workspace, arango=arango)
+    if workspace.has_collection(table) and workspace.collection(table).count() > 0:
+        sample = workspace.collection(table).random()
+        return list(sample.keys())
     else:
         return []
 

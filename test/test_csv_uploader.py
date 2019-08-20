@@ -24,11 +24,9 @@ def test_validate_csv():
 
     rows = list(csv.DictReader(StringIO(test_file)))
     validation_resp = validate_csv(rows)
-    assert (
-        "error" in validation_resp.keys()
-        and "5" in validation_resp["detail"]
-        and "2" in validation_resp["detail"]
-    )
+    assert "error" in validation_resp.keys()
+    assert "5" in validation_resp["detail"]
+    assert "2" in validation_resp["detail"]
 
     # Test invalid syntax
     with open(invalid_headers_file_path) as test_file:
@@ -37,9 +35,7 @@ def test_validate_csv():
     rows = list(csv.DictReader(StringIO(test_file)))
     validation_resp = validate_csv(rows)
     invalid_rows = [x["row"] for x in validation_resp["detail"]]
-    assert (
-        "error" in validation_resp.keys()
-        and 3 in invalid_rows
-        and 4 in invalid_rows
-        and 5 in invalid_rows
-    )
+    assert "error" in validation_resp.keys()
+    assert 3 in invalid_rows
+    assert 4 in invalid_rows
+    assert 5 in invalid_rows

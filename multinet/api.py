@@ -1,7 +1,8 @@
 """Flask blueprint for Multinet REST API."""
 from graphql import graphql
+import json
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 from flask import current_app as app
 from webargs import fields
 from webargs.flaskparser import use_kwargs
@@ -63,6 +64,25 @@ def create_workspace(workspace):
     """Create a new workspace."""
     db.create_workspace(workspace)
     return workspace
+
+
+@bp.route("/workspace/<workspace>/aql", methods=["POST"])
+def aql(workspace):
+    """Perform an AQL query in the given workspace."""
+    query = request.data.decode("utf8")
+    result = db.aql_query(workspace, query)
+
+    def generate():
+        yield "["
+
+        comma = ""
+        for row in result:
+            yield f"{comma}{json.dumps(row)}"
+            comma = ","
+
+        yield "]"
+
+    return Response(generate(), mimetype="text/json")
 
 
 @bp.route("/workspace/<workspace>", methods=["DELETE"])

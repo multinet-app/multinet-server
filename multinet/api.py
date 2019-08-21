@@ -100,6 +100,29 @@ def get_workspace_tables(workspace, fields=""):
     return Response(generate(tables), mimetype="text/json")
 
 
+@bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
+@use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
+def get_table_rows(workspace, table, offset=0, limit=30):
+    """Retrieve the rows and headers of a table."""
+    (result, code) = lookup_workspace(workspace)
+    if code == 404:
+        return (result, code)
+
+    database = db.db(workspace)
+    if not database.has_collection(table):
+        return (table, 404)
+
+    query = f"""
+    FOR d in {table}
+      LIMIT {offset}, {limit}
+      RETURN d
+    """
+
+    app.logger.info(query)
+
+    return Response(generate(db.aql_query(workspace, query)), mimetype="text/json")
+
+
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
 def get_workspace_graphs(workspace):
     """Retrieve the graphs of a single workspace."""

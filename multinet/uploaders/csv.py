@@ -1,7 +1,7 @@
 """Multinet uploader for CSV files."""
 import csv
-from io import StringIO
 import re
+from io import StringIO
 
 from .. import db, api
 
@@ -47,6 +47,8 @@ def validate_csv(rows):
 
         if detail:
             return {"error": "syntax", "detail": detail}
+    else:
+        return {"error": "format", "detail": "Invalid header format"}
 
     return None
 

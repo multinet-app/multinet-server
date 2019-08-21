@@ -14,6 +14,8 @@ bp.before_request(api.require_db)
 
 def validate_csv(rows):
     """Perform any necessary CSV validation, and return appropriate errors."""
+    data_errors = []
+
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
         # Node Table, check for key uniqueness
@@ -26,8 +28,11 @@ def validate_csv(rows):
             else:
                 uniqueKeys.add(key)
 
+        if "?" in uniqueKeys:
+            data_errors.append({"error": "encoding", "detail": "utf-8"})
+
         if len(duplicates) > 0:
-            return {"error": "duplicate", "detail": list(duplicates)}
+            data_errors.append({"error": "duplicate", "detail": list(duplicates)})
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
         valid_cell = re.compile("[^/]+/[^/]+")
@@ -46,9 +51,15 @@ def validate_csv(rows):
                 detail.append({"fields": fields, "row": i + 2})
 
         if detail:
-            return {"error": "syntax", "detail": detail}
+            data_errors.append({"error": "syntax", "detail": detail})
+    else:
+        # Unsupported Table, error since we don't know what's coming in
+        data_errors.append({"error": "unsupported"})
 
-    return None
+    if len(data_errors) > 0:
+        return {"errors": data_errors}
+    else:
+        return None
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
@@ -62,14 +73,17 @@ def upload(workspace, table):
              `_from` and `_to` fields, it will be treated as an edge table.
     """
     app.logger.info("Bulk Loading")
+    app.logger.info(request.data)
+    app.logger.info(request.data.decode("utf-8"))
 
     # Read the request body into CSV format
-    body = request.data.decode("utf8")
+    body = request.data.decode("utf-8")
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
     result = validate_csv(rows)
     if result:
+        app.logger.info(result)
         return (result, "400 CSV Validation Failed")
 
     # Set the collection, paying attention to whether the data contains

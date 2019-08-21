@@ -9,7 +9,7 @@ Welcome to Multinet
 .. toctree::
    :maxdepth: 2
 
-   installation
+   multinet
    graphiql
 
 Indices and tables
@@ -17,6 +17,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-
-
-

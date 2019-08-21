@@ -1,12 +1,4 @@
-.. _multinet:
-
-========
-Multinet
-========
-The Multinet API and web application
-
-.. highlight:: sh
-
+============
 Installation
 ============
 

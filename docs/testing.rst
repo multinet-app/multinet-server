@@ -33,3 +33,7 @@ Multinet uses `black <https://black.readthedocs.io/en/stable/>`_ for code format
 To run this formatting, run the following command: ::
 
     $ pipenv run format
+
+Keep in mind that Black will edit your source files *in place*, so it's best to
+ensure you have no pending, unsaved changes in your text editor before running
+this command.

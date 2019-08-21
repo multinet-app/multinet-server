@@ -1,14 +1,19 @@
+"""Convert raw Boston club membership data into CSV."""
+
 import csv
 import string
 import sys
 
 
 def namify_member(name):
+    """Convert data formatted name into human readable form."""
     [last_name, first_name] = map(lambda s: s.capitalize(), name.split("."))
     return " ".join([first_name, last_name])
 
 
 def namify_club(name):
+    """Convert data formmated club name into human readable form."""
+
     def split_on(s, splitters):
         if not s:
             return []

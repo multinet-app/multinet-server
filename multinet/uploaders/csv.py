@@ -73,17 +73,14 @@ def upload(workspace, table):
              `_from` and `_to` fields, it will be treated as an edge table.
     """
     app.logger.info("Bulk Loading")
-    app.logger.info(request.data)
-    app.logger.info(request.data.decode("utf-8"))
 
     # Read the request body into CSV format
-    body = request.data.decode("utf-8")
+    body = request.data.decode("utf8")
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
     result = validate_csv(rows)
     if result:
-        app.logger.info(result)
         return (result, "400 CSV Validation Failed")
 
     # Set the collection, paying attention to whether the data contains

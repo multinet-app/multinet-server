@@ -1,13 +1,10 @@
 """Flask blueprint for Multinet REST API."""
-from graphql import graphql
 import json
 
 from flask import Blueprint, request, Response
-from flask import current_app as app
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from .schema import schema
 from . import db
 
 bp = Blueprint("multinet", __name__)
@@ -32,43 +29,6 @@ def require_db():
 
 
 bp.before_request(require_db)
-
-
-def graphql_query(query, variables=None):
-    """Perform a GraphQL query using optional variable definitions."""
-    data = None
-    errors = []
-
-    result = graphql(schema, query, variables=variables or {})
-    if result:
-        errors = [error.message for error in result.errors] if result.errors else []
-        data = result.data
-
-        if errors:
-            app.logger.error("Errors in request: %s" % len(errors))
-            for error in errors[:10]:
-                app.logger.error(error)
-
-            excess = len(errors) - 10
-            if excess > 0:
-                app.logger.error(f"{excess} more error{'s' if excess > 1 else ''}")
-
-    return dict(data=data, errors=errors, query=query)
-
-
-@bp.route("/graphql", methods=["POST"])
-@use_kwargs({"query": fields.Str(), "variables": fields.Dict()})
-def _graphql(query=None, variables=None):
-    app.logger.info("Executing GraphQL Request")
-    app.logger.debug("request: %s" % query)
-    app.logger.debug("variables: %s" % variables)
-
-    if query is None:
-        body = request.data.decode("utf8")
-        return (body, "400 Malformed Request Body")
-
-    result = graphql_query(query, variables)
-    return result
 
 
 @bp.route("/workspaces", methods=["GET"])

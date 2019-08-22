@@ -1,4 +1,4 @@
-"""Low-level database operations to fulfill GraphQL queries."""
+"""Low-level database operations."""
 import os
 
 from arango import ArangoClient

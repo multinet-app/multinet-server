@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c82bef341550f26e9f5952e29cafd927b3ecd9e79cfa327a99fdc3ee9aacbbd9"
+            "sha256": "4c096ba276163b3db08217b1124196bf8f1a0d65edc9af60eaf3915599bdf816"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -175,14 +175,6 @@
             ],
             "version": "==0.17.1"
         },
-        "graphql-core": {
-            "hashes": [
-                "sha256:1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b",
-                "sha256:da64c472d720da4537a2e8de8ba859210b62841bd47a9be65ca35177f62fe0e4"
-            ],
-            "index": "pypi",
-            "version": "==2.2.1"
-        },
         "identify": {
             "hashes": [
                 "sha256:9aba2d08a82aa8e6f58810d4887ed3cf103a1befeb1eaf632d9c6fd2d6642542",
@@ -260,10 +252,10 @@
         },
         "marshmallow": {
             "hashes": [
-                "sha256:e5e9fd0c2e919b4ece915eb30808206349a49a45df72e99ed20e27a9053d574b",
-                "sha256:fa2d8a4b61d09b0e161a14acc5ad8ab7aaaf1477f3dd52819ddd6c6c8275733a"
+                "sha256:23f684b54b1955ebd5bdfbdda4062e438ef86218f14f1a356f570cdf0c016ab3",
+                "sha256:fcfc9ffd75a883da06f30f604a4e81dd0b56eb9438f4d0a8de6bbaa163ce9ec3"
             ],
-            "version": "==3.0.0"
+            "version": "==3.0.1"
         },
         "mccabe": {
             "hashes": [
@@ -311,13 +303,6 @@
             ],
             "index": "pypi",
             "version": "==1.18.2"
-        },
-        "promise": {
-            "hashes": [
-                "sha256:2ebbfc10b7abf6354403ed785fe4f04b9dfd421eb1a474ac8d187022228332af",
-                "sha256:348f5f6c3edd4fd47c9cd65aed03ac1b31136d375aa63871a57d3e444c85655c"
-            ],
-            "version": "==2.2.1"
         },
         "py": {
             "hashes": [
@@ -408,13 +393,6 @@
             ],
             "index": "pypi",
             "version": "==2.22.0"
-        },
-        "rx": {
-            "hashes": [
-                "sha256:13a1d8d9e252625c173dc795471e614eadfe1cf40ffc684e08b8fff0d9748c23",
-                "sha256:7357592bc7e881a95e0c2013b73326f704953301ab551fbc8133a6fadab84105"
-            ],
-            "version": "==1.6.1"
         },
         "six": {
             "hashes": [

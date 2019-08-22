@@ -393,6 +393,7 @@ def fetchEdges(query, cursor):
 
 @with_client
 def graph_node_tables(workspace, graph, arango=None):
+    """Return the node tables associated with a graph."""
     workspace = db(workspace, arango=arango)
     g = workspace.graph(graph)
     return g.vertex_collections()
@@ -400,6 +401,7 @@ def graph_node_tables(workspace, graph, arango=None):
 
 @with_client
 def graph_edge_tables(workspace, graph, arango=None):
+    """Return the edge tables associated with a graph."""
     workspace = db(workspace, arango=arango)
     g = workspace.graph(graph)
     return [d["edge_collection"] for d in g.edge_definitions()]
@@ -464,6 +466,54 @@ def target(edge):
         edge.data["_from"].split("/")[0],
         nodeTable.get(edge.data["_to"]),
     )
+
+
+@with_client
+def node_edges(workspace, graph, node, offset, limit, direction, arango=None):
+    """Return the edges connected to a node."""
+    database = db(workspace, arango=arango)
+    graph = database.graph(graph)
+    edge_table = graph.edge_definitions()[0]["edge_collection"]
+
+    def query_text(filt):
+        return f"""
+        FOR e IN {edge_table}
+            FILTER {filt}
+            LIMIT {offset}, {limit}
+            RETURN {{
+                "edge": e._id,
+                "from": e._from,
+                "to": e._to
+            }}
+        """
+
+    def count_text(filt):
+        return f"""
+        FOR e IN {edge_table}
+            FILTER {filt}
+            COLLECT WITH COUNT INTO count
+            RETURN count
+        """
+
+    if direction == "all":
+        filter_clause = f'e._from == "{node}" || e._to == "{node}"'
+        query = query_text(filter_clause)
+        count = count_text(filter_clause)
+    elif direction == "incoming":
+        filter_clause = f'e._to == "{node}"'
+        query = query_text(filter_clause)
+        count = count_text(filter_clause)
+    elif direction == "outgoing":
+        filter_clause = f'e._from == "{node}"'
+        query = query_text(filter_clause)
+        count = count_text(filter_clause)
+    else:
+        raise RuntimeError(f"bad direction argument: {direction}")
+
+    return {
+        "edges": list(aql_query(workspace, query)),
+        "edgeCount": next(aql_query(workspace, count)),
+    }
 
 
 def outgoing(node):

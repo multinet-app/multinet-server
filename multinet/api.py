@@ -14,7 +14,7 @@ bp = Blueprint("multinet", __name__)
 
 
 def generate(iterator):
-    """A generator to incrementally turn an iterator contents into a JSON list."""
+    """Return a generator that yields an iterator's contents into a JSON list."""
     yield "["
 
     comma = ""
@@ -73,6 +73,7 @@ def _graphql(query=None, variables=None):
 
 @bp.route("/workspaces", methods=["GET"])
 def get_workspaces():
+    """Retrieve list of workspaces."""
     return json.dumps(db.get_workspaces())
 
 
@@ -118,8 +119,6 @@ def get_table_rows(workspace, table, offset=0, limit=30):
       RETURN d
     """
 
-    app.logger.info(query)
-
     return Response(generate(db.aql_query(workspace, query)), mimetype="text/json")
 
 
@@ -149,9 +148,9 @@ def get_workspace_graph(workspace, graph, offset=0, limit=30):
     # Get the requested node data.
     node_query = f"""
     FOR c in [{", ".join(node_tables)}]
-     FOR d in c
-      LIMIT {offset}, {limit}
-      RETURN d._id
+      FOR d in c
+        LIMIT {offset}, {limit}
+          RETURN d._id
     """
 
     nodes = db.aql_query(workspace, node_query)
@@ -159,9 +158,9 @@ def get_workspace_graph(workspace, graph, offset=0, limit=30):
     # Get the total node count.
     count_query = f"""
     FOR c in [{", ".join(node_tables)}]
-     FOR d in c
-      COLLECT WITH COUNT INTO count
-      RETURN count
+      FOR d in c
+        COLLECT WITH COUNT INTO count
+          RETURN count
     """
 
     count = db.aql_query(workspace, count_query)
@@ -172,6 +171,43 @@ def get_workspace_graph(workspace, graph, offset=0, limit=30):
         "nodes": list(nodes),
         "nodeCount": list(count)[0],
     }
+
+
+@bp.route(
+    "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/data", methods=["GET"]
+)
+@use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
+def get_node_data(workspace, graph, table, node):
+    """Return the attributes associated with a node."""
+    (result, code) = lookup_workspace(workspace)
+    if code == 404:
+        return (result, code)
+
+    # node_tables = db.graph_node_tables(workspace, graph)
+
+    query = f"""
+    FOR d in {table}
+      FILTER d._id == "{table}/{node}"
+      RETURN d
+    """
+
+    result = list(db.aql_query(workspace, query))
+    if not result:
+        return (node, "404 No Such Node")
+
+    return {k: result[0][k] for k in result[0] if k != "_rev"}
+
+
+@bp.route(
+    "/workspaces/<workspace>/graphs/<graph>/nodes/<path:node>/edges", methods=["GET"]
+)
+@use_kwargs({"direction": fields.Str(), "offset": fields.Int(), "limit": fields.Int()})
+def get_graph_node(workspace, graph, node, direction="all", offset=0, limit=30):
+    """Return the edges connected to a node."""
+    if direction not in ["incoming", "outgoing", "all"]:
+        return (direction, "400 Invalid Direction Parameter")
+
+    return db.node_edges(workspace, graph, node, offset, limit, direction)
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])

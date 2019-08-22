@@ -148,7 +148,7 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
 
     # TODO: Update this with the proper JSON schema
     if errors:
-        return (errors, "400 Graph Validation Failed")
+        return ({"errors": errors}, "400 Graph Validation Failed")
 
     db.create_graph(workspace, graph, node_tables, edge_table)
     return graph

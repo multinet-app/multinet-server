@@ -75,7 +75,7 @@ def upload(workspace, table):
     try:
         body = request.data.decode("utf8")
     except UnicodeDecodeError:
-        response = {"errors": [{"error": "unsupported", "detail": "utf8"}]}
+        response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
         return (response, "400 CSV Decode Failed")
 
     rows = list(csv.DictReader(StringIO(body)))

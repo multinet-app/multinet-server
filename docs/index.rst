@@ -10,7 +10,6 @@ Welcome to Multinet
    :maxdepth: 2
 
    installation
-   graphiql
 
 Indices and tables
 ==================

@@ -28,9 +28,6 @@ def validate_csv(rows):
             else:
                 uniqueKeys.add(key)
 
-        if "?" in uniqueKeys:
-            data_errors.append({"error": "encoding", "detail": "utf-8"})
-
         if len(duplicates) > 0:
             data_errors.append({"error": "duplicate", "detail": list(duplicates)})
     elif "_from" in fieldnames and "_to" in fieldnames:
@@ -75,7 +72,12 @@ def upload(workspace, table):
     app.logger.info("Bulk Loading")
 
     # Read the request body into CSV format
-    body = request.data.decode("utf8")
+    try:
+        body = request.data.decode("utf8")
+    except UnicodeDecodeError:
+        response = {"errors": [{"error": "unsupported", "detail": "utf8"}]}
+        return (response, "400 CSV Decode Failed")
+
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.

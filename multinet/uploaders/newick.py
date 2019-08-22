@@ -45,7 +45,7 @@ def validate_newick(tree):
 
             if edge not in unique_edges:
                 unique_edges.append(edge)
-            else:
+            elif edge not in duplicate_edges:
                 duplicate_edges.append(edge)
 
     read_tree(None, tree[0])

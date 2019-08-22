@@ -67,7 +67,7 @@ def create_workspace(workspace):
     if status is None:
         return (workspace, "400 Workspace Already Exists")
 
-    if status == False:
+    if status is False:
         return (workspace, "400 Invalid Workspace Name")
 
     return workspace

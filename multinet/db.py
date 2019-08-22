@@ -391,6 +391,20 @@ def fetchEdges(query, cursor):
         return (edges(query, cursor))[0]
 
 
+@with_client
+def graph_node_tables(workspace, graph, arango=None):
+    workspace = db(workspace, arango=arango)
+    g = workspace.graph(graph)
+    return g.vertex_collections()
+
+
+@with_client
+def graph_edge_tables(workspace, graph, arango=None):
+    workspace = db(workspace, arango=arango)
+    g = workspace.graph(graph)
+    return [d["edge_collection"] for d in g.edge_definitions()]
+
+
 def graph_node_types(graph):
     """Return a list of node types existing in graph `graph.graph`."""
     workspace = db(graph.workspace)

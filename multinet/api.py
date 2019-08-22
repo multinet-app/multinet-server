@@ -134,6 +134,46 @@ def get_workspace_graphs(workspace):
     return Response(generate(graphs), mimetype="text/json")
 
 
+@bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
+@use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
+def get_workspace_graph(workspace, graph, offset=0, limit=30):
+    """Retrieve the tables and nodes of a graph."""
+    (result, code) = lookup_workspace(workspace)
+    if code == 404:
+        return (result, code)
+
+    # Get the lists of node and edge tables.
+    node_tables = db.graph_node_tables(workspace, graph)
+    edge_tables = db.graph_edge_tables(workspace, graph)
+
+    # Get the requested node data.
+    node_query = f"""
+    FOR c in [{", ".join(node_tables)}]
+     FOR d in c
+      LIMIT {offset}, {limit}
+      RETURN d._id
+    """
+
+    nodes = db.aql_query(workspace, node_query)
+
+    # Get the total node count.
+    count_query = f"""
+    FOR c in [{", ".join(node_tables)}]
+     FOR d in c
+      COLLECT WITH COUNT INTO count
+      RETURN count
+    """
+
+    count = db.aql_query(workspace, count_query)
+
+    return {
+        "nodeTables": node_tables,
+        "edgeTables": edge_tables,
+        "nodes": list(nodes),
+        "nodeCount": list(count)[0],
+    }
+
+
 @bp.route("/workspaces/<workspace>", methods=["POST"])
 def create_workspace(workspace):
     """Create a new workspace."""

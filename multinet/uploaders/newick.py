@@ -11,6 +11,57 @@ bp = Blueprint("newick", __name__)
 bp.before_request(api.require_db)
 
 
+def validate_newick(tree):
+    """Validate newick tree."""
+    data_errors = []
+    unique_keys = []
+    duplicate_keys = []
+    unique_edges = []
+    duplicate_edges = []
+
+    def read_tree(parent, node):
+        nonlocal data_errors
+        nonlocal unique_keys
+        nonlocal duplicate_keys
+        nonlocal unique_edges
+        nonlocal duplicate_edges
+
+        key = node.name or uuid.uuid4().hex
+
+        if key not in unique_keys:
+            unique_keys.append(key)
+        elif key not in duplicate_keys:
+            duplicate_keys.append(key)
+
+        for desc in node.descendants:
+            read_tree(key, desc)
+
+        if parent:
+            edge = {
+                "_from": "table/%s" % (parent),
+                "_to": "table/%s" % (key),
+                "length": node.length,
+            }
+
+            if edge not in unique_edges:
+                unique_edges.append(edge)
+            else:
+                duplicate_edges.append(edge)
+
+    read_tree(None, tree[0])
+
+    if len(duplicate_keys) > 0:
+        data_errors.append({"error": "duplicate", "detail": duplicate_keys})
+
+    if len(duplicate_edges) > 0:
+        data_errors.append({"error": "duplicate", "detail": duplicate_edges})
+
+    if len(data_errors) > 0:
+        return data_errors
+    else:
+        return
+
+
 @bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace, table):
     """
@@ -21,7 +72,18 @@ def upload(workspace, table):
     `data` - the newick data, passed in the request body.
     """
     app.logger.info("newick tree")
-    tree = newick.loads(request.data.decode("utf8"))
+    try:
+        body = request.data.decode("utf8")
+    except UnicodeDecodeError:
+        response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
+        return (response, "400 Nested Json Decode Failed")
+
+    tree = newick.loads(body)
+
+    result = validate_newick(tree)
+    if result:
+        return ({"errors": result}, "400 Newick Validation Failed")
+
     workspace = db.db(workspace)
     edgetable_name = "%s_edges" % table
     nodetable_name = "%s_nodes" % table

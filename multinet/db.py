@@ -44,17 +44,17 @@ def db(name, arango=None):
 @with_client
 def create_workspace(name, arango=None):
     """Create a new workspace named `name`."""
-    sys = db("_system", arango=arango)
-    if not sys.has_database(name):
-        sys.create_database(name)
+    sysdb = db("_system", arango=arango)
+    if not sysdb.has_database(name):
+        sysdb.create_database(name)
 
 
 @with_client
 def delete_workspace(name, arango=None):
     """Delete the workspace named `name`."""
-    sys = db("_system", arango=arango)
-    if sys.has_database(name):
-        sys.delete_database(name)
+    sysdb = db("_system", arango=arango)
+    if sysdb.has_database(name):
+        sysdb.delete_database(name)
         return True
     else:
         return False
@@ -70,8 +70,8 @@ def get_workspace(name, arango=None):
 @with_client
 def get_workspaces(arango=None):
     """Return a list of all workspace names."""
-    sys = db("_system", arango=arango)
-    return [workspace for workspace in sys.databases() if workspace != "_system"]
+    sysdb = db("_system", arango=arango)
+    return [workspace for workspace in sysdb.databases() if workspace != "_system"]
 
 
 @with_client

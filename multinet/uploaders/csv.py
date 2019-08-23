@@ -9,11 +9,15 @@ from ..errors import ValidationFailed
 from flask import Blueprint, request
 from flask import current_app as app
 
+# Import types
+from typing import List, Union, Tuple
+
+
 bp = Blueprint("csv", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_csv(rows):
+def validate_csv(rows: List[dict]) -> Union[dict, None]:
     """Perform any necessary CSV validation, and return appropriate errors."""
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
@@ -53,7 +57,7 @@ def validate_csv(rows):
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
-def upload(workspace, table):
+def upload(workspace: str, table: str) -> Union[Tuple, dict]:
     """
     Store a CSV file into the database as a node or edge table.
 

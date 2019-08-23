@@ -59,6 +59,16 @@ def validate_csv(rows):
         return None
 
 
+def decode_data(input):
+    """Decode the request data assuming utf8 encoding."""
+    try:
+        body = input.decode("utf8")
+    except UnicodeDecodeError:
+        return None
+
+    return body
+
+
 @bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace, table):
     """
@@ -72,9 +82,8 @@ def upload(workspace, table):
     app.logger.info("Bulk Loading")
 
     # Read the request body into CSV format
-    try:
-        body = request.data.decode("utf8")
-    except UnicodeDecodeError:
+    body = decode_data(request.data)
+    if not body:
         response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
         return (response, "400 CSV Decode Failed")
 

@@ -103,7 +103,14 @@ def get_graph_node(workspace, graph, node, direction="all", offset=0, limit=30):
 @bp.route("/workspaces/<workspace>", methods=["POST"])
 def create_workspace(workspace):
     """Create a new workspace."""
-    db.create_workspace(workspace)
+    status = db.create_workspace(workspace)
+
+    if status is None:
+        return (workspace, "400 Workspace Already Exists")
+
+    if status is False:
+        return (workspace, "400 Invalid Workspace Name")
+
     return workspace
 
 
@@ -111,6 +118,9 @@ def create_workspace(workspace):
 def aql(workspace):
     """Perform an AQL query in the given workspace."""
     query = request.data.decode("utf8")
+    if not query:
+        return (query, "400 Malformed Request Body")
+
     result = db.aql_query(workspace, query)
 
     return Response(generate(result), mimetype="text/json")
@@ -176,7 +186,7 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
 
     # TODO: Update this with the proper JSON schema
     if errors:
-        return (errors, "400 Graph Validation Failed")
+        return ({"errors": errors}, "400 Graph Validation Failed")
 
     db.create_graph(workspace, graph, node_tables, edge_table)
     return graph

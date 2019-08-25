@@ -9,13 +9,10 @@ Welcome to Multinet
 .. toctree::
    :maxdepth: 2
 
-   installation
+   multinet
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`search`
-
-
-

@@ -4,6 +4,8 @@ import os
 from arango import ArangoClient
 from requests.exceptions import ConnectionError
 
+from .errors import WorkspaceNotFound, TableNotFound, GraphNotFound, NodeNotFound
+
 
 def with_client(fun):
     """Call target function `fun`, passing in an authenticated ArangoClient object."""
@@ -62,7 +64,17 @@ def delete_workspace(name, arango=None):
 def get_workspace(name, arango=None):
     """Return a single workspace, if it exists."""
     sysdb = db("_system", arango=arango)
-    return name if sysdb.has_database(name) else None
+    if not sysdb.has_database(name):
+        raise WorkspaceNotFound(name)
+
+    return name
+
+
+@with_client
+def get_workspace_db(name, arango=None):
+    """Return the Arango database associated with a workspace, if it exists."""
+    get_workspace(name, arango=arango)
+    return db(name, arango=arango)
 
 
 @with_client
@@ -75,7 +87,7 @@ def get_workspaces(arango=None):
 @with_client
 def workspace_tables(workspace, fields=True, arango=None):
     """Return a list of all table names in the workspace named `workspace`."""
-    space = db(workspace, arango=arango)
+    space = get_workspace_db(workspace, arango=arango)
     tables = [
         {"table": table["name"]}
         for table in space.collections()
@@ -91,38 +103,102 @@ def workspace_tables(workspace, fields=True, arango=None):
 
 
 @with_client
-def workspace_table(workspace, name, arango=None):
+def workspace_table(workspace, table, offset, limit, arango=None):
     """Return a specific table named `name` in workspace `workspace`."""
-    space = db(workspace, arango=arango)
-
-    tables = filter(lambda g: g["name"] == name, space.collections())
-    table = None
+    space = get_workspace_db(workspace, arango=arango)
+    tables = filter(lambda g: g["name"] == table, space.collections())
     try:
-        table = next(tables)
+        next(tables)
     except StopIteration:
-        pass
+        raise TableNotFound(table)
 
-    return table
+    query = f"""
+    FOR d in {table}
+      LIMIT {offset}, {limit}
+      RETURN d
+    """
+
+    return aql_query(workspace, query)
+
+
+@with_client
+def graph_node(workspace, graph, table, node, arango=None):
+    """Return the data associated with a particular node in a graph."""
+    space = get_workspace_db(workspace, arango=arango)
+    graphs = filter(lambda g: g["name"] == graph, space.graphs())
+    try:
+        next(graphs)
+    except StopIteration:
+        raise GraphNotFound(graph)
+
+    tables = filter(lambda t: t["name"] == table, space.collections())
+    try:
+        next(tables)
+    except StopIteration:
+        raise TableNotFound(table)
+
+    query = f"""
+    FOR d in {table}
+      FILTER d._id == "{table}/{node}"
+      RETURN d
+    """
+
+    result = aql_query(workspace, query)
+    try:
+        data = next(result)
+    except StopIteration:
+        raise NodeNotFound(table, node)
+
+    return {k: data[k] for k in data if k != "_rev"}
 
 
 @with_client
 def workspace_graphs(workspace, arango=None):
     """Return a list of all graph names in workspace `workspace`."""
-    space = db(workspace, arango=arango)
+    space = get_workspace_db(workspace, arango=arango)
     return [graph["name"] for graph in space.graphs()]
 
 
 @with_client
-def workspace_graph(workspace, name, arango=None):
+def workspace_graph(workspace, graph, offset, limit, arango=None):
     """Return a specific graph named `name` in workspace `workspace`."""
-    space = db(workspace, arango=arango)
-
-    graphs = filter(lambda g: g["name"] == name, space.graphs())
-    graph = None
+    space = get_workspace_db(workspace, arango=arango)
+    graphs = filter(lambda g: g["name"] == graph, space.graphs())
     try:
-        graph = next(graphs)
+        next(graphs)
     except StopIteration:
-        pass
+        raise GraphNotFound(graph)
+
+    # Get the lists of node and edge tables.
+    node_tables = graph_node_tables(workspace, graph, arango=arango)
+    edge_tables = graph_edge_tables(workspace, graph, arango=arango)
+
+    # Get the requested node data.
+    node_query = f"""
+    FOR c in [{", ".join(node_tables)}]
+      FOR d in c
+        LIMIT {offset}, {limit}
+        RETURN d._id
+    """
+
+    nodes = aql_query(workspace, node_query, arango=arango)
+
+    # Get the total node count.
+    count_query = f"""
+    FOR c in [{", ".join(node_tables)}]
+      FOR d in c
+        COLLECT WITH COUNT INTO count
+        RETURN count
+    """
+
+    count = aql_query(workspace, count_query, arango=arango)
+
+    return {
+        "nodeTables": node_tables,
+        "edgeTables": edge_tables,
+        "nodes": list(nodes),
+        "nodeCount": list(count)[0],
+    }
 
     return graph
 

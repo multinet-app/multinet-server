@@ -46,17 +46,13 @@ def lookup_workspace(workspace):
 @bp.route("/workspaces/<workspace>", methods=["GET"])
 def get_workspace(workspace):
     """Retrieve a single workspace."""
-    return lookup_workspace(workspace)
+    return db.get_workspace(workspace)
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
 @use_kwargs({"fields": fields.Str()})
 def get_workspace_tables(workspace, fields=""):
     """Retrieve the tables of a single workspace."""
-    (result, code) = lookup_workspace(workspace)
-    if code == 404:
-        return (result, code)
-
     tables = db.workspace_tables(workspace, fields)
     return Response(generate(tables), mimetype="text/json")
 
@@ -65,30 +61,13 @@ def get_workspace_tables(workspace, fields=""):
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 def get_table_rows(workspace, table, offset=0, limit=30):
     """Retrieve the rows and headers of a table."""
-    (result, code) = lookup_workspace(workspace)
-    if code == 404:
-        return (result, code)
-
-    database = db.db(workspace)
-    if not database.has_collection(table):
-        return (table, 404)
-
-    query = f"""
-    FOR d in {table}
-      LIMIT {offset}, {limit}
-      RETURN d
-    """
-
-    return Response(generate(db.aql_query(workspace, query)), mimetype="text/json")
+    rows = db.workspace_table(workspace, table, offset, limit)
+    return Response(generate(rows), mimetype="text/json")
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
 def get_workspace_graphs(workspace):
     """Retrieve the graphs of a single workspace."""
-    (result, code) = lookup_workspace(workspace)
-    if code == 404:
-        return (result, code)
-
     graphs = db.workspace_graphs(workspace)
     return Response(generate(graphs), mimetype="text/json")
 
@@ -97,40 +76,7 @@ def get_workspace_graphs(workspace):
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 def get_workspace_graph(workspace, graph, offset=0, limit=30):
     """Retrieve the tables and nodes of a graph."""
-    (result, code) = lookup_workspace(workspace)
-    if code == 404:
-        return (result, code)
-
-    # Get the lists of node and edge tables.
-    node_tables = db.graph_node_tables(workspace, graph)
-    edge_tables = db.graph_edge_tables(workspace, graph)
-
-    # Get the requested node data.
-    node_query = f"""
-    FOR c in [{", ".join(node_tables)}]
-      FOR d in c
-        LIMIT {offset}, {limit}
-          RETURN d._id
-    """
-
-    nodes = db.aql_query(workspace, node_query)
-
-    # Get the total node count.
-    count_query = f"""
-    FOR c in [{", ".join(node_tables)}]
-      FOR d in c
-        COLLECT WITH COUNT INTO count
-          RETURN count
-    """
-
-    count = db.aql_query(workspace, count_query)
-
-    return {
-        "nodeTables": node_tables,
-        "edgeTables": edge_tables,
-        "nodes": list(nodes),
-        "nodeCount": list(count)[0],
-    }
+    return db.workspace_graph(workspace, graph, offset, limit)
 
 
 @bp.route(
@@ -139,23 +85,7 @@ def get_workspace_graph(workspace, graph, offset=0, limit=30):
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 def get_node_data(workspace, graph, table, node):
     """Return the attributes associated with a node."""
-    (result, code) = lookup_workspace(workspace)
-    if code == 404:
-        return (result, code)
-
-    # node_tables = db.graph_node_tables(workspace, graph)
-
-    query = f"""
-    FOR d in {table}
-      FILTER d._id == "{table}/{node}"
-      RETURN d
-    """
-
-    result = list(db.aql_query(workspace, query))
-    if not result:
-        return (node, "404 No Such Node")
-
-    return {k: result[0][k] for k in result[0] if k != "_rev"}
+    return db.graph_node(workspace, graph, table, node)
 
 
 @bp.route(

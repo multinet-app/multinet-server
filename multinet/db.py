@@ -88,7 +88,11 @@ def get_workspace_db(name, arango=None):
 def get_workspaces(arango=None):
     """Return a list of all workspace names."""
     sysdb = db("_system", arango=arango)
-    return [workspace for workspace in sysdb.databases() if workspace != "_system"]
+    return (
+        {"name": workspace, "owner": None, "read": []}
+        for workspace in sysdb.databases()
+        if workspace != "_system"
+    )
 
 
 @with_client

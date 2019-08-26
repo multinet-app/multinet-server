@@ -208,27 +208,34 @@ def workspace_graphs(workspace, arango=None):
 
 
 @with_client
-def workspace_graph(workspace, graph, offset, limit, arango=None):
+def workspace_graph(workspace, graph, arango=None):
     """Return a specific graph named `name` in workspace `workspace`."""
-    space = get_workspace_db(workspace, arango=arango)
-    graphs = filter(lambda g: g["name"] == graph, space.graphs())
-    try:
-        next(graphs)
-    except StopIteration:
-        raise GraphNotFound(graph)
+    get_graph_collection(workspace, graph)
 
     # Get the lists of node and edge tables.
     node_tables = graph_node_tables(workspace, graph, arango=arango)
     edge_table = graph_edge_table(workspace, graph, arango=arango)
 
-    # Get the requested node data.
+    return {
+        "nodeTables": node_tables,
+        "edgeTable": edge_table,
+    }
+
+    return graph
+
+
+@with_client
+def graph_nodes(workspace, graph, offset, limit, arango=None):
+    get_graph_collection(workspace, graph)
+
+    # Get the actual node data.
+    node_tables = graph_node_tables(workspace, graph, arango=arango)
     node_query = f"""
     FOR c in [{", ".join(node_tables)}]
       FOR d in c
         LIMIT {offset}, {limit}
         RETURN d._id
     """
-
     nodes = aql_query(workspace, node_query, arango=arango)
 
     # Get the total node count.
@@ -238,17 +245,12 @@ def workspace_graph(workspace, graph, offset, limit, arango=None):
         COLLECT WITH COUNT INTO count
         RETURN count
     """
-
     count = aql_query(workspace, count_query, arango=arango)
 
     return {
-        "nodeTables": node_tables,
-        "edgeTable": edge_table,
+        "count": list(count)[0],
         "nodes": list(nodes),
-        "nodeCount": list(count)[0],
     }
-
-    return graph
 
 
 @with_client

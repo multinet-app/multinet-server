@@ -72,10 +72,16 @@ def get_workspace_graphs(workspace):
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
+def get_workspace_graph(workspace, graph):
+    """Retrieve information about a graph."""
+    return db.workspace_graph(workspace, graph)
+
+
+@bp.route("/workspaces/<workspace>/graphs/<graph>/nodes", methods=["GET"])
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
-def get_workspace_graph(workspace, graph, offset=0, limit=30):
-    """Retrieve the tables and nodes of a graph."""
-    return db.workspace_graph(workspace, graph, offset, limit)
+def get_graph_nodes(workspace, graph, offset=0, limit=30):
+    """Retrieve the nodes of a graph."""
+    return db.graph_nodes(workspace, graph, offset, limit)
 
 
 @bp.route(

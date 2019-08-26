@@ -5,7 +5,13 @@ from arango import ArangoClient
 from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
-from .errors import BadQueryArgument, WorkspaceNotFound, TableNotFound, GraphNotFound, NodeNotFound
+from .errors import (
+    BadQueryArgument,
+    WorkspaceNotFound,
+    TableNotFound,
+    GraphNotFound,
+    NodeNotFound,
+)
 
 
 def with_client(fun):
@@ -74,11 +80,7 @@ def get_workspace(name, arango=None):
     if not sysdb.has_database(name):
         raise WorkspaceNotFound(name)
 
-    return {
-        "name": name,
-        "owner": None,
-        "readers": [],
-    }
+    return {"name": name, "owner": None, "readers": []}
 
 
 @with_client
@@ -112,11 +114,7 @@ def get_table_collection(workspace, table, arango=None):
 def get_workspaces(arango=None):
     """Return a list of all workspace names."""
     sysdb = db("_system", arango=arango)
-    return (
-        workspace
-        for workspace in sysdb.databases()
-        if workspace != "_system"
-    )
+    return (workspace for workspace in sysdb.databases() if workspace != "_system")
 
 
 @with_client
@@ -128,25 +126,33 @@ def workspace_tables(workspace, type, arango=None):
 
     space = get_workspace_db(workspace, arango=arango)
     tables = (
-        (table["name"], edge_table(table_fields(workspace, table["name"], arango=arango)))
+        (
+            table["name"],
+            edge_table(table_fields(workspace, table["name"], arango=arango)),
+        )
         for table in space.collections()
         if not table["name"].startswith("_")
     )
 
+    def pass_all(x):
+        return True
+
+    def is_edge(x):
+        return x[1]
+
+    def is_node(x):
+        return not is_edge(x)
+
     if type == "all":
-        desired_type = lambda x: True
+        desired_type = pass_all
     elif type == "node":
-        desired_type = lambda x: not x[1]
+        desired_type = is_node
     elif type == "edge":
-        desired_type = lambda x: x[1]
+        desired_type = is_edge
     else:
         raise BadQueryArgument("type", type, ["all", "node", "edge"])
 
-    return (
-        table[0]
-        for table in tables
-        if desired_type(table)
-    )
+    return (table[0] for table in tables if desired_type(table))
 
 
 @with_client

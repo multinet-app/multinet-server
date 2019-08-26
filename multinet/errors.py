@@ -70,18 +70,17 @@ class NodeNotFound(NotFound):
 class BadQueryArgument(ServerError):
     """Exception for illegal query argument value."""
 
-    def __init__(self, argument, value, allowed=[]):
+    def __init__(self, argument, value, allowed=None):
+        """Initialize the exception."""
         self.argument = argument
         self.value = value
-        self.allowed = allowed
+        self.allowed = allowed or []
 
     def flask_response(self):
-        payload = {
-            "argument": self.argument,
-            "value": self.value,
-        }
+        """Generate a 400 error for the bad argument."""
+        payload = {"argument": self.argument, "value": self.value}
 
-        if (self.allowed):
+        if self.allowed:
             payload["allowed"] = self.allowed
 
         return (payload, "400 Bad Query Argument")

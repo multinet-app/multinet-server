@@ -62,6 +62,16 @@ def validate_newick(tree):
         return
 
 
+def decode_data(input):
+    """Decode the request data assuming utf8 encoding."""
+    try:
+        body = input.decode("utf8")
+    except UnicodeDecodeError:
+        return None
+
+    return body
+
+
 @bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace, table):
     """
@@ -72,11 +82,11 @@ def upload(workspace, table):
     `data` - the newick data, passed in the request body.
     """
     app.logger.info("newick tree")
-    try:
-        body = request.data.decode("utf8")
-    except UnicodeDecodeError:
+
+    body = decode_data(request.data)
+    if not body:
         response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
-        return (response, "400 Nested Json Decode Failed")
+        return (response, "400 Newick Decode Failed")
 
     tree = newick.loads(body)
 

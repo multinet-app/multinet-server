@@ -57,7 +57,7 @@ def validate_newick(tree):
         data_errors.append({"error": "duplicate", "detail": duplicate_edges})
 
     if len(data_errors) > 0:
-        return data_errors
+        return {"errors": data_errors}
     else:
         return
 
@@ -92,7 +92,7 @@ def upload(workspace, table):
 
     result = validate_newick(tree)
     if result:
-        return ({"errors": result}, "400 Newick Validation Failed")
+        return (result, "400 Newick Validation Failed")
 
     workspace = db.db(workspace)
     edgetable_name = "%s_edges" % table

@@ -11,6 +11,8 @@ from .errors import (
     TableNotFound,
     GraphNotFound,
     NodeNotFound,
+    InvalidName,
+    AlreadyExists,
 )
 
 
@@ -55,11 +57,10 @@ def create_workspace(name, arango=None):
     if not sysdb.has_database(name):
         try:
             sysdb.create_database(name)
-            return True
         except DatabaseCreateError:
-            return False
+            raise InvalidName(name)
     else:
-        return None
+        raise AlreadyExists("Workspace", name)
 
 
 @with_client
@@ -68,9 +69,6 @@ def delete_workspace(name, arango=None):
     sysdb = db("_system", arango=arango)
     if sysdb.has_database(name):
         sysdb.delete_database(name)
-        return True
-    else:
-        return False
 
 
 @with_client

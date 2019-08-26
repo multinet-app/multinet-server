@@ -6,6 +6,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from . import db
+from .errors import ValidationFailed
 
 bp = Blueprint("multinet", __name__)
 
@@ -107,14 +108,7 @@ def get_graph_node(workspace, graph, table, node, direction="all", offset=0, lim
 @bp.route("/workspaces/<workspace>", methods=["POST"])
 def create_workspace(workspace):
     """Create a new workspace."""
-    status = db.create_workspace(workspace)
-
-    if status is None:
-        return (workspace, "400 Workspace Already Exists")
-
-    if status is False:
-        return (workspace, "400 Invalid Workspace Name")
-
+    db.create_workspace(workspace)
     return workspace
 
 
@@ -132,7 +126,8 @@ def aql(workspace):
 @bp.route("/workspaces/<workspace>", methods=["DELETE"])
 def delete_workspace(workspace):
     """Delete a workspace."""
-    return workspace if db.delete_workspace(workspace) else None
+    db.delete_workspace(workspace)
+    return workspace
 
 
 @bp.route("/workspaces/<workspace>/graph/<graph>", methods=["POST"])
@@ -189,7 +184,7 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
 
     # TODO: Update this with the proper JSON schema
     if errors:
-        return ({"errors": errors}, "400 Graph Validation Failed")
+        raise ValidationFailed(errors)
 
     db.create_graph(workspace, graph, node_tables, edge_table)
     return graph

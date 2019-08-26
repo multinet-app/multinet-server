@@ -78,7 +78,7 @@ def get_workspace(name, arango=None):
     if not sysdb.has_database(name):
         raise WorkspaceNotFound(name)
 
-    return {"name": name, "owner": None, "readers": []}
+    return {"name": name, "owner": None, "readers": [], "writers": []}
 
 
 @with_client

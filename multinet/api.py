@@ -85,9 +85,8 @@ def get_graph_nodes(workspace, graph, offset=0, limit=30):
 
 
 @bp.route(
-    "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/data", methods=["GET"]
+    "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/attributes", methods=["GET"]
 )
-@use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 def get_node_data(workspace, graph, table, node):
     """Return the attributes associated with a node."""
     return db.graph_node(workspace, graph, table, node)

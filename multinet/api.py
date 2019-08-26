@@ -23,6 +23,7 @@ def generate(iterator):
 
 
 def stream(iterator):
+    """Convert an iterator to a Flask response."""
     return Response(generate(iterator), mimetype="application/json")
 
 
@@ -39,12 +40,6 @@ bp.before_request(require_db)
 def get_workspaces():
     """Retrieve list of workspaces."""
     return stream(db.get_workspaces())
-
-
-def lookup_workspace(workspace):
-    """Retrieve a single workspace, with a status code."""
-    result = db.get_workspace(workspace)
-    return (workspace, 404 if result is None else 200)
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])

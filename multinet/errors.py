@@ -119,5 +119,13 @@ class ValidationFailed(ServerError):
         self.errors = errors
 
     def flask_response(self):
-        """Generate a 400 error for the bad argument."""
+        """Generate a 400 error."""
         return ({"errors": self.errors}, "400 Validation Failed")
+
+
+class DatabaseNotLive(ServerError):
+    """Exception for when Arango database is not live."""
+
+    def flask_response(self):
+        """Generate a 500 error."""
+        return ("", "500 Database Not Live")

@@ -1,46 +1,19 @@
 """Flask blueprint for Multinet REST API."""
-import json
-
-from flask import Blueprint, request, Response
+from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from . import db
+from . import db, util
 from .errors import ValidationFailed
 
 bp = Blueprint("multinet", __name__)
-
-
-def generate(iterator):
-    """Return a generator that yields an iterator's contents into a JSON list."""
-    yield "["
-
-    comma = ""
-    for row in iterator:
-        yield f"{comma}{json.dumps(row)}"
-        comma = ","
-
-    yield "]"
-
-
-def stream(iterator):
-    """Convert an iterator to a Flask response."""
-    return Response(generate(iterator), mimetype="application/json")
-
-
-def require_db():
-    """Check if the db is live."""
-    if not db.check_db():
-        return ("", "500 Database Not Live")
-
-
-bp.before_request(require_db)
+bp.before_request(util.require_db)
 
 
 @bp.route("/workspaces", methods=["GET"])
 def get_workspaces():
     """Retrieve list of workspaces."""
-    return stream(db.get_workspaces())
+    return util.stream(db.get_workspaces())
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])
@@ -54,7 +27,7 @@ def get_workspace(workspace):
 def get_workspace_tables(workspace, type="all"):
     """Retrieve the tables of a single workspace."""
     tables = db.workspace_tables(workspace, type)
-    return stream(tables)
+    return util.stream(tables)
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
@@ -62,14 +35,14 @@ def get_workspace_tables(workspace, type="all"):
 def get_table_rows(workspace, table, offset=0, limit=30):
     """Retrieve the rows and headers of a table."""
     rows = db.workspace_table(workspace, table, offset, limit)
-    return stream(rows)
+    return util.stream(rows)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
 def get_workspace_graphs(workspace):
     """Retrieve the graphs of a single workspace."""
     graphs = db.workspace_graphs(workspace)
-    return stream(graphs)
+    return util.stream(graphs)
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
@@ -121,7 +94,7 @@ def aql(workspace):
         return (query, "400 Malformed Request Body")
 
     result = db.aql_query(workspace, query)
-    return stream(result)
+    return util.stream(result)
 
 
 @bp.route("/workspaces/<workspace>", methods=["DELETE"])

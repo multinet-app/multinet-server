@@ -2,6 +2,7 @@
 import os
 
 from arango import ArangoClient
+from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
 from multinet.types import Row, Entity, EntityType, Cursor
@@ -46,7 +47,13 @@ def create_workspace(name, arango=None):
     """Create a new workspace named `name`."""
     sys = db("_system", arango=arango)
     if not sys.has_database(name):
-        sys.create_database(name)
+        try:
+            sys.create_database(name)
+            return True
+        except DatabaseCreateError:
+            return False
+    else:
+        return None
 
 
 @with_client

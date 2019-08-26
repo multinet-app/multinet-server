@@ -62,7 +62,14 @@ def _graphql(query=None, variables=None):
 @bp.route("/workspace/<workspace>", methods=["POST"])
 def create_workspace(workspace):
     """Create a new workspace."""
-    db.create_workspace(workspace)
+    status = db.create_workspace(workspace)
+
+    if status is None:
+        return (workspace, "400 Workspace Already Exists")
+
+    if status is False:
+        return (workspace, "400 Invalid Workspace Name")
+
     return workspace
 
 

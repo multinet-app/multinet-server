@@ -15,12 +15,18 @@ def name(workspace, info):
 
 def tables(workspace, info):
     """Return the tables within a workspace."""
-    return [Table(workspace, table) for table in db.workspace_tables(workspace)]
+    return sorted(
+        [Table(workspace, table) for table in db.workspace_tables(workspace)],
+        key=lambda table: table.table,
+    )
 
 
 def graphs(workspace, info):
     """Return the graphs within a workspace."""
-    return [Graph(workspace, graph) for graph in db.workspace_graphs(workspace)]
+    return sorted(
+        [Graph(workspace, graph) for graph in db.workspace_graphs(workspace)],
+        key=lambda graph: graph.graph,
+    )
 
 
 def add_resolvers(schema):

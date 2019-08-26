@@ -343,7 +343,7 @@ def node_edges(workspace, graph, table, node, offset, limit, direction, arango=N
     elif direction == "outgoing":
         filter_clause = f'e._from == "{node}"'
     else:
-        raise RuntimeError(f"bad direction argument: {direction}")
+        raise BadQueryArgument("direction", direction, ["all", "incoming", "outgoing"])
 
     query = query_text(filter_clause)
     count = count_text(filter_clause)

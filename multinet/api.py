@@ -88,15 +88,15 @@ def get_node_data(workspace, graph, table, node):
 
 
 @bp.route(
-    "/workspaces/<workspace>/graphs/<graph>/nodes/<path:node>/edges", methods=["GET"]
+    "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/edges", methods=["GET"]
 )
 @use_kwargs({"direction": fields.Str(), "offset": fields.Int(), "limit": fields.Int()})
-def get_graph_node(workspace, graph, node, direction="all", offset=0, limit=30):
+def get_graph_node(workspace, graph, table, node, direction="all", offset=0, limit=30):
     """Return the edges connected to a node."""
     if direction not in ["incoming", "outgoing", "all"]:
         return (direction, "400 Invalid Direction Parameter")
 
-    return db.node_edges(workspace, graph, node, offset, limit, direction)
+    return db.node_edges(workspace, graph, table, node, offset, limit, direction)
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])

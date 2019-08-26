@@ -213,7 +213,7 @@ def workspace_graph(workspace, graph, offset, limit, arango=None):
 
     # Get the lists of node and edge tables.
     node_tables = graph_node_tables(workspace, graph, arango=arango)
-    edge_tables = graph_edge_tables(workspace, graph, arango=arango)
+    edge_table = graph_edge_table(workspace, graph, arango=arango)
 
     # Get the requested node data.
     node_query = f"""
@@ -237,7 +237,7 @@ def workspace_graph(workspace, graph, offset, limit, arango=None):
 
     return {
         "nodeTables": node_tables,
-        "edgeTables": edge_tables,
+        "edgeTable": edge_table,
         "nodes": list(nodes),
         "nodeCount": list(count)[0],
     }
@@ -302,18 +302,19 @@ def graph_node_tables(workspace, graph, arango=None):
 
 
 @with_client
-def graph_edge_tables(workspace, graph, arango=None):
+def graph_edge_table(workspace, graph, arango=None):
     """Return the edge tables associated with a graph."""
-    workspace = db(workspace, arango=arango)
-    g = workspace.graph(graph)
-    return [d["edge_collection"] for d in g.edge_definitions()]
+    g = get_graph_collection(workspace, graph)
+    edge_collections = g.edge_definitions()
+
+    return None if not edge_collections else edge_collections[0]["edge_collection"]
 
 
 @with_client
 def node_edges(workspace, graph, table, node, offset, limit, direction, arango=None):
     """Return the edges connected to a node."""
-    edge_table = graph.edge_definitions()[0]["edge_collection"]
     get_table_collection(workspace, table)
+    edge_table = graph_edge_table(workspace, graph, arango=arango)
 
     def query_text(filt):
         return f"""

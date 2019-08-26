@@ -85,6 +85,26 @@ def get_workspace_db(name, arango=None):
 
 
 @with_client
+def get_graph_collection(workspace, graph, arango=None):
+    """Return the Arango collection associated with a graph, if it exists."""
+    space = get_workspace_db(workspace, arango=arango)
+    if not space.has_graph(graph):
+        raise GraphNotFound(workspace, graph)
+
+    return space.graph(graph)
+
+
+@with_client
+def get_table_collection(workspace, table, arango=None):
+    """Return the Arango collection associated with a table, if it exists."""
+    space = get_workspace_db(workspace, arango=arango)
+    if not space.has_collection(table):
+        raise TableNotFound(workspace, table)
+
+    return space.collection(table)
+
+
+@with_client
 def get_workspaces(arango=None):
     """Return a list of all workspace names."""
     sysdb = db("_system", arango=arango)
@@ -116,12 +136,7 @@ def workspace_tables(workspace, fields=True, arango=None):
 @with_client
 def workspace_table(workspace, table, offset, limit, arango=None):
     """Return a specific table named `name` in workspace `workspace`."""
-    space = get_workspace_db(workspace, arango=arango)
-    tables = filter(lambda g: g["name"] == table, space.collections())
-    try:
-        next(tables)
-    except StopIteration:
-        raise TableNotFound(table)
+    get_table_collection(workspace, table, arango=arango)
 
     query = f"""
     FOR d in {table}
@@ -266,8 +281,7 @@ def table(query, create=False, arango=None):
 @with_client
 def graph_node_tables(workspace, graph, arango=None):
     """Return the node tables associated with a graph."""
-    workspace = db(workspace, arango=arango)
-    g = workspace.graph(graph)
+    g = get_graph_collection(workspace, graph)
     return g.vertex_collections()
 
 
@@ -280,11 +294,10 @@ def graph_edge_tables(workspace, graph, arango=None):
 
 
 @with_client
-def node_edges(workspace, graph, node, offset, limit, direction, arango=None):
+def node_edges(workspace, graph, table, node, offset, limit, direction, arango=None):
     """Return the edges connected to a node."""
-    database = db(workspace, arango=arango)
-    graph = database.graph(graph)
     edge_table = graph.edge_definitions()[0]["edge_collection"]
+    get_table_collection(workspace, table)
 
     def query_text(filt):
         return f"""

@@ -46,17 +46,17 @@ class WorkspaceNotFound(NotFound):
 class TableNotFound(NotFound):
     """Exception for missing table."""
 
-    def __init__(self, table):
+    def __init__(self, workspace, table):
         """Initialize the exception."""
-        super().__init__("Table", table)
+        super().__init__("Table", f"{workspace}/{table}")
 
 
 class GraphNotFound(NotFound):
     """Exception for missing graph."""
 
-    def __init__(self, graph):
+    def __init__(self, workspace, graph):
         """Initialize the exception."""
-        super().__init__("Graph", graph)
+        super().__init__("Graph", f"{workspace}/{graph}")
 
 
 class NodeNotFound(NotFound):

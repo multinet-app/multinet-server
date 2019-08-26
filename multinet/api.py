@@ -22,6 +22,10 @@ def generate(iterator):
     yield "]"
 
 
+def stream(iterator):
+    return Response(generate(iterator), mimetype="application/json")
+
+
 def require_db():
     """Check if the db is live."""
     if not db.check_db():
@@ -34,7 +38,7 @@ bp.before_request(require_db)
 @bp.route("/workspaces", methods=["GET"])
 def get_workspaces():
     """Retrieve list of workspaces."""
-    return json.dumps(db.get_workspaces())
+    return stream(db.get_workspaces())
 
 
 def lookup_workspace(workspace):
@@ -54,7 +58,7 @@ def get_workspace(workspace):
 def get_workspace_tables(workspace, fields=""):
     """Retrieve the tables of a single workspace."""
     tables = db.workspace_tables(workspace, fields)
-    return Response(generate(tables), mimetype="text/json")
+    return stream(tables)
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
@@ -62,14 +66,14 @@ def get_workspace_tables(workspace, fields=""):
 def get_table_rows(workspace, table, offset=0, limit=30):
     """Retrieve the rows and headers of a table."""
     rows = db.workspace_table(workspace, table, offset, limit)
-    return Response(generate(rows), mimetype="text/json")
+    return stream(rows)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
 def get_workspace_graphs(workspace):
     """Retrieve the graphs of a single workspace."""
     graphs = db.workspace_graphs(workspace)
-    return Response(generate(graphs), mimetype="text/json")
+    return stream(graphs)
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
@@ -122,8 +126,7 @@ def aql(workspace):
         return (query, "400 Malformed Request Body")
 
     result = db.aql_query(workspace, query)
-
-    return Response(generate(result), mimetype="text/json")
+    return stream(result)
 
 
 @bp.route("/workspaces/<workspace>", methods=["DELETE"])

@@ -214,16 +214,14 @@ def workspace_graph(workspace, graph, arango=None):
     node_tables = graph_node_tables(workspace, graph, arango=arango)
     edge_table = graph_edge_table(workspace, graph, arango=arango)
 
-    return {
-        "nodeTables": node_tables,
-        "edgeTable": edge_table,
-    }
+    return {"nodeTables": node_tables, "edgeTable": edge_table}
 
     return graph
 
 
 @with_client
 def graph_nodes(workspace, graph, offset, limit, arango=None):
+    """Return the nodes of a graph."""
     get_graph_collection(workspace, graph)
 
     # Get the actual node data.
@@ -245,10 +243,7 @@ def graph_nodes(workspace, graph, offset, limit, arango=None):
     """
     count = aql_query(workspace, count_query, arango=arango)
 
-    return {
-        "count": list(count)[0],
-        "nodes": list(nodes),
-    }
+    return {"count": list(count)[0], "nodes": list(nodes)}
 
 
 @with_client

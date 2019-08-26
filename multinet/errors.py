@@ -90,10 +90,12 @@ class AlreadyExists(ServerError):
     """Exception for attempting to create a resource that already exists."""
 
     def __init__(self, type, item):
+        """Initialize the exception."""
         self.type = type
         self.item = item
 
     def flask_response(self):
+        """Generate a 400 error for the bad argument."""
         return (self.item, f"409 {self.type.capitalize()} Already Exists")
 
 
@@ -101,9 +103,11 @@ class InvalidName(ServerError):
     """Exception for invalid resource name."""
 
     def __init__(self, name):
+        """Initialize the exception."""
         self.name = name
 
     def flask_response(self):
+        """Generate a 400 error for the bad argument."""
         return (self.name, "400 Invalid Name")
 
 
@@ -111,7 +115,9 @@ class ValidationFailed(ServerError):
     """Exception for reporting validation errors."""
 
     def __init__(self, errors):
+        """Initialize the exception."""
         self.errors = errors
 
     def flask_response(self):
-        return ({"errors": errors}, "400 Validation Failed")
+        """Generate a 400 error for the bad argument."""
+        return ({"errors": self.errors}, "400 Validation Failed")

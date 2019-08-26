@@ -260,33 +260,6 @@ def table(query, create=False, arango=None):
 
 
 @with_client
-def graph(graph, create=False, arango=None):
-    """Return graph `graph.graph` in workspace `graph.workspace`.
-
-    This function creates the graph if `create` is True and the graph does not
-    already exist.
-    """
-    workspace = db(graph.workspace, arango=arango)
-    if workspace.has_graph(graph.graph):
-        return workspace.graph(graph.graph)
-    elif create:
-        return workspace.create_graph(graph.graph)
-    else:
-        return None
-
-
-def countRows(query):
-    """Give the max number of rows that can come back from query `query`."""
-    collection = table(query)
-    if query.id:
-        return 1
-    elif query.search:
-        return 0  # to be implemented
-    else:
-        return collection.count()
-
-
-@with_client
 def graph_node_tables(workspace, graph, arango=None):
     """Return the node tables associated with a graph."""
     workspace = db(workspace, arango=arango)

@@ -45,10 +45,10 @@ def db(name, arango=None):
 @with_client
 def create_workspace(name, arango=None):
     """Create a new workspace named `name`."""
-    sys = db("_system", arango=arango)
-    if not sys.has_database(name):
+    sysdb = db("_system", arango=arango)
+    if not sysdb.has_database(name):
         try:
-            sys.create_database(name)
+            sysdb.create_database(name)
             return True
         except DatabaseCreateError:
             return False

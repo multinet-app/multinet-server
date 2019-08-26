@@ -65,3 +65,23 @@ class NodeNotFound(NotFound):
     def __init__(self, table, node):
         """Initialize the exception."""
         super().__init__("Node", f"{table}/{node}")
+
+
+class BadQueryArgument(ServerError):
+    """Exception for illegal query argument value."""
+
+    def __init__(self, argument, value, allowed=[]):
+        self.argument = argument
+        self.value = value
+        self.allowed = allowed
+
+    def flask_response(self):
+        payload = {
+            "argument": self.argument,
+            "value": self.value,
+        }
+
+        if (self.allowed):
+            payload["allowed"] = self.allowed
+
+        return (payload, "400 Bad Query Argument")

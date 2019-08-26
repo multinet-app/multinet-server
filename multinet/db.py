@@ -5,7 +5,7 @@ from arango import ArangoClient
 from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
-from .errors import WorkspaceNotFound, TableNotFound, GraphNotFound, NodeNotFound
+from .errors import BadQueryArgument, WorkspaceNotFound, TableNotFound, GraphNotFound, NodeNotFound
 
 
 def with_client(fun):
@@ -109,28 +109,40 @@ def get_workspaces(arango=None):
     """Return a list of all workspace names."""
     sysdb = db("_system", arango=arango)
     return (
-        {"name": workspace, "owner": None, "read": []}
+        workspace
         for workspace in sysdb.databases()
         if workspace != "_system"
     )
 
 
 @with_client
-def workspace_tables(workspace, fields=True, arango=None):
+def workspace_tables(workspace, type, arango=None):
     """Return a list of all table names in the workspace named `workspace`."""
+
+    def edge_table(fields):
+        return "_from" in fields and "_to" in fields
+
     space = get_workspace_db(workspace, arango=arango)
-    tables = [
-        {"table": table["name"]}
+    tables = (
+        (table["name"], edge_table(table_fields(workspace, table["name"], arango=arango)))
         for table in space.collections()
         if not table["name"].startswith("_")
-    ]
+    )
 
-    if fields:
-        for table in tables:
-            fields = table_fields(workspace, table["table"])
-            table["fields"] = fields
+    if type == "all":
+        desired_type = lambda x: True
+    elif type == "node":
+        desired_type = lambda x: not x[1]
+    elif type == "edge":
+        desired_type = lambda x: x[1]
+    else:
+        raise BadQueryArgument("type", type, ["all", "node", "edge"])
 
-    return tables
+    return (
+        table[0]
+        for table in tables
+        if desired_type(table)
+    )
 
 
 @with_client

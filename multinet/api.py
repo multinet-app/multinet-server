@@ -49,10 +49,10 @@ def get_workspace(workspace):
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
-@use_kwargs({"fields": fields.Str()})
-def get_workspace_tables(workspace, fields=""):
+@use_kwargs({"type": fields.Str()})
+def get_workspace_tables(workspace, type="all"):
     """Retrieve the tables of a single workspace."""
-    tables = db.workspace_tables(workspace, fields)
+    tables = db.workspace_tables(workspace, type)
     return stream(tables)
 
 

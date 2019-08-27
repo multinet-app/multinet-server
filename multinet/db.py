@@ -175,7 +175,7 @@ def graph_node(workspace, graph, table, node, arango=None):
     try:
         next(graphs)
     except StopIteration:
-        raise GraphNotFound(graph)
+        raise GraphNotFound(workspace, graph)
 
     tables = filter(lambda t: t["name"] == table, space.collections())
     try:

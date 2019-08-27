@@ -7,7 +7,7 @@
           <label>Node Types</label>
           <ul>
             <li v-for="table in nodeTypes" :key="table.name">
-              <router-link :to="`/workspaces/${workspace}/table/${table.name}`">{{table.name}}</router-link>
+              <router-link :to="`/workspaces/${workspace}/table/${table}`">{{table}}</router-link>
             </li>
           </ul>
         </div>
@@ -15,7 +15,7 @@
           <label>Edge Types</label>
           <ul>
             <li v-for="table in edgeTypes" :key="table.name">
-              <router-link :to="`/workspaces/${workspace}/table/${table.name}`">{{table.name}}</router-link>
+              <router-link :to="`/workspaces/${workspace}/table/${table}`">{{table}}</router-link>
             </li>
           </ul>
         </div>
@@ -86,27 +86,16 @@ export default {
   },
   methods: {
     async update () {
-      const response = await api().post('graphql', {query: `query {
-        graphs (workspace: "${this.workspace}", name: "${this.graph}") {
-          nodeTypes {
-            name
-          }
-          edgeTypes {
-            name
-          }
-          nodes {
-            total
-            data (offset: ${this.offset} limit: ${this.limit}) {
-              key
-            }
-          }
-        }
-      }`});
+      let response = await api().get(`/workspaces/${this.workspace}/graphs/${this.graph}`);
+      const graph = response.data;
 
-      this.nodeTypes = response.data.data.graphs[0].nodeTypes;
-      this.edgeTypes = response.data.data.graphs[0].edgeTypes;
-      this.nodes = response.data.data.graphs[0].nodes.data.map(node => node.key);
-      this.total = response.data.data.graphs[0].nodes.total;
+      response = await api().get(`/workspaces/${this.workspace}/graphs/${this.graph}/nodes?offset=${this.offset}&limit=${this.limit}`);
+      const nodes = response.data;
+
+      this.nodeTypes = graph.nodeTables;
+      this.edgeTypes = [graph.edgeTable];
+      this.nodes = nodes.nodes;
+      this.total = nodes.count;
     },
     turnPage (forward) {
       this.offset += forward ? this.limit : -this.limit

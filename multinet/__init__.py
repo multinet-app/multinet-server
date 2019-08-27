@@ -5,6 +5,7 @@ from flask_cors import CORS
 
 from . import api
 from . import uploaders
+from .errors import ServerError
 
 
 def create_app(config=None):
@@ -20,6 +21,11 @@ def create_app(config=None):
     app.register_blueprint(uploaders.csv.bp, url_prefix="/api/csv")
     app.register_blueprint(uploaders.newick.bp, url_prefix="/api/newick")
     app.register_blueprint(uploaders.nested_json.bp, url_prefix="/api/nested_json")
+
+    # Register error handler.
+    @app.errorhandler(ServerError)
+    def handle_error(error):
+        return error.flask_response()
 
     @app.route("/")
     def about():

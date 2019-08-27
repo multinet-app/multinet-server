@@ -4,7 +4,13 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from . import db, util
-from .errors import ValidationFailed
+from .errors import (
+    ValidationFailed,
+    BadQueryArgument,
+    MalformedRequestBody,
+    AlreadyExists,
+    RequiredParamsMissing,
+)
 
 bp = Blueprint("multinet", __name__)
 bp.before_request(util.require_db)
@@ -73,8 +79,9 @@ def get_node_data(workspace, graph, table, node):
 @use_kwargs({"direction": fields.Str(), "offset": fields.Int(), "limit": fields.Int()})
 def get_graph_node(workspace, graph, table, node, direction="all", offset=0, limit=30):
     """Return the edges connected to a node."""
-    if direction not in ["incoming", "outgoing", "all"]:
-        return (direction, "400 Invalid Direction Parameter")
+    allowed = ["incoming", "outgoing", "all"]
+    if direction not in allowed:
+        raise BadQueryArgument("direction", direction, allowed)
 
     return db.node_edges(workspace, graph, table, node, offset, limit, direction)
 
@@ -91,7 +98,7 @@ def aql(workspace):
     """Perform an AQL query in the given workspace."""
     query = request.data.decode("utf8")
     if not query:
-        return (query, "400 Malformed Request Body")
+        raise MalformedRequestBody(query)
 
     result = db.aql_query(workspace, query)
     return util.stream(result)
@@ -111,15 +118,15 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
 
     if not node_tables or not edge_table:
         body = request.data.decode("utf8")
-        return (body, "400 Malformed Request Body")
+        raise MalformedRequestBody(body)
 
     missing = [arg for arg in [node_tables, edge_table] if arg is None]
     if missing:
-        return (missing, "400 Missing Required Parameters")
+        raise RequiredParamsMissing(missing)
 
     loadedWorkspace = db.db(workspace)
     if loadedWorkspace.has_graph(graph):
-        return (graph, "409 Graph Already Exists")
+        raise AlreadyExists("Graph", graph)
 
     existing_tables = set([x["name"] for x in loadedWorkspace.collections()])
     edges = loadedWorkspace.collection(edge_table).all()

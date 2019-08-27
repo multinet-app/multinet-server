@@ -99,6 +99,30 @@ class AlreadyExists(ServerError):
         return (self.item, f"409 {self.type.capitalize()} Already Exists")
 
 
+class MalformedRequestBody(ServerError):
+    """Exception for passing an unreadable request body."""
+
+    def __init__(self, body):
+        """Initialize the exception."""
+        self.body = body
+
+    def flask_response(self):
+        """Generate a 400 error."""
+        return (self.body, "400 Malformed Request Body")
+
+
+class RequiredParamsMissing(ServerError):
+    """Exception for missing required parameters."""
+
+    def __init__(self, missing):
+        """Initialize the exception."""
+        self.missing = missing
+
+    def flask_response(self):
+        """Generate a 400 error."""
+        return (self.missing, "400 Required Parameters Missing")
+
+
 class InvalidName(ServerError):
     """Exception for invalid resource name."""
 

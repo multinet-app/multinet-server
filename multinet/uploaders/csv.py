@@ -4,6 +4,7 @@ from io import StringIO
 import re
 
 from .. import db, util
+from ..errors import ValidationFailed
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -70,7 +71,7 @@ def upload(workspace, table):
     # Perform validation.
     result = validate_csv(rows)
     if result:
-        return (result, "400 CSV Validation Failed")
+        return ValidationFailed(result)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

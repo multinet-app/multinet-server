@@ -23,13 +23,13 @@ def validate_csv(rows: List[dict]) -> Union[dict, None]:
     if "_key" in fieldnames:
         # Node Table, check for key uniqueness
         keys = [row["_key"] for row in rows]
-        uniqueKeys = set()
+        unique_keys = set()
         duplicates = set()
         for key in keys:
-            if key in uniqueKeys:
+            if key in unique_keys:
                 duplicates.add(key)
             else:
-                uniqueKeys.add(key)
+                unique_keys.add(key)
 
         if len(duplicates) > 0:
             return {"error": "duplicate", "detail": list(duplicates)}

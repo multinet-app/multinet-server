@@ -1,7 +1,7 @@
 """Flask blueprint for Multinet REST API."""
 from flask import Blueprint, request
-from webargs import fields
-from webargs.flaskparser import use_kwargs
+from webargs import fields  # type: ignore
+from webargs.flaskparser import use_kwargs  # type: ignore
 
 from . import db, util
 from .errors import (

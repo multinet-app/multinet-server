@@ -1,7 +1,7 @@
 """Flask factory for Multinet app."""
 from flask import Flask
 from flask.logging import default_handler
-from flask_cors import CORS
+from flask_cors import CORS  # type: ignore
 
 from . import api
 from . import uploaders

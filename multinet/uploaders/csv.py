@@ -10,20 +10,20 @@ from flask import Blueprint, request
 from flask import current_app as app
 
 # Import types
-from typing import List, Union, Tuple
+from typing import Optional, Set, MutableMapping, Sequence, Any
 
 
 bp = Blueprint("csv", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_csv(rows: List[dict]) -> Union[dict, None]:
+def validate_csv(rows: Sequence[MutableMapping]) -> Optional[MutableMapping]:
     """Perform any necessary CSV validation, and return appropriate errors."""
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
         # Node Table, check for key uniqueness
         keys = [row["_key"] for row in rows]
-        unique_keys = set()
+        unique_keys: Set[str] = set()
         duplicates = set()
         for key in keys:
             if key in unique_keys:
@@ -57,7 +57,7 @@ def validate_csv(rows: List[dict]) -> Union[dict, None]:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
-def upload(workspace: str, table: str) -> Union[Tuple, dict]:
+def upload(workspace: str, table: str) -> Any:
     """
     Store a CSV file into the database as a node or edge table.
 
@@ -79,13 +79,13 @@ def upload(workspace: str, table: str) -> Union[Tuple, dict]:
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.
-    workspace = db.db(workspace)
-    if workspace.has_collection(table):
-        coll = workspace.collection(table)
+    space = db.db(workspace)
+    if space.has_collection(table):
+        coll = space.collection(table)
     else:
         fieldnames = rows[0].keys()
         edges = "_from" in fieldnames and "_to" in fieldnames
-        coll = workspace.create_collection(table, edge=edges)
+        coll = space.create_collection(table, edge=edges)
 
     # Insert the data into the collection.
     results = coll.insert_many(rows)

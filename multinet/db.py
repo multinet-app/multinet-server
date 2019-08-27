@@ -1,8 +1,8 @@
 """Low-level database operations."""
 import os
 
-from arango import ArangoClient
-from arango.exceptions import DatabaseCreateError
+from arango import ArangoClient  # type: ignore
+from arango.exceptions import DatabaseCreateError  # type: ignore
 from requests.exceptions import ConnectionError
 
 from .errors import (

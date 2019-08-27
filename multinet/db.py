@@ -181,7 +181,7 @@ def graph_node(workspace, graph, table, node, arango=None):
     try:
         next(tables)
     except StopIteration:
-        raise TableNotFound(table)
+        raise TableNotFound(workspace, table)
 
     query = f"""
     FOR d in {table}

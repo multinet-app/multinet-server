@@ -169,30 +169,22 @@ export default {
   },
   methods: {
     async update () {
-      const response = await api().post('graphql', {query: `query {
-        workspaces (name: "${this.workspace}") {
-          tables {
-            name
-            fields
-          }
-          graphs { name }
-        }
-      }`});
-      const workspace = response.data.data.workspaces[0];
+      // Get lists of node and edge tables.
+      let response = await api().get(`workspaces/${this.workspace}/tables?type=node`);
+      const nodeTables = response.data;
 
-      const getName = (obj) => obj.name;
+      response = await api().get(`workspaces/${this.workspace}/tables?type=edge`);
+      const edgeTables = response.data;
 
-      this.tables = workspace.tables.map(getName);
+      this.tables = nodeTables.concat(edgeTables);
+      this.nodeTables = nodeTables;
+      this.edgeTables = edgeTables;
 
-      this.nodeTables = workspace.tables
-        .filter(table => table.fields.indexOf('_from') === -1 || table.fields.indexOf('_to') === -1)
-        .map(getName);
+      // Get list of graphs.
+      response = await api().get(`workspaces/${this.workspace}/graphs`);
+      const graphs = response.data;
 
-      this.edgeTables = workspace.tables
-        .filter(table => table.fields.indexOf('_from') > -1 && table.fields.indexOf('_to') > -1)
-        .map(getName);
-
-      this.graphs = workspace.graphs.map(getName);
+      this.graphs = graphs;
     },
   },
   created () {

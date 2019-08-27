@@ -3,13 +3,14 @@ import csv
 from io import StringIO
 import re
 
-from .. import db, api
+from .. import db, util
+from ..errors import ValidationFailed
 
 from flask import Blueprint, request
 from flask import current_app as app
 
 bp = Blueprint("csv", __name__)
-bp.before_request(api.require_db)
+bp.before_request(util.require_db)
 
 
 def validate_csv(rows):
@@ -70,7 +71,7 @@ def upload(workspace, table):
     # Perform validation.
     result = validate_csv(rows)
     if result:
-        return (result, "400 CSV Validation Failed")
+        raise ValidationFailed(result)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

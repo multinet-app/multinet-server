@@ -124,12 +124,12 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
     if missing:
         raise RequiredParamsMissing(missing)
 
-    loadedWorkspace = db.db(workspace)
-    if loadedWorkspace.has_graph(graph):
+    loaded_workspace = db.db(workspace)
+    if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 
-    existing_tables = set([x["name"] for x in loadedWorkspace.collections()])
-    edges = loadedWorkspace.collection(edge_table).all()
+    existing_tables = set([x["name"] for x in loaded_workspace.collections()])
+    edges = loaded_workspace.collection(edge_table).all()
 
     # Iterate through each edge and check for undefined tables
     errors = []
@@ -153,7 +153,7 @@ def create_graph(workspace, graph, node_tables=None, edge_table=None):
     # Iterate through each node table and check for nonexistent keys
     for table in valid_tables:
         existing_keys = set(
-            [x["_key"] for x in loadedWorkspace.collection(table).all()]
+            [x["_key"] for x in loaded_workspace.collection(table).all()]
         )
         nonexistent_keys = valid_tables[table] - existing_keys
 

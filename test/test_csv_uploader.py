@@ -25,22 +25,13 @@ def test_validate_csv():
     rows = list(csv.DictReader(StringIO(test_file)))
     validation_resp = validate_csv(rows)
     assert "errors" in validation_resp.keys()
-    assert (
-        "5"
-        in [
-            error
-            for error in validation_resp["errors"]
-            if (error["error"] == "duplicate")
-        ][0]["detail"]
-    )
-    assert (
-        "2"
-        in [
-            error
-            for error in validation_resp["errors"]
-            if (error["error"] == "duplicate")
-        ][0]["detail"]
-    )
+    duplicate_keys = [
+        error["detail"]
+        for error in validation_resp["errors"]
+        if (error["error"] == "duplicate")
+    ][0]
+    assert "5" in duplicate_keys
+    assert "2" in duplicate_keys
 
     # Test invalid syntax
     with open(invalid_headers_file_path) as test_file:

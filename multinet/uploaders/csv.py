@@ -71,7 +71,7 @@ def upload(workspace, table):
     # Perform validation.
     result = validate_csv(rows)
     if result:
-        return ValidationFailed(result)
+        raise ValidationFailed(result)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

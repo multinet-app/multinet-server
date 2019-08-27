@@ -338,11 +338,11 @@ def node_edges(workspace, graph, table, node, offset, limit, direction, arango=N
         """
 
     if direction == "all":
-        filter_clause = f'e._from == "{node}" || e._to == "{node}"'
+        filter_clause = f'e._from == "{table}/{node}" || e._to == "{node}"'
     elif direction == "incoming":
-        filter_clause = f'e._to == "{node}"'
+        filter_clause = f'e._to == "{table}/{node}"'
     elif direction == "outgoing":
-        filter_clause = f'e._from == "{node}"'
+        filter_clause = f'e._from == "{table}/{node}"'
     else:
         raise BadQueryArgument("direction", direction, ["all", "incoming", "outgoing"])
 

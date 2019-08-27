@@ -3,6 +3,7 @@ import uuid
 import newick
 
 from .. import db, util
+from ..errors import ValidationFailed, DecodeFailed
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -57,7 +58,7 @@ def validate_newick(tree):
         data_errors.append({"error": "duplicate", "detail": duplicate_edges})
 
     if len(data_errors) > 0:
-        return {"errors": data_errors}
+        raise ValidationFailed(data_errors)
     else:
         return
 
@@ -67,7 +68,7 @@ def decode_data(input):
     try:
         body = input.decode("utf8")
     except UnicodeDecodeError:
-        return None
+        raise DecodeFailed([{"error": "unsupported", "detail": "not utf8"}])
 
     return body
 
@@ -84,15 +85,10 @@ def upload(workspace, table):
     app.logger.info("newick tree")
 
     body = decode_data(request.data)
-    if not body:
-        response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
-        return (response, "400 Newick Decode Failed")
 
     tree = newick.loads(body)
 
-    result = validate_newick(tree)
-    if result:
-        return (result, "400 Newick Validation Failed")
+    validate_newick(tree)
 
     workspace = db.db(workspace)
     edgetable_name = "%s_edges" % table

@@ -4,7 +4,7 @@ from io import StringIO
 import re
 
 from .. import db, util
-from ..errors import ValidationFailed
+from ..errors import ValidationFailed, DecodeFailed
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -55,7 +55,7 @@ def validate_csv(rows):
         data_errors.append({"error": "unsupported"})
 
     if len(data_errors) > 0:
-        return {"errors": data_errors}
+        raise ValidationFailed(data_errors)
     else:
         return None
 
@@ -65,7 +65,7 @@ def decode_data(input):
     try:
         body = input.decode("utf8")
     except UnicodeDecodeError:
-        return None
+        raise DecodeFailed([{"error": "unsupported", "detail": "not utf8"}])
 
     return body
 
@@ -84,16 +84,11 @@ def upload(workspace, table):
 
     # Read the request body into CSV format
     body = decode_data(request.data)
-    if not body:
-        response = {"errors": [{"error": "unsupported", "detail": "not utf8"}]}
-        return (response, "400 CSV Decode Failed")
 
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    result = validate_csv(rows)
-    if result:
-        raise ValidationFailed(result)
+    validate_csv(rows)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

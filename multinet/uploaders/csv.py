@@ -5,6 +5,7 @@ import re
 
 from .. import db, util
 from ..errors import ValidationFailed
+from ..util import decode_data
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -15,6 +16,8 @@ bp.before_request(util.require_db)
 
 def validate_csv(rows):
     """Perform any necessary CSV validation, and return appropriate errors."""
+    data_errors = []
+
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
         # Node Table, check for key uniqueness
@@ -28,7 +31,7 @@ def validate_csv(rows):
                 unique_keys.add(key)
 
         if len(duplicates) > 0:
-            return {"error": "duplicate", "detail": list(duplicates)}
+            data_errors.append({"error": "duplicate", "detail": list(duplicates)})
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
         valid_cell = re.compile("[^/]+/[^/]+")
@@ -47,9 +50,15 @@ def validate_csv(rows):
                 detail.append({"fields": fields, "row": i + 2})
 
         if detail:
-            return {"error": "syntax", "detail": detail}
+            data_errors.append({"error": "syntax", "detail": detail})
+    else:
+        # Unsupported Table, error since we don't know what's coming in
+        data_errors.append({"error": "unsupported"})
 
-    return None
+    if len(data_errors) > 0:
+        raise ValidationFailed(data_errors)
+    else:
+        return None
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
@@ -65,13 +74,12 @@ def upload(workspace, table):
     app.logger.info("Bulk Loading")
 
     # Read the request body into CSV format
-    body = request.data.decode("utf8")
+    body = decode_data(request.data)
+
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    result = validate_csv(rows)
-    if result:
-        raise ValidationFailed(result)
+    validate_csv(rows)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

@@ -4,7 +4,7 @@ import json
 from flask import Response
 
 from . import db
-from .errors import DatabaseNotLive
+from .errors import DatabaseNotLive, DecodeFailed
 
 
 def generate(iterator):
@@ -28,3 +28,13 @@ def require_db():
     """Check if the db is live."""
     if not db.check_db():
         raise DatabaseNotLive()
+
+
+def decode_data(input):
+    """Decode the request data assuming utf8 encoding."""
+    try:
+        body = input.decode("utf8")
+    except UnicodeDecodeError as e:
+        raise DecodeFailed({"error": "utf8", "detail": str(e)})
+
+    return body

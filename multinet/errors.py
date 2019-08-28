@@ -153,3 +153,15 @@ class DatabaseNotLive(ServerError):
     def flask_response(self):
         """Generate a 500 error."""
         return ("", "500 Database Not Live")
+
+
+class DecodeFailed(ServerError):
+    """Exception for reporting decoding errors."""
+
+    def __init__(self, error):
+        """Initialize the exception."""
+        self.error = error
+
+    def flask_response(self):
+        """Generate a 400 error."""
+        return (self.error, "400 Decode Failed")

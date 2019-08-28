@@ -35,6 +35,6 @@ def decode_data(input):
     try:
         body = input.decode("utf8")
     except UnicodeDecodeError as e:
-        raise DecodeFailed([{"error": "utf8", "detail": str(e)}])
+        raise DecodeFailed({"error": "utf8", "detail": str(e)})
 
     return body

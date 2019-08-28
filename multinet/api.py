@@ -1,7 +1,7 @@
 """Flask blueprint for Multinet REST API."""
 from flask import Blueprint, request
-from webargs import fields  # type: ignore
-from webargs.flaskparser import use_kwargs  # type: ignore
+from webargs import fields
+from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
 from typing_extensions import Literal

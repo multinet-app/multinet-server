@@ -1,6 +1,6 @@
 """Multinet uploader for Newick tree files."""
 import uuid
-import newick  # type: ignore
+import newick
 
 from .. import db, util
 

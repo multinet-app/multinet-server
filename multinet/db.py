@@ -1,9 +1,9 @@
 """Low-level database operations."""
 import os
 
-from arango import ArangoClient  # type: ignore
-from arango.database import StandardDatabase, StandardCollection  # type: ignore
-from arango.exceptions import DatabaseCreateError  # type: ignore
+from arango import ArangoClient
+from arango.database import StandardDatabase, StandardCollection
+from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
 from typing import Callable, Any, Optional, Sequence, List, Generator, Tuple

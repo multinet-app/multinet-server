@@ -1,10 +1,11 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
 
-from typing import Tuple, Any, Union, List
+from typing import Tuple, Any, Union, List, MutableMapping
 from mypy_extensions import TypedDict
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]
+Payload = TypedDict("Payload", {"argument": str, "value": str, "allowed": List[str]})
 
 
 class ServerError(Exception):
@@ -84,9 +85,6 @@ class BadQueryArgument(ServerError):
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error for the bad argument."""
-        Payload = TypedDict(
-            "Payload", {"argument": str, "value": str, "allowed": List[str]}
-        )
         payload: Payload = {
             "argument": self.argument,
             "value": self.value,
@@ -148,7 +146,7 @@ class InvalidName(ServerError):
 class ValidationFailed(ServerError):
     """Exception for reporting validation errors."""
 
-    def __init__(self, errors: List[str]):
+    def __init__(self, errors: MutableMapping[Any, Any]):
         """Initialize the exception."""
         self.errors = errors
 

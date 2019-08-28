@@ -1,6 +1,6 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
 
-from typing import Tuple, Any, Union, List, MutableMapping
+from typing import Tuple, Any, Union, List
 from mypy_extensions import TypedDict
 
 
@@ -146,7 +146,7 @@ class InvalidName(ServerError):
 class ValidationFailed(ServerError):
     """Exception for reporting validation errors."""
 
-    def __init__(self, errors: MutableMapping[Any, Any]):
+    def __init__(self, errors: List[Any]):
         """Initialize the exception."""
         self.errors = errors
 

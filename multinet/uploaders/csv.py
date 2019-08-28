@@ -73,7 +73,7 @@ def upload(workspace: str, table: str) -> Any:
     rows = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    result = validate_csv(rows)
+    result = [validate_csv(rows)]
     if result:
         raise ValidationFailed(result)
 

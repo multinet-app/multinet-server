@@ -32,11 +32,11 @@ def require_db() -> None:
         raise DatabaseNotLive()
 
 
-def decode_data(input):
+def decode_data(input: bytes) -> str:
     """Decode the request data assuming utf8 encoding."""
     try:
         body = input.decode("utf8")
     except UnicodeDecodeError as e:
-        raise DecodeFailed({"error": "utf8", "detail": str(e)})
+        raise DecodeFailed(str(e))
 
     return body

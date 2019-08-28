@@ -166,10 +166,10 @@ class DatabaseNotLive(ServerError):
 class DecodeFailed(ServerError):
     """Exception for reporting decoding errors."""
 
-    def __init__(self, error):
+    def __init__(self, error: str):
         """Initialize the exception."""
         self.error = error
 
-    def flask_response(self):
+    def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.error, "400 Decode Failed")

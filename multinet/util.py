@@ -3,11 +3,13 @@ import json
 
 from flask import Response
 
+from typing import Sequence, Any, Generator
+
 from . import db
 from .errors import DatabaseNotLive
 
 
-def generate(iterator):
+def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
     """Return a generator that yields an iterator's contents into a JSON list."""
     yield "["
 
@@ -19,12 +21,12 @@ def generate(iterator):
     yield "]"
 
 
-def stream(iterator):
+def stream(iterator: Sequence[Any]) -> Response:
     """Convert an iterator to a Flask response."""
     return Response(generate(iterator), mimetype="application/json")
 
 
-def require_db():
+def require_db() -> None:
     """Check if the db is live."""
     if not db.check_db():
         raise DatabaseNotLive()

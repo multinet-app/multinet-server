@@ -3,7 +3,8 @@ import uuid
 import newick
 
 from .. import db, util
-from ..errors import ValidationFailed, DecodeFailed
+from ..errors import ValidationFailed
+from ..util import decode_data
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -21,12 +22,6 @@ def validate_newick(tree):
     duplicate_edges = []
 
     def read_tree(parent, node):
-        nonlocal data_errors
-        nonlocal unique_keys
-        nonlocal duplicate_keys
-        nonlocal unique_edges
-        nonlocal duplicate_edges
-
         key = node.name or uuid.uuid4().hex
 
         if key not in unique_keys:
@@ -61,16 +56,6 @@ def validate_newick(tree):
         raise ValidationFailed(data_errors)
     else:
         return
-
-
-def decode_data(input):
-    """Decode the request data assuming utf8 encoding."""
-    try:
-        body = input.decode("utf8")
-    except UnicodeDecodeError:
-        raise DecodeFailed([{"error": "unsupported", "detail": "not utf8"}])
-
-    return body
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])

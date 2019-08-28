@@ -164,4 +164,4 @@ class DecodeFailed(ServerError):
 
     def flask_response(self):
         """Generate a 400 error."""
-        return ({"errors": self.errors}, "400 Validation Failed")
+        return ({"errors": self.errors}, "400 Decode Failed")

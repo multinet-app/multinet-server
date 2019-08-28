@@ -4,7 +4,8 @@ from io import StringIO
 import re
 
 from .. import db, util
-from ..errors import ValidationFailed, DecodeFailed
+from ..errors import ValidationFailed
+from ..util import decode_data
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -58,16 +59,6 @@ def validate_csv(rows):
         raise ValidationFailed(data_errors)
     else:
         return None
-
-
-def decode_data(input):
-    """Decode the request data assuming utf8 encoding."""
-    try:
-        body = input.decode("utf8")
-    except UnicodeDecodeError:
-        raise DecodeFailed([{"error": "unsupported", "detail": "not utf8"}])
-
-    return body
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])

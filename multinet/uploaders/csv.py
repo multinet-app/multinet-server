@@ -11,14 +11,14 @@ from flask import Blueprint, request
 from flask import current_app as app
 
 # Import types
-from typing import Optional, Set, MutableMapping, Sequence, Any
+from typing import Set, MutableMapping, Sequence, Any
 
 
 bp = Blueprint("csv", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_csv(rows: Sequence[MutableMapping]) -> Optional[MutableMapping]:
+def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors = []
 
@@ -61,8 +61,6 @@ def validate_csv(rows: Sequence[MutableMapping]) -> Optional[MutableMapping]:
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)
-    else:
-        return None
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])

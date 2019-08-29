@@ -2,8 +2,13 @@
 import os
 
 from arango import ArangoClient
+from arango.database import StandardDatabase, StandardCollection
 from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
+
+from typing import Callable, Any, Optional, Sequence, List, Generator, Tuple
+from mypy_extensions import TypedDict
+from .types import EdgeDirection, TableType
 
 from .errors import (
     BadQueryArgument,
@@ -16,10 +21,20 @@ from .errors import (
 )
 
 
-def with_client(fun):
+# Type definitions.
+WorkspaceSpec = TypedDict(
+    "WorkspaceSpec",
+    {"name": str, "owner": str, "readers": List[str], "writers": List[str]},
+)
+GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
+GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
+GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
+
+
+def with_client(fun: Callable) -> Callable:
     """Call target function `fun`, passing in an authenticated ArangoClient object."""
 
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Callable:
         kwargs["arango"] = kwargs.get(
             "arango",
             ArangoClient(
@@ -33,7 +48,7 @@ def with_client(fun):
 
 
 @with_client
-def check_db(arango=None):
+def check_db(arango: ArangoClient) -> bool:
     """Check the database to see if it's alive."""
     try:
         db("_system", arango=arango).has_database("test")
@@ -43,7 +58,7 @@ def check_db(arango=None):
 
 
 @with_client
-def db(name, arango=None):
+def db(name: str, arango: ArangoClient) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
     return arango.db(
         name, username="root", password=os.environ.get("ARANGO_PASSWORD", "letmein")
@@ -51,7 +66,7 @@ def db(name, arango=None):
 
 
 @with_client
-def create_workspace(name, arango=None):
+def create_workspace(name: str, arango: ArangoClient) -> None:
     """Create a new workspace named `name`."""
     sysdb = db("_system", arango=arango)
     if not sysdb.has_database(name):
@@ -64,7 +79,7 @@ def create_workspace(name, arango=None):
 
 
 @with_client
-def delete_workspace(name, arango=None):
+def delete_workspace(name: str, arango: ArangoClient) -> None:
     """Delete the workspace named `name`."""
     sysdb = db("_system", arango=arango)
     if sysdb.has_database(name):
@@ -72,24 +87,26 @@ def delete_workspace(name, arango=None):
 
 
 @with_client
-def get_workspace(name, arango=None):
+def get_workspace(name: str, arango: ArangoClient) -> WorkspaceSpec:
     """Return a single workspace, if it exists."""
     sysdb = db("_system", arango=arango)
     if not sysdb.has_database(name):
         raise WorkspaceNotFound(name)
 
-    return {"name": name, "owner": None, "readers": [], "writers": []}
+    return {"name": name, "owner": "", "readers": [], "writers": []}
 
 
 @with_client
-def get_workspace_db(name, arango=None):
+def get_workspace_db(name: str, arango: ArangoClient) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     get_workspace(name, arango=arango)
     return db(name, arango=arango)
 
 
 @with_client
-def get_graph_collection(workspace, graph, arango=None):
+def get_graph_collection(
+    workspace: str, graph: str, arango: ArangoClient
+) -> StandardCollection:
     """Return the Arango collection associated with a graph, if it exists."""
     space = get_workspace_db(workspace, arango=arango)
     if not space.has_graph(graph):
@@ -99,7 +116,9 @@ def get_graph_collection(workspace, graph, arango=None):
 
 
 @with_client
-def get_table_collection(workspace, table, arango=None):
+def get_table_collection(
+    workspace: str, table: str, arango: ArangoClient
+) -> StandardCollection:
     """Return the Arango collection associated with a table, if it exists."""
     space = get_workspace_db(workspace, arango=arango)
     if not space.has_collection(table):
@@ -109,17 +128,19 @@ def get_table_collection(workspace, table, arango=None):
 
 
 @with_client
-def get_workspaces(arango=None):
+def get_workspaces(arango: ArangoClient) -> Generator[str, None, None]:
     """Return a list of all workspace names."""
     sysdb = db("_system", arango=arango)
     return (workspace for workspace in sysdb.databases() if workspace != "_system")
 
 
 @with_client
-def workspace_tables(workspace, type, arango=None):
+def workspace_tables(
+    workspace: str, type: TableType, arango: ArangoClient
+) -> Generator[str, None, None]:
     """Return a list of all table names in the workspace named `workspace`."""
 
-    def edge_table(fields):
+    def edge_table(fields: Sequence[str]) -> bool:
         return "_from" in fields and "_to" in fields
 
     space = get_workspace_db(workspace, arango=arango)
@@ -132,13 +153,13 @@ def workspace_tables(workspace, type, arango=None):
         if not table["name"].startswith("_")
     )
 
-    def pass_all(x):
+    def pass_all(x: Tuple[Any, bool]) -> bool:
         return True
 
-    def is_edge(x):
+    def is_edge(x: Tuple[Any, bool]) -> bool:
         return x[1]
 
-    def is_node(x):
+    def is_node(x: Tuple[Any, bool]) -> bool:
         return not is_edge(x)
 
     if type == "all":
@@ -154,7 +175,9 @@ def workspace_tables(workspace, type, arango=None):
 
 
 @with_client
-def workspace_table(workspace, table, offset, limit, arango=None):
+def workspace_table(
+    workspace: str, table: str, offset: int, limit: int, arango: ArangoClient
+) -> Generator[dict, None, None]:
     """Return a specific table named `name` in workspace `workspace`."""
     get_table_collection(workspace, table, arango=arango)
 
@@ -168,7 +191,9 @@ def workspace_table(workspace, table, offset, limit, arango=None):
 
 
 @with_client
-def graph_node(workspace, graph, table, node, arango=None):
+def graph_node(
+    workspace: str, graph: str, table: str, node: str, arango: ArangoClient
+) -> dict:
     """Return the data associated with a particular node in a graph."""
     space = get_workspace_db(workspace, arango=arango)
     graphs = filter(lambda g: g["name"] == graph, space.graphs())
@@ -199,14 +224,14 @@ def graph_node(workspace, graph, table, node, arango=None):
 
 
 @with_client
-def workspace_graphs(workspace, arango=None):
+def workspace_graphs(workspace: str, arango: ArangoClient) -> List[str]:
     """Return a list of all graph names in workspace `workspace`."""
     space = get_workspace_db(workspace, arango=arango)
     return [graph["name"] for graph in space.graphs()]
 
 
 @with_client
-def workspace_graph(workspace, graph, arango=None):
+def workspace_graph(workspace: str, graph: str, arango: ArangoClient) -> GraphSpec:
     """Return a specific graph named `name` in workspace `workspace`."""
     get_graph_collection(workspace, graph)
 
@@ -216,11 +241,11 @@ def workspace_graph(workspace, graph, arango=None):
 
     return {"nodeTables": node_tables, "edgeTable": edge_table}
 
-    return graph
-
 
 @with_client
-def graph_nodes(workspace, graph, offset, limit, arango=None):
+def graph_nodes(
+    workspace: str, graph: str, offset: int, limit: int, arango: ArangoClient
+) -> GraphNodesSpec:
     """Return the nodes of a graph."""
     get_graph_collection(workspace, graph)
 
@@ -247,18 +272,20 @@ def graph_nodes(workspace, graph, offset, limit, arango=None):
 
 
 @with_client
-def table_fields(workspace, table, arango=None):
+def table_fields(workspace: str, table: str, arango: ArangoClient) -> List[str]:
     """Return a list of column names for `query.table` in `query.workspace`."""
-    workspace = db(workspace, arango=arango)
-    if workspace.has_collection(table) and workspace.collection(table).count() > 0:
-        sample = workspace.collection(table).random()
+    space = db(workspace, arango=arango)
+    if space.has_collection(table) and space.collection(table).count() > 0:
+        sample = space.collection(table).random()
         return list(sample.keys())
     else:
         return []
 
 
 @with_client
-def aql_query(workspace, query, arango=None):
+def aql_query(
+    workspace: str, query: str, arango: ArangoClient
+) -> Generator[dict, None, None]:
     """Perform an AQL query in the given workspace."""
     aql = db(workspace, arango=arango).aql
 
@@ -267,14 +294,20 @@ def aql_query(workspace, query, arango=None):
 
 
 @with_client
-def create_graph(workspace, graph, node_tables, edge_table, arango=None):
+def create_graph(
+    workspace: str,
+    graph: str,
+    node_tables: List[str],
+    edge_table: str,
+    arango: ArangoClient,
+) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
-    workspace = db(workspace, arango=arango)
-    if workspace.has_graph(graph):
+    space = db(workspace, arango=arango)
+    if space.has_graph(graph):
         return False
     else:
-        graph = workspace.create_graph(graph)
-        graph.create_edge_definition(
+        g = space.create_graph(graph)
+        g.create_edge_definition(
             edge_collection=edge_table,
             from_vertex_collections=node_tables,
             to_vertex_collections=node_tables,
@@ -284,26 +317,18 @@ def create_graph(workspace, graph, node_tables, edge_table, arango=None):
 
 
 @with_client
-def table(query, create=False, arango=None):
-    """Return a handle to table `query.table` in workspace `query.workspace`."""
-    workspace = db(query.workspace, arango=arango)
-    if workspace.has_collection(query.table):
-        return workspace.collection(query.table)
-    elif create:
-        return workspace.create_collection(query.table)
-    else:
-        return None
-
-
-@with_client
-def graph_node_tables(workspace, graph, arango=None):
+def graph_node_tables(
+    workspace: str, graph: str, arango: ArangoClient
+) -> List[StandardCollection]:
     """Return the node tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     return g.vertex_collections()
 
 
 @with_client
-def graph_edge_table(workspace, graph, arango=None):
+def graph_edge_table(
+    workspace: str, graph: str, arango: ArangoClient
+) -> Optional[StandardCollection]:
     """Return the edge tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     edge_collections = g.edge_definitions()
@@ -312,12 +337,21 @@ def graph_edge_table(workspace, graph, arango=None):
 
 
 @with_client
-def node_edges(workspace, graph, table, node, offset, limit, direction, arango=None):
+def node_edges(
+    workspace: str,
+    graph: str,
+    table: str,
+    node: str,
+    offset: int,
+    limit: int,
+    direction: EdgeDirection,
+    arango: ArangoClient,
+) -> GraphEdgesSpec:
     """Return the edges connected to a node."""
     get_table_collection(workspace, table)
     edge_table = graph_edge_table(workspace, graph, arango=arango)
 
-    def query_text(filt):
+    def query_text(filt: str) -> str:
         return f"""
         FOR e IN {edge_table}
             FILTER {filt}
@@ -329,7 +363,7 @@ def node_edges(workspace, graph, table, node, offset, limit, direction, arango=N
             }}
         """
 
-    def count_text(filt):
+    def count_text(filt: str) -> str:
         return f"""
         FOR e IN {edge_table}
             FILTER {filt}
@@ -351,5 +385,5 @@ def node_edges(workspace, graph, table, node, offset, limit, direction, arango=N
 
     return {
         "edges": list(aql_query(workspace, query)),
-        "edgeCount": next(aql_query(workspace, count)),
+        "count": next(aql_query(workspace, count)),
     }

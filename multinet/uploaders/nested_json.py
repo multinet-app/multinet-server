@@ -6,11 +6,15 @@ from .. import db, util
 
 from flask import Blueprint, request
 
+from typing import Tuple, List, Any
+
 bp = Blueprint("nested_json", __name__)
 bp.before_request(util.require_db)
 
 
-def analyze_nested_json(data, int_table_name, leaf_table_name):
+def analyze_nested_json(
+    raw_data: str, int_table_name: str, leaf_table_name: str
+) -> Tuple[List[List[dict]], List[dict]]:
     """
     Transform nested JSON data into MultiNet format.
 
@@ -18,9 +22,9 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
     `(nodes, edges)` - a node and edge table describing the tree.
     """
     id = itertools.count(100)
-    data = json.loads(data)
+    data = json.loads(raw_data)
 
-    def keyed(rec):
+    def keyed(rec: dict) -> dict:
         if "_key" in rec:
             return rec
 
@@ -30,10 +34,10 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
         return rec
 
     # The helper function will collect nodes and edges into these two lists.
-    nodes = [[], []]
+    nodes: List[List[dict]] = [[], []]
     edges = []
 
-    def helper(tree):
+    def helper(tree: dict) -> None:
         # Grab the root node of the subtree, and the child nodes.
         root = keyed(tree.get("node_data", {}))
         children = tree.get("children", [])
@@ -70,7 +74,7 @@ def analyze_nested_json(data, int_table_name, leaf_table_name):
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
-def upload(workspace, table):
+def upload(workspace: str, table: str) -> Any:
     """
     Store a nested_json tree into the database in coordinated node and edge tables.
 
@@ -80,26 +84,26 @@ def upload(workspace, table):
     """
     # Set up the parameters.
     data = request.data.decode("utf8")
-    workspace = db.db(workspace)
+    space = db.db(workspace)
     edgetable_name = f"{table}_edges"
     int_nodetable_name = f"{table}_internal_nodes"
     leaf_nodetable_name = f"{table}_leaf_nodes"
 
     # Set up the database targets.
-    if workspace.has_collection(edgetable_name):
-        edgetable = workspace.collection(edgetable_name)
+    if space.has_collection(edgetable_name):
+        edgetable = space.collection(edgetable_name)
     else:
-        edgetable = workspace.create_collection(edgetable_name, edge=True)
+        edgetable = space.create_collection(edgetable_name, edge=True)
 
-    if workspace.has_collection(int_nodetable_name):
-        int_nodetable = workspace.collection(int_nodetable_name)
+    if space.has_collection(int_nodetable_name):
+        int_nodetable = space.collection(int_nodetable_name)
     else:
-        int_nodetable = workspace.create_collection(int_nodetable_name)
+        int_nodetable = space.create_collection(int_nodetable_name)
 
-    if workspace.has_collection(leaf_nodetable_name):
-        leaf_nodetable = workspace.collection(leaf_nodetable_name)
+    if space.has_collection(leaf_nodetable_name):
+        leaf_nodetable = space.collection(leaf_nodetable_name)
     else:
-        leaf_nodetable = workspace.create_collection(leaf_nodetable_name)
+        leaf_nodetable = space.create_collection(leaf_nodetable_name)
 
     # Analyze the nested_json data into a node and edge table.
     (nodes, edges) = analyze_nested_json(data, int_nodetable_name, leaf_nodetable_name)

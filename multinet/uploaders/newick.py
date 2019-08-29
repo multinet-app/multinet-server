@@ -9,19 +9,21 @@ from ..util import decode_data
 from flask import Blueprint, request
 from flask import current_app as app
 
+from typing import Any, Optional, List, Dict
+
 bp = Blueprint("newick", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_newick(tree):
+def validate_newick(tree: List[newick.Node]) -> None:
     """Validate newick tree."""
-    data_errors = []
-    unique_keys = []
-    duplicate_keys = []
-    unique_edges = []
-    duplicate_edges = []
+    data_errors: List[Dict[str, Any]] = []
+    unique_keys: List[str] = []
+    duplicate_keys: List[str] = []
+    unique_edges: List[dict] = []
+    duplicate_edges: List[dict] = []
 
-    def read_tree(parent, node):
+    def read_tree(parent: Optional[str], node: newick.Node) -> None:
         key = node.name or uuid.uuid4().hex
 
         if key not in unique_keys:
@@ -59,7 +61,7 @@ def validate_newick(tree):
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
-def upload(workspace, table):
+def upload(workspace: str, table: str) -> Any:
     """
     Store a newick tree into the database in coordinated node and edge tables.
 
@@ -75,24 +77,24 @@ def upload(workspace, table):
 
     validate_newick(tree)
 
-    workspace = db.db(workspace)
+    space = db.db(workspace)
     edgetable_name = "%s_edges" % table
     nodetable_name = "%s_nodes" % table
-    if workspace.has_collection(edgetable_name):
-        edgetable = workspace.collection(edgetable_name)
+    if space.has_collection(edgetable_name):
+        edgetable = space.collection(edgetable_name)
     else:
         # Note that edge=True must be set or the _from and _to keys
         # will be ignored below.
-        edgetable = workspace.create_collection(edgetable_name, edge=True)
-    if workspace.has_collection(nodetable_name):
-        nodetable = workspace.collection(nodetable_name)
+        edgetable = space.create_collection(edgetable_name, edge=True)
+    if space.has_collection(nodetable_name):
+        nodetable = space.collection(nodetable_name)
     else:
-        nodetable = workspace.create_collection(nodetable_name)
+        nodetable = space.create_collection(nodetable_name)
 
     edgecount = 0
     nodecount = 0
 
-    def read_tree(parent, node):
+    def read_tree(parent: Optional[str], node: newick.Node) -> None:
         nonlocal nodecount
         nonlocal edgecount
         key = node.name or uuid.uuid4().hex

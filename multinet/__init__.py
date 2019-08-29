@@ -3,12 +3,14 @@ from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
 
+from typing import Optional, MutableMapping, Any, Tuple, Union
+
 from . import api
 from . import uploaders
 from .errors import ServerError
 
 
-def create_app(config=None):
+def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
     CORS(app)
@@ -24,11 +26,11 @@ def create_app(config=None):
 
     # Register error handler.
     @app.errorhandler(ServerError)
-    def handle_error(error):
+    def handle_error(error: ServerError) -> Tuple[Any, Union[int, str]]:
         return error.flask_response()
 
     @app.route("/")
-    def about():
+    def about() -> str:
         return """
             <h1>Multinet API</h1>
             <div>

@@ -4,7 +4,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
-from typing_extensions import Literal
+from .types import EdgeDirection, TableType
 
 from . import db, util
 from .errors import (
@@ -33,9 +33,7 @@ def get_workspace(workspace: str) -> Any:
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
 @use_kwargs({"type": fields.Str()})
-def get_workspace_tables(
-    workspace: str, type: Literal["all", "node", "edge"] = "all"
-) -> Any:
+def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
     """Retrieve the tables of a single workspace."""
     tables = db.workspace_tables(workspace, type)
     return util.stream(tables)
@@ -89,7 +87,7 @@ def get_graph_node(
     graph: str,
     table: str,
     node: str,
-    direction: Literal["all", "incoming", "outgoing"] = "all",
+    direction: EdgeDirection = "all",
     offset: int = 0,
     limit: int = 30,
 ) -> Any:

@@ -7,8 +7,8 @@ from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
 from typing import Callable, Any, Optional, Sequence, List, Generator, Tuple
-from typing_extensions import Literal
 from mypy_extensions import TypedDict
+from .types import EdgeDirection, TableType
 
 from .errors import (
     BadQueryArgument,
@@ -29,8 +29,6 @@ WorkspaceSpec = TypedDict(
 GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
-TableType = Literal["all", "node", "edge"]
-DirectionType = Literal["all", "incoming", "outgoing"]
 
 
 def with_client(fun: Callable) -> Callable:
@@ -346,7 +344,7 @@ def node_edges(
     node: str,
     offset: int,
     limit: int,
-    direction: DirectionType,
+    direction: EdgeDirection,
     arango: ArangoClient,
 ) -> GraphEdgesSpec:
     """Return the edges connected to a node."""

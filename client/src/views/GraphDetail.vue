@@ -48,44 +48,46 @@
   </v-container>
 </template>
 
-<script>
-import api from '@/api'
+<script lang="ts">
+import Vue from 'vue';
 
-export default {
+import api from '@/api';
+
+export default Vue.extend({
   name: 'GraphDetail',
   filters: {
-    appendArgs (url) {
+    appendArgs(url: string) {
       return `${url}/?workspace=${this.workspace}&graph=${this.graph}`;
     },
   },
   props: ['workspace', 'graph', 'apps'],
-  data () {
+  data() {
     return {
-      nodeTypes: [],
-      edgeTypes: [],
-      nodes: [],
+      nodeTypes: [] as string[],
+      edgeTypes: [] as string[],
+      nodes: [] as string[],
       offset: 0,
       limit: 20,
-      total: 0
-    }
+      total: 0,
+    };
   },
   computed: {
-    highestOffset () {
+    highestOffset(): number {
       return (
         this.total % this.limit
-          ? Math.floor(this.total/this.limit)
-          : this.total/this.limit-1
-      ) * this.limit
+          ? Math.floor(this.total / this.limit)
+          : this.total / this.limit - 1
+      ) * this.limit;
     },
-    next () {
-      return this.highestOffset !== this.offset
+    next(): boolean {
+      return this.highestOffset !== this.offset;
     },
-    prev () {
-      return 0 !== this.offset
-    }
+    prev(): boolean {
+      return 0 !== this.offset;
+    },
   },
   methods: {
-    async update () {
+    async update() {
       let response = await api().get(`/workspaces/${this.workspace}/graphs/${this.graph}`);
       const graph = response.data;
 
@@ -97,34 +99,34 @@ export default {
       this.nodes = nodes.nodes;
       this.total = nodes.count;
     },
-    turnPage (forward) {
-      this.offset += forward ? this.limit : -this.limit
+    turnPage(forward: number) {
+      this.offset += forward ? this.limit : -this.limit;
     },
-    lastPage () {
-      this.offset = this.highestOffset
+    lastPage() {
+      this.offset = this.highestOffset;
     },
-    firstPage () {
-      this.offset = 0
-    }
+    firstPage() {
+      this.offset = 0;
+    },
   },
   watch: {
-    offset () {
-      this.update()
+    offset() {
+      this.update();
     },
-    limit () {
-      this.update()
+    limit() {
+      this.update();
     },
-    workspace () {
-      this.update()
+    workspace() {
+      this.update();
     },
-    graph () {
-      this.update()
-    }
+    graph() {
+      this.update();
+    },
   },
-  created () {
-    this.update()
-  }
-}
+  created() {
+    this.update();
+  },
+});
 </script>
 
 <style scoped>

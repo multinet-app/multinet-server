@@ -94,7 +94,7 @@
               icon="table_chart"
             />
 
-            <TableDialog
+            <table-dialog
               :types="fileTypes"
               :workspace="workspace"
               @success="update"
@@ -134,41 +134,44 @@
   </v-container>
 </template>
 
-<script>
-import api from '@/api';
-import ItemPanel from '@/components/ItemPanel'
-import GraphDialog from '@/components/GraphDialog';
-import TableDialog from '@/components/TableDialog';
+<script lang="ts">
+import Vue from 'vue';
 
-export default {
+import api from '@/api';
+import ItemPanel from '@/components/ItemPanel.vue';
+import GraphDialog from '@/components/GraphDialog.vue';
+import TableDialog from '@/components/TableDialog.vue';
+import { FileTypeTable } from '@/types';
+
+export default Vue.extend({
   name: 'WorkspaceDetail',
   components: {
     ItemPanel,
     GraphDialog,
     TableDialog,
   },
-  props: ['workspace','title'],
-  data () {
+  props: ['workspace', 'title'],
+  data() {
     return {
       editing: false,
       fileTypes: {
         csv: {extension: ['csv'], queryCall: 'csv'},
         newick: {extension: ['phy', 'tree'], queryCall: 'newick'},
         nested_json: {extension: ['json'], queryCall: 'nested_json'},
-      },
+      } as FileTypeTable,
       tables: [],
       nodeTables: [],
       edgeTables: [],
       graphs: [],
-    }
+    };
   },
   watch: {
-    workspace () {
-      this.update()
+    workspace() {
+      this.update();
     },
   },
   methods: {
-    async update () {
+    async update() {
       // Get lists of node and edge tables.
       let response = await api().get(`workspaces/${this.workspace}/tables?type=node`);
       const nodeTables = response.data;
@@ -187,11 +190,11 @@ export default {
       this.graphs = graphs;
     },
   },
-  created () {
-    this.update()
-  }
+  created() {
+    this.update();
+  },
 
-}
+});
 </script>
 
 <style scoped>

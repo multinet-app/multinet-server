@@ -35,4 +35,3 @@ jobs:
     - run: cd client && yarn install
     - run: cd client && yarn serve & sleep 15
     - run: cd client && yarn test
-    

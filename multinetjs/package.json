@@ -6,13 +6,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "tsc -w",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "lint:fix": "tslint --force -p tsconfig.json -c tslint.json"
   },
   "author": "Kitware, Inc.",
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
     "tslib": "^1.10.0",
+    "tslint": "^5.20.0",
     "typescript": "^3.6.3"
   }
 }

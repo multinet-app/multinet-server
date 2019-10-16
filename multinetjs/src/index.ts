@@ -9,9 +9,9 @@ class Client {
     });
   }
 
-  get(path: string): Promise<string[]> {
+  get(path: string, params: {} = {}): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      this.axios.get(path)
+      this.axios.get(path, { params, })
         .then(resp => {
           resolve(resp.data);
         })
@@ -45,7 +45,7 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/tables`);
   }
 
-  table(workspace: string, table: string, offset: int = 0, limit: int = 30): Promise<any> {
+  table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<any> {
     return this.client.get(`workspaces/${workspace}/tables/${table}`, {
       offset,
       limit,
@@ -60,7 +60,7 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}`);
   }
 
-  nodes(workspace: string, graph: string, offset: int = 0, limit: int = 30): Promise<any> {
+  nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<any> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, {
       offset,
       limit,
@@ -71,7 +71,7 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/${nodeId}/attributes`);
   }
 
-  edges(workspace: string, graph: string, nodeId: string, direction: string = 'all', offset: int = 0, limit: int = 30) {
+  edges(workspace: string, graph: string, nodeId: string, direction: string = 'all', offset: number = 0, limit: number = 30) {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/${nodeId}/edges`, {
       direction,
       offset,

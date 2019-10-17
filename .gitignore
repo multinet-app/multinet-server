@@ -54,4 +54,5 @@ ENV/
 # Arango test materials.
 arango/
 arango-apps/
-nohup.out
+server.out
+server.pid

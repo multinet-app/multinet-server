@@ -9,11 +9,12 @@
     "build": "tsc",
     "lint": "tslint -p tsconfig.json -c tslint.json",
     "lint:fix": "tslint --force -p tsconfig.json -c tslint.json",
-    "test:server:up": "cd .. && pipenv run test-server-up",
-    "test:server:down": "cd .. && pipenv run test-server-down",
-    "test:server:clean": "cd .. && pipenv run test-server-clean",
+    "test:server:up": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-up",
+    "test:server:down": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-down",
+    "test:server:clean": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-clean",
+    "test:server:restart": "yarn test:server:down && yarn test:server:clean && yarn test:server:up",
     "test:cmd": "tape -r esm test/**/*.test.js | tap-spec",
-    "test": "yarn test:server:down && yarn test:server:clean && yarn test:server:up && yarn test:cmd; code=$?; yarn test:server:down; if [ -z ${code} ]; then true; else false; fi"
+    "test": "yarn test:server:restart && yarn test:cmd; code=$?; yarn test:server:down; if [ ${code} = 0 ]; then true; else false; fi"
   },
   "author": "Kitware, Inc.",
   "license": "Apache-2.0",

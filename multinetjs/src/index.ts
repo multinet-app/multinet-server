@@ -34,6 +34,21 @@ class Client {
   }
 }
 
+export interface GraphSpec {
+  edgeTable: string;
+  nodeTables: string[];
+}
+
+export interface NodesSpec {
+  count: number;
+  nodes: string[];
+}
+
+export interface EdgesSpec {
+  count: number;
+  edges: string[];
+}
+
 class MultinetAPI {
   client: Client;
 
@@ -45,7 +60,7 @@ class MultinetAPI {
     return this.client.get('workspaces');
   }
 
-  workspace(workspace: string): Promise<any> {
+  workspace(workspace: string): Promise<string> {
     if (!workspace) {
       throw new Error('argument "workspace" must not be empty');
     }
@@ -53,37 +68,37 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}`);
   }
 
-  tables(workspace: string): Promise<any> {
+  tables(workspace: string): Promise<string[]> {
     return this.client.get(`workspaces/${workspace}/tables`);
   }
 
-  table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<any> {
+  table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<{}[]> {
     return this.client.get(`workspaces/${workspace}/tables/${table}`, {
       offset,
       limit,
     });
   }
 
-  graphs(workspace: string): Promise<any> {
+  graphs(workspace: string): Promise<string[]> {
     return this.client.get(`workspaces/${workspace}/graphs`);
   }
 
-  graph(workspace: string, graph: string): Promise<any> {
+  graph(workspace: string, graph: string): Promise<GraphSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}`);
   }
 
-  nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<any> {
+  nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<NodesSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, {
       offset,
       limit,
     });
   }
 
-  attributes(workspace: string, graph: string, nodeId: string): Promise<any> {
+  attributes(workspace: string, graph: string, nodeId: string): Promise<{}> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/attributes`);
   }
 
-  edges(workspace: string, graph: string, nodeId: string, direction: string = 'all', offset: number = 0, limit: number = 30) {
+  edges(workspace: string, graph: string, nodeId: string, direction: string = 'all', offset: number = 0, limit: number = 30): Promise<EdgesSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/edges`, {
       direction,
       offset,
@@ -95,13 +110,13 @@ class MultinetAPI {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  uploadTable(type: 'csv' | 'nested_json' | 'newick', workspace: string, table: string, data: string): Promise<Array<{}>> {
+  uploadTable(type: 'csv' | 'nested_json' | 'newick', workspace: string, table: string, data: string): Promise<{}[]> {
     return this.client.post(`/${type}/${workspace}/${table}`, data, {
       'Content-Type': 'text/plain',
     });
   }
 
-  createGraph(workspace: string, graph: string, nodeTables: string[], edgeTable: string): Promise<any> {
+  createGraph(workspace: string, graph: string, nodeTables: string[], edgeTable: string): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graph/${graph}`, {
       node_tables: nodeTables,
       edge_table: edgeTable,
@@ -109,6 +124,6 @@ class MultinetAPI {
   }
 }
 
-export function multinetApi(baseURL: string) {
+export function multinetApi(baseURL: string): MultinetAPI {
   return new MultinetAPI(baseURL);
 }

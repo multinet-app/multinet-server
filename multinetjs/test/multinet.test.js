@@ -105,6 +105,13 @@ test('multinet test', async (t) => {
   }
 
   try {
+    const result = await api.graphs(newWorkspace);
+    t.deepEqual(result, [], 'new workspace has no graphs');
+  } catch(e) {
+    t.fail(failMessage(`api.graphs("${newWorkspace}")`, e));
+  }
+
+  try {
     let result = await api.createGraph(newWorkspace, 'boston', ['clubs', 'members'], 'membership');
     t.equal(result, 'boston', 'boston graph created successfully');
   } catch(e) {
@@ -114,9 +121,15 @@ test('multinet test', async (t) => {
   try {
     result = await api.createGraph(newWorkspace, 'boston', ['clubs', 'members'], 'membership');
     t.fail('creating an existing graph results should not be successful');
-
   } catch(e) {
     t.ok(e.status === 409 && e.statusText === 'Graph Already Exists', 'creating an existing graph results in 409 error');
+  }
+
+  try {
+    const result = await api.graphs(newWorkspace);
+    t.deepEqual(result, ['boston'], 'new graph appears in list of graphs');
+  } catch(e) {
+    t.fail(failMessage(`api.graphs("${newWorkspace}")`, e));
   }
 
   try {

@@ -35,7 +35,7 @@ while [ ${started} = 0 ] && [ ${count} -lt 30 ]; do
     echo -n .
 done
 
-if [ ${started} == 1 ]; then
+if [ ${started} = 1 ]; then
     true
 else
     false

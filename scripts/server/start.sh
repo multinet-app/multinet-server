@@ -7,7 +7,7 @@ if [ -e server.pid ]; then
 fi
 
 # Launch the server in the background.
-PIPENV_DONT_LOAD_ENV=1 FLASK_SERVE_PORT=50000 ARANGO_PORT=58529 nohup pipenv run serve >server.out &
+PIPENV_DONT_LOAD_ENV=1 FLASK_APP=multinet FLASK_ENV=development FLASK_SERVE_PORT=50000 ARANGO_PORT=58529 nohup pipenv run serve >server.out &
 echo $! >server.pid
 
 # Start the Arango database in the background with a clean data directory.

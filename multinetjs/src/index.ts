@@ -1,38 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
-
-class Client {
-  axios: AxiosInstance;
-
-  constructor(baseURL: string) {
-    this.axios = axios.create({
-      baseURL,
-    });
-  }
-
-  get(path: string, params: {} = {}): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.axios.get(path, { params, })
-        .then(resp => {
-          resolve(resp.data);
-        })
-        .catch(resp => {
-          reject(resp.response);
-        });
-    });
-  }
-
-  post(path: string, params: {} = {}, headers: {} = {}): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.axios.post(path, params, { headers, })
-        .then(resp => {
-          resolve(resp.data);
-        })
-        .catch(resp => {
-          reject(resp.response);
-        });
-    });
-  }
-}
+import { Client } from './client';
 
 export interface GraphSpec {
   edgeTable: string;
@@ -49,18 +15,22 @@ export interface EdgesSpec {
   edges: string[];
 }
 
+export type TableType = 'csv' | 'nested_json' | 'newick';
+
+export type Direction = 'all' | 'incoming' | 'outgoing';
+
 class MultinetAPI {
-  client: Client;
+  private client: Client;
 
   constructor(baseURL: string) {
     this.client = new Client(baseURL);
   }
 
-  workspaces(): Promise<string[]> {
+  public workspaces(): Promise<string[]> {
     return this.client.get('workspaces');
   }
 
-  workspace(workspace: string): Promise<string> {
+  public workspace(workspace: string): Promise<string> {
     if (!workspace) {
       throw new Error('argument "workspace" must not be empty');
     }
@@ -68,37 +38,43 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}`);
   }
 
-  tables(workspace: string): Promise<string[]> {
+  public tables(workspace: string): Promise<string[]> {
     return this.client.get(`workspaces/${workspace}/tables`);
   }
 
-  table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<{}[]> {
+  public table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<Array<{}>> {
     return this.client.get(`workspaces/${workspace}/tables/${table}`, {
       offset,
       limit,
     });
   }
 
-  graphs(workspace: string): Promise<string[]> {
+  public graphs(workspace: string): Promise<string[]> {
     return this.client.get(`workspaces/${workspace}/graphs`);
   }
 
-  graph(workspace: string, graph: string): Promise<GraphSpec> {
+  public graph(workspace: string, graph: string): Promise<GraphSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}`);
   }
 
-  nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<NodesSpec> {
+  public nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<NodesSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, {
       offset,
       limit,
     });
   }
 
-  attributes(workspace: string, graph: string, nodeId: string): Promise<{}> {
+  public attributes(workspace: string, graph: string, nodeId: string): Promise<{}> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/attributes`);
   }
 
-  edges(workspace: string, graph: string, nodeId: string, direction: string = 'all', offset: number = 0, limit: number = 30): Promise<EdgesSpec> {
+  public edges(
+      workspace: string,
+      graph: string,
+      nodeId: string,
+      direction: Direction = 'all',
+      offset: number = 0,
+      limit: number = 30): Promise<EdgesSpec> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/edges`, {
       direction,
       offset,
@@ -106,17 +82,17 @@ class MultinetAPI {
     });
   }
 
-  createWorkspace(workspace: string): Promise<string> {
+  public createWorkspace(workspace: string): Promise<string> {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  uploadTable(type: 'csv' | 'nested_json' | 'newick', workspace: string, table: string, data: string): Promise<{}[]> {
+  public uploadTable(type: TableType, workspace: string, table: string, data: string): Promise<Array<{}>> {
     return this.client.post(`/${type}/${workspace}/${table}`, data, {
       'Content-Type': 'text/plain',
     });
   }
 
-  createGraph(workspace: string, graph: string, nodeTables: string[], edgeTable: string): Promise<string> {
+  public createGraph(workspace: string, graph: string, nodeTables: string[], edgeTable: string): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graph/${graph}`, {
       node_tables: nodeTables,
       edge_table: edgeTable,

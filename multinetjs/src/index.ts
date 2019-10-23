@@ -23,34 +23,32 @@ export interface EdgesSpec {
 
 export type TableType = 'all' | 'node' | 'edge';
 
-export type DataType = 'csv' | 'nested_json' | 'newick';
+export type UploadType = 'csv' | 'nested_json' | 'newick';
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 
-interface TablesOptionsSpec {
+export interface TablesOptionsSpec {
   type?: TableType;
 }
 
-interface OffsetLimitSpec {
+export interface OffsetLimitSpec {
   offset?: number;
   limit?: number;
 }
 
-type EdgesOptionsSpec = OffsetLimitSpec & {
-  direction: Direction;
+export type EdgesOptionsSpec = OffsetLimitSpec & {
+  direction?: Direction;
 }
 
-interface UploadTableOptionsSpec {
-  type: DataType;
+export interface UploadTableOptionsSpec {
+  type: UploadType;
   data: string | File;
 }
 
-interface CreateGraphOptionsSpec {
+export interface CreateGraphOptionsSpec {
   nodeTables: string[];
   edgeTable: string;
-}
-
-function fileToText(file: File): Promise<string> {
+}function fileToText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {

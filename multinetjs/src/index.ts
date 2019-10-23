@@ -10,14 +10,37 @@ export interface NodesSpec {
   nodes: string[];
 }
 
+export interface Edge {
+  edge: string;
+  from: string;
+  to: string;
+}
+
 export interface EdgesSpec {
   count: number;
-  edges: string[];
+  edges: Edge[];
 }
 
 export type TableType = 'csv' | 'nested_json' | 'newick';
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
+
+function fileToText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target === null || typeof e.target.result !== 'string') {
+        throw new Error();
+      }
+      resolve(e.target.result);
+    };
+    reader.onerror = (e) => {
+      reject();
+    };
+
+    reader.readAsText(file);
+  });
+}
 
 class MultinetAPI {
   private client: Client;
@@ -86,8 +109,15 @@ class MultinetAPI {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  public uploadTable(type: TableType, workspace: string, table: string, data: string): Promise<Array<{}>> {
-    return this.client.post(`/${type}/${workspace}/${table}`, data, {
+  public async uploadTable(type: TableType, workspace: string, table: string, data: string | File): Promise<Array<{}>> {
+    let text;
+    if (typeof data === "string") {
+      text = data;
+    } else {
+      text = await fileToText(data);
+    }
+
+    return this.client.post(`/${type}/${workspace}/${table}`, text, {
       'Content-Type': 'text/plain',
     });
   }

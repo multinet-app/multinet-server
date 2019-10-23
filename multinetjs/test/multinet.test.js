@@ -63,7 +63,10 @@ test('multinet test', async (t) => {
   }
 
   try {
-    const result = await api.uploadTable('csv', newWorkspace, 'members', membersText);
+    const result = await api.uploadTable(newWorkspace, 'members', {
+      type: 'csv',
+      data: membersText,
+    });
     t.deepEqual(result, { count: 254 }, 'server reports the correct number of lines added to database');
   } catch(e) {
     t.fail(failMessage('api.uploadTable()', e));
@@ -80,23 +83,38 @@ test('multinet test', async (t) => {
     let members = await api.table(newWorkspace, 'members');
     t.equal(members.length, 30, 'asking for table yields 30 items');
 
-    members = await api.table(newWorkspace, 'members', 0, 50);
+    members = await api.table(newWorkspace, 'members', {
+      offset: 0,
+      limit: 50,
+    });
     t.equal(members.length, 50, 'asking table for 50 items yields 50 items');
 
-    members = await api.table(newWorkspace, 'members', 0, 254);
+    members = await api.table(newWorkspace, 'members', {
+      offset: 0,
+      limit: 254,
+    });
     t.equal(members.length, 254, 'asking table for all items yields 254 items');
 
-    members = await api.table(newWorkspace, 'members', 0, 300);
+    members = await api.table(newWorkspace, 'members', {
+      offset: 0,
+      limit: 300,
+    });
     t.equal(members.length, 254, 'asking table for more than 254 items yields 254 items');
   } catch(e) {
     t.fail(failMessage(`api.table("${newWorkspace}", "members")`, e));
   }
 
   try {
-    let result = await api.uploadTable('csv', newWorkspace, 'clubs', clubsText);
+    let result = await api.uploadTable(newWorkspace, 'clubs', {
+      type: 'csv',
+      data: clubsText,
+    });
     t.deepEqual(result, { count: 7 }, 'upload clubs data');
 
-    result = await api.uploadTable('csv', newWorkspace, 'membership', membershipText);
+    result = await api.uploadTable(newWorkspace, 'membership', {
+      type: 'csv',
+      data: membershipText,
+    });
     t.deepEqual(result, { count: 319 }, 'upload membership data');
 
     result = await api.tables(newWorkspace);
@@ -106,16 +124,22 @@ test('multinet test', async (t) => {
 
   try {
     let allTables = await api.tables(newWorkspace);
-    let allTables2 = await api.tables(newWorkspace, 'all');
+    let allTables2 = await api.tables(newWorkspace, {
+      type: 'all',
+    });
     allTables.sort();
     allTables2.sort();
     t.deepEqual(allTables, ['clubs', 'members', 'membership'], 'tables() reports all tables');
     t.deepEqual(allTables, allTables2, 'omitting `type` parameter returns all tables');
 
-    const nodeTables = await api.tables(newWorkspace, 'node');
+    const nodeTables = await api.tables(newWorkspace, {
+      type: 'node',
+    });
     t.deepEqual(nodeTables, ['clubs', 'members'], 'setting `type` to "node" reports node tables');
 
-    const edgeTables = await api.tables(newWorkspace, 'edge');
+    const edgeTables = await api.tables(newWorkspace, {
+      type: 'edge',
+    });
     t.deepEqual(edgeTables, ['membership'], 'setting `type` to "edge" reports edge tables');
   } catch(e) {
     t.fail(failMessage('api.tables()', e));
@@ -129,14 +153,20 @@ test('multinet test', async (t) => {
   }
 
   try {
-    let result = await api.createGraph(newWorkspace, 'boston', ['clubs', 'members'], 'membership');
+    let result = await api.createGraph(newWorkspace, 'boston', {
+      nodeTables: ['clubs', 'members'],
+      edgeTable: 'membership',
+    });
     t.equal(result, 'boston', 'boston graph created successfully');
   } catch(e) {
     t.fail(failMessage(`api.createGraph("${newWorkspace}", "boston", ["clubs", "members"], "membership")`, e));
   }
 
   try {
-    result = await api.createGraph(newWorkspace, 'boston', ['clubs', 'members'], 'membership');
+    result = await api.createGraph(newWorkspace, 'boston', {
+      nodeTables: ['clubs', 'members'],
+      edgeTable: 'membership',
+    });
     t.fail('creating an existing graph results should not be successful');
   } catch(e) {
     t.ok(e.status === 409 && e.statusText === 'Graph Already Exists', 'creating an existing graph results in 409 error');
@@ -162,13 +192,22 @@ test('multinet test', async (t) => {
     t.equal(nodes.count, 261, 'graph has correct number of reported nodes');
     t.equal(nodes.nodes.length, 30, 'asking for graph nodes yields 30 items');
 
-    nodes = await api.nodes(newWorkspace, 'boston', 0, 50);
+    nodes = await api.nodes(newWorkspace, 'boston', {
+      offset: 0,
+      limit: 50,
+    });
     t.equal(nodes.nodes.length, 50, 'asking for graph nodes yields 50 items');
 
-    nodes = await api.nodes(newWorkspace, 'boston', 0, 261);
+    nodes = await api.nodes(newWorkspace, 'boston', {
+      offset: 0,
+      limit: 261,
+    });
     t.equal(nodes.nodes.length, 261, 'asking for all graph nodes yields 261 items');
 
-    nodes = await api.nodes(newWorkspace, 'boston', 0, 300);
+    nodes = await api.nodes(newWorkspace, 'boston', {
+      offset: 0,
+      limit: 300,
+    });
     t.equal(nodes.nodes.length, 261, 'asking for more than all graph nodes yields 261 items');
   } catch(e) {
     t.fail(failMessage(`api.nodes("${newWorkspace}", "boston", ...)`, e));
@@ -182,15 +221,21 @@ test('multinet test', async (t) => {
   }
 
   try {
-    let edges = await api.edges(newWorkspace, 'boston', 'clubs/0', 'all');
+    let edges = await api.edges(newWorkspace, 'boston', 'clubs/0', {
+      direction: 'all',
+    });
     t.equal(edges.count, 53, 'correct number of total edges reported');
     t.equal(edges.edges.length, 30, 'correct number of edges sent back');
 
-    edges = await api.edges(newWorkspace, 'boston', 'clubs/0', 'outgoing');
+    edges = await api.edges(newWorkspace, 'boston', 'clubs/0', {
+      direction: 'outgoing',
+    });
     t.equal(edges.count, 0, 'correct number of total outgoing edges reported');
     t.equal(edges.edges.length, 0, 'correct number of outgoing edges sent back');
 
-    edges = await api.edges(newWorkspace, 'boston', 'clubs/0', 'incoming');
+    edges = await api.edges(newWorkspace, 'boston', 'clubs/0', {
+      type: 'incoming',
+    });
     t.equal(edges.count, 53, 'correct number of total incoming edges reported');
     t.equal(edges.edges.length, 30, 'correct number of incoming edges sent back');
 

@@ -27,6 +27,29 @@ export type DataType = 'csv' | 'nested_json' | 'newick';
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 
+interface TablesOptionsSpec {
+  type?: TableType;
+}
+
+interface OffsetLimitSpec {
+  offset?: number;
+  limit?: number;
+}
+
+type EdgesOptionsSpec = OffsetLimitSpec & {
+  direction: Direction;
+}
+
+interface UploadTableOptionsSpec {
+  type: DataType;
+  data: string | File;
+}
+
+interface CreateGraphOptionsSpec {
+  nodeTables: string[];
+  edgeTable: string;
+}
+
 function fileToText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -63,15 +86,12 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}`);
   }
 
-  public tables(workspace: string, type: TableType = 'all'): Promise<string[]> {
-    return this.client.get(`workspaces/${workspace}/tables?type=${type}`);
+  public tables(workspace: string, options: TablesOptionsSpec = {}): Promise<string[]> {
+    return this.client.get(`workspaces/${workspace}/tables`, options);
   }
 
-  public table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<Array<{}>> {
-    return this.client.get(`workspaces/${workspace}/tables/${table}`, {
-      offset,
-      limit,
-    });
+  public table(workspace: string, table: string, options: OffsetLimitSpec = {}): Promise<Array<{}>> {
+    return this.client.get(`workspaces/${workspace}/tables/${table}`, options);
   }
 
   public graphs(workspace: string): Promise<string[]> {
@@ -82,36 +102,23 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}`);
   }
 
-  public nodes(workspace: string, graph: string, offset: number = 0, limit: number = 30): Promise<NodesSpec> {
-    return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, {
-      offset,
-      limit,
-    });
+  public nodes(workspace: string, graph: string, options: OffsetLimitSpec = {}): Promise<NodesSpec> {
+    return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, options);
   }
 
   public attributes(workspace: string, graph: string, nodeId: string): Promise<{}> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/attributes`);
   }
 
-  public edges(
-      workspace: string,
-      graph: string,
-      nodeId: string,
-      direction: Direction = 'all',
-      offset: number = 0,
-      limit: number = 30): Promise<EdgesSpec> {
-    return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/edges`, {
-      direction,
-      offset,
-      limit,
-    });
+  public edges(workspace: string, graph: string, nodeId: string, options: EdgesOptionsSpec = {}): Promise<EdgesSpec> {
+    return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/edges`, options);
   }
 
   public createWorkspace(workspace: string): Promise<string> {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  public async uploadTable(type: DataType, workspace: string, table: string, data: string | File): Promise<Array<{}>> {
+  public async uploadTable(workspace: string, table: string, { type, data }: UploadTableOptionsSpec): Promise<Array<{}>> {
     let text;
     if (typeof data === "string") {
       text = data;
@@ -124,7 +131,7 @@ class MultinetAPI {
     });
   }
 
-  public createGraph(workspace: string, graph: string, nodeTables: string[], edgeTable: string): Promise<string> {
+  public createGraph(workspace: string, graph: string, { nodeTables, edgeTable }: CreateGraphOptionsSpec): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graph/${graph}`, {
       node_tables: nodeTables,
       edge_table: edgeTable,

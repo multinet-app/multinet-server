@@ -105,6 +105,23 @@ test('multinet test', async (t) => {
   }
 
   try {
+    let allTables = await api.tables(newWorkspace);
+    let allTables2 = await api.tables(newWorkspace, 'all');
+    allTables.sort();
+    allTables2.sort();
+    t.deepEqual(allTables, ['clubs', 'members', 'membership'], 'tables() reports all tables');
+    t.deepEqual(allTables, allTables2, 'omitting `type` parameter returns all tables');
+
+    const nodeTables = await api.tables(newWorkspace, 'node');
+    t.deepEqual(nodeTables, ['clubs', 'members'], 'setting `type` to "node" reports node tables');
+
+    const edgeTables = await api.tables(newWorkspace, 'edge');
+    t.deepEqual(edgeTables, ['membership'], 'setting `type` to "edge" reports edge tables');
+  } catch(e) {
+    t.fail(failMessage('api.tables()', e));
+  }
+
+  try {
     const result = await api.graphs(newWorkspace);
     t.deepEqual(result, [], 'new workspace has no graphs');
   } catch(e) {

@@ -21,7 +21,9 @@ export interface EdgesSpec {
   edges: Edge[];
 }
 
-export type TableType = 'csv' | 'nested_json' | 'newick';
+export type TableType = 'all' | 'node' | 'edge';
+
+export type DataType = 'csv' | 'nested_json' | 'newick';
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 
@@ -61,8 +63,8 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}`);
   }
 
-  public tables(workspace: string): Promise<string[]> {
-    return this.client.get(`workspaces/${workspace}/tables`);
+  public tables(workspace: string, type: TableType = 'all'): Promise<string[]> {
+    return this.client.get(`workspaces/${workspace}/tables?type=${type}`);
   }
 
   public table(workspace: string, table: string, offset: number = 0, limit: number = 30): Promise<Array<{}>> {
@@ -109,7 +111,7 @@ class MultinetAPI {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  public async uploadTable(type: TableType, workspace: string, table: string, data: string | File): Promise<Array<{}>> {
+  public async uploadTable(type: DataType, workspace: string, table: string, data: string | File): Promise<Array<{}>> {
     let text;
     if (typeof data === "string") {
       text = data;

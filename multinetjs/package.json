@@ -4,6 +4,20 @@
   "description": "Multinet client library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/client.d.ts",
+    "dist/client.d.ts.map",
+    "dist/client.js",
+    "dist/client.js.map",
+    "dist/index.d.ts",
+    "dist/index.d.ts.map",
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/types.d.ts",
+    "dist/types.d.ts.map",
+    "dist/types.js",
+    "dist/types.js.map"
+  ],
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",

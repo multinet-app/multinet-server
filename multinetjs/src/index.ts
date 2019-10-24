@@ -38,7 +38,7 @@ export interface OffsetLimitSpec {
 
 export type EdgesOptionsSpec = OffsetLimitSpec & {
   direction?: Direction;
-}
+};
 
 export interface UploadTableOptionsSpec {
   type: UploadType;
@@ -48,7 +48,9 @@ export interface UploadTableOptionsSpec {
 export interface CreateGraphOptionsSpec {
   nodeTables: string[];
   edgeTable: string;
-}function fileToText(file: File): Promise<string> {
+}
+
+function fileToText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -116,23 +118,23 @@ class MultinetAPI {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
-  public async uploadTable(workspace: string, table: string, { type, data }: UploadTableOptionsSpec): Promise<Array<{}>> {
+  public async uploadTable(workspace: string, table: string, options: UploadTableOptionsSpec): Promise<Array<{}>> {
     let text;
-    if (typeof data === "string") {
-      text = data;
+    if (typeof options.data === 'string') {
+      text = options.data;
     } else {
-      text = await fileToText(data);
+      text = await fileToText(options.data);
     }
 
-    return this.client.post(`/${type}/${workspace}/${table}`, text, {
+    return this.client.post(`/${options.type}/${workspace}/${table}`, text, {
       'Content-Type': 'text/plain',
     });
   }
 
-  public createGraph(workspace: string, graph: string, { nodeTables, edgeTable }: CreateGraphOptionsSpec): Promise<string> {
+  public createGraph(workspace: string, graph: string, options: CreateGraphOptionsSpec): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graph/${graph}`, {
-      node_tables: nodeTables,
-      edge_table: edgeTable,
+      node_tables: options.nodeTables,
+      edge_table: options.edgeTable,
     });
   }
 }

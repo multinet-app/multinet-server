@@ -92,12 +92,7 @@
               :workspace="workspace"
               route-type="table"
               icon="table_chart"
-            />
-
-            <table-dialog
-              :types="fileTypes"
-              :workspace="workspace"
-              @success="update"
+              @new-table="update"
             />
 
           </v-card>
@@ -116,16 +111,12 @@
               title="Graphs"
               :items="graphs"
               :workspace="workspace"
+              :node-tables="nodeTables"
+              :edge-tables="edgeTables"
               route-type="graph"
               icon="timeline"
-              />
-
-              <GraphDialog
-                :node-tables="nodeTables"
-                :edge-tables="edgeTables"
-                :workspace="workspace"
-                @success="update"
-              />
+              @new-graph="update"
+            />
 
           </v-card>
         </v-flex>
@@ -141,6 +132,7 @@ import api from '@/api';
 import ItemPanel from '@/components/ItemPanel.vue';
 import GraphDialog from '@/components/GraphDialog.vue';
 import TableDialog from '@/components/TableDialog.vue';
+
 import { FileTypeTable } from '@/types';
 
 export default Vue.extend({

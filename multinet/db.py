@@ -372,7 +372,7 @@ def node_edges(
         """
 
     if direction == "all":
-        filter_clause = f'e._from == "{table}/{node}" || e._to == "{node}"'
+        filter_clause = f'e._from == "{table}/{node}" || e._to == "{table}/{node}"'
     elif direction == "incoming":
         filter_clause = f'e._to == "{table}/{node}"'
     elif direction == "outgoing":

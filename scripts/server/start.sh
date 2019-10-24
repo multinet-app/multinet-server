@@ -11,7 +11,7 @@ PIPENV_DONT_LOAD_ENV=1 FLASK_APP=multinet FLASK_ENV=development FLASK_SERVE_PORT
 echo $! >server.pid
 
 # Start the Arango database in the background with a clean data directory.
-ARANGO_PORT=58529 ARANGO_DATA=$(readlink -f arango) docker-compose up -d
+ARANGO_PORT=58529 ARANGO_DATA=$(readlink -f arango) docker-compose -p testing up -d
 
 # Loop until the server is up.
 started=0

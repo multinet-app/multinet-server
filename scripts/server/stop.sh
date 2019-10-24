@@ -8,4 +8,4 @@ if [ -e server.pid ]; then
 fi
 
 # Stop the arango server.
-docker stop arangodb
+docker stop testing_arangodb_1

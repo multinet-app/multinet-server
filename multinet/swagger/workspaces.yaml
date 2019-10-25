@@ -1,0 +1,9 @@
+Retrieve list of workspaces.
+---
+responses:
+  200:
+    description: A list of available workspaces
+    schema:
+      type: array
+      items:
+        type: string

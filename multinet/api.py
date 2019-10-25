@@ -1,4 +1,5 @@
 """Flask blueprint for Multinet REST API."""
+from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
@@ -20,17 +21,9 @@ bp.before_request(util.require_db)
 
 
 @bp.route("/workspaces", methods=["GET"])
+@swag_from("swagger/workspaces.yaml")
 def get_workspaces() -> Any:
-    """Retrieve list of workspaces.
-    ---
-    responses:
-      200:
-        description: A list of available workspaces
-        schema:
-          type: array
-          items:
-            type: string
-    """
+    """Retrieve list of workspaces."""
     return util.stream(db.get_workspaces())
 
 

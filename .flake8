@@ -9,7 +9,8 @@ exclude =
 extend-ignore =
     # See https://github.com/PyCQA/pycodestyle/issues/373
     E203,
-    D202
+    D202,
+    T499
 
 # For flake8-quotes
 inline-quotes = double

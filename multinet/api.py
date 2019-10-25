@@ -28,6 +28,7 @@ def get_workspaces() -> Any:
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])
+@swag_from("swagger/workspace.yaml")
 def get_workspace(workspace: str) -> Any:
     """Retrieve a single workspace."""
     return db.get_workspace(workspace)

@@ -21,7 +21,16 @@ bp.before_request(util.require_db)
 
 @bp.route("/workspaces", methods=["GET"])
 def get_workspaces() -> Any:
-    """Retrieve list of workspaces."""
+    """Retrieve list of workspaces.
+    ---
+    responses:
+      200:
+        description: A list of available workspaces
+        schema:
+          type: array
+          items:
+            type: string
+    """
     return util.stream(db.get_workspaces())
 
 

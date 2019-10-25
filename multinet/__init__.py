@@ -2,6 +2,7 @@
 from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
+from flasgger import Swagger
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
@@ -14,6 +15,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
     CORS(app)
+    Swagger(app)
 
     # Set up logging.
     app.logger.addHandler(default_handler)

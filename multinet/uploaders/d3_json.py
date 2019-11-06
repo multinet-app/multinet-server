@@ -30,11 +30,11 @@ def validate_d3_json(data):
     if not all(
         "source" in row.keys() and "target" in row.keys() for row in data["links"]
     ):
-        data_errors.append({"error": "link_structure"})
+        data_errors.append({"error": "invalid_link_keys"})
 
     # Check that the keys for each dictionary match
     if not all(data["links"][0].keys() == row.keys() for row in data["links"]):
-        data_errors.append({"error": "link_keys"})
+        data_errors.append({"error": "inconsistent_link_keys"})
 
     # Check for duplicated nodes
     ids = [row["id"] for row in data["nodes"]]

@@ -2,6 +2,7 @@
 import json
 from io import StringIO
 import pandas as pd
+from collections import OrderedDict
 
 from .. import db, util
 from ..util import decode_data
@@ -18,12 +19,12 @@ bp.before_request(util.require_db)
 
 def validate_d3_json():
     """Works something."""
-    pass
+    pass  # check for duplicated nodes and edges
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace: str, table: str) -> Any:
-    """Store a d3-esque json file into the database as a node or edge table.
+    """Store a d3-esque json file into the database as a node and edge table.
 
     `workspace` - the target workspace
     `table` - the target table
@@ -36,26 +37,32 @@ def upload(workspace: str, table: str) -> Any:
     body = decode_data(request.data)
     data = json.load(StringIO(body))
 
+    # Check file structure
+    validate_d3_json(data)
+
     # Extract each table to pandas dataframes and change column names
     nodes = pd.DataFrame(data["nodes"])
     nodes["_key"] = nodes["id"]
     del nodes["id"]
-    print(nodes)
 
     links = pd.DataFrame(data["links"])
-    links["_from"] = links["source"]
-    links["_to"] = links["target"]
+    links["_from"] = links["source"].apply(lambda x: table + "_nodes/" + x)
+    links["_to"] = links["target"].apply(lambda x: table + "_nodes/" + x)
     del links["source"]
     del links["target"]
-    print(links)
+
+    # Convert the dataframes to lists of OrderedDicts
+    nodes = nodes.to_dict(orient="records", into=OrderedDict)
+    links = links.to_dict(orient="records", into=OrderedDict)
 
     # Create the workspace
     space = db.db(workspace)
-    if space.has_collection(table):
-        coll = space.collection(table)
-    else:
-        coll = space.create_collection(table, edge=True)
-        coll = space.create_collection(table, edge=False)
+    # if space.has_collection(table):
+    #     coll = space.collection(table)
+    # else:
+    coll = space.create_collection(table + "_nodes", edge=False)
+    coll.insert_many(nodes)
+    coll = space.create_collection(table + "_links", edge=True)
+    coll.insert_many(links)
 
-    results = coll.insert_many()
-    return dict(count=len(results))
+    return dict(count=len(nodes) + len(links))

@@ -28,7 +28,6 @@ recommonmark = "==0.5.0"
 pre-commit = "==1.18.2"
 flake8-mypy = "*"
 pep8-naming = "*"
-pandas = "*"
 
 [requires]
 python_version = "3.7"

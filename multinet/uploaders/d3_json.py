@@ -40,11 +40,6 @@ def validate_d3_json(data: dict) -> List[dict]:
     if len(ids) != len(set(ids)):
         data_errors.append({"error": "node_duplicates"})
 
-    # Duplicated edges are okay, they might encode different relationships, but
-    # that should be specified in the attributes. Thus duplicated dicts are not okay
-    if len(data["links"]) != len(set([tuple(x.items()) for x in data["links"]])):
-        data_errors.append({"error": "link_duplicates"})
-
     return data_errors
 
 

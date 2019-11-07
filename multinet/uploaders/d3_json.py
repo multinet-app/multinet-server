@@ -1,7 +1,6 @@
 """Multinet uploader for nested JSON files."""
 import json
 from io import StringIO
-import pandas as pd
 from collections import OrderedDict
 
 from .. import db, util
@@ -18,7 +17,7 @@ bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_d3_json(data):
+def validate_d3_json(data: dict) -> None:
     """Perform any necessary d3 json validation, and return appropriate errors."""
     data_errors = []
 
@@ -63,25 +62,26 @@ def upload(workspace: str, table: str) -> Any:
 
     # Get data from the request and load it as json
     body = decode_data(request.data)
-    data = json.load(StringIO(body))
+    data = json.load(StringIO(body), object_pairs_hook=OrderedDict)
 
     # Check file structure
     validate_d3_json(data)
 
     # Extract each table to pandas dataframes and change column names
-    nodes = pd.DataFrame(data["nodes"])
-    nodes["_key"] = nodes["id"]
-    del nodes["id"]
+    nodes = data["nodes"]
+    for i in range(0, len(nodes)):
+        nodes[i]["_key"] = nodes[i]["id"]
+        del nodes[i]["id"]
 
-    links = pd.DataFrame(data["links"])
-    links["_from"] = links["source"].apply(lambda x: table + "_nodes/" + x)
-    links["_to"] = links["target"].apply(lambda x: table + "_nodes/" + x)
-    del links["source"]
-    del links["target"]
+    links = data["links"]
+    for i in range(0, len(links)):
+        links[i]["_from"] = table + "_nodes/" + links[i]["source"]
+        links[i]["_to"] = table + "_nodes/" + links[i]["target"]
+        del links[i]["source"]
+        del links[i]["target"]
 
-    # Convert the dataframes to lists of OrderedDicts
-    nodes = nodes.to_dict(orient="records", into=OrderedDict)
-    links = links.to_dict(orient="records", into=OrderedDict)
+    print("nodes" + str(nodes))
+    print("links" + str(links))
 
     # Create the workspace
     space = db.db(workspace)

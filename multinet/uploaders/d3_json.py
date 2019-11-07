@@ -11,13 +11,13 @@ from flask import Blueprint, request
 from flask import current_app as app
 
 # Import types
-from typing import Any
+from typing import Any, List
 
 bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_d3_json(data: dict) -> None:
+def validate_d3_json(data: dict) -> List[dict]:
     """Perform any necessary d3 json validation, and return appropriate errors."""
     data_errors = []
 
@@ -45,8 +45,7 @@ def validate_d3_json(data: dict) -> None:
     if len(data["links"]) != len(set([tuple(x.items()) for x in data["links"]])):
         data_errors.append({"error": "link_duplicates"})
 
-    if len(data_errors) > 0:
-        raise ValidationFailed(data_errors)
+    return data_errors
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
@@ -65,7 +64,9 @@ def upload(workspace: str, table: str) -> Any:
     data = json.load(StringIO(body), object_pairs_hook=OrderedDict)
 
     # Check file structure
-    validate_d3_json(data)
+    errors = validate_d3_json(data)
+    if len(errors) > 0:
+        raise ValidationFailed(errors)
 
     # Extract each table to pandas dataframes and change column names
     nodes = data["nodes"]

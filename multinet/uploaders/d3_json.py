@@ -45,7 +45,7 @@ def validate_d3_json(data: dict) -> List[dict]:
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
 def upload(workspace: str, table: str) -> Any:
-    """Store a d3-esque json file into the database as a node and edge table.
+    """Store a d3 json-encoded graph into the database as a node and edge table.
 
     `workspace` - the target workspace
     `table` - the target table

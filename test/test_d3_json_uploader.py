@@ -3,7 +3,7 @@ import json
 import os
 from collections import OrderedDict
 
-from multinet.util import test_data_path
+from multinet.util import data_path_test
 from multinet.uploaders.d3_json import validate_d3_json
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
@@ -12,13 +12,13 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 def test_validate_d3_json():
     """Tests the validate_csv function."""
     # Arrange: Import the les miserables datasets with and without errors
-    with open(test_data_path("miserables.json")) as f:
+    with open(data_path_test("miserables.json")) as f:
         good_data = json.load(f, object_pairs_hook=OrderedDict)
-    with open(test_data_path("miserables_duplicate_nodes.json")) as f:
+    with open(data_path_test("miserables_duplicate_nodes.json")) as f:
         dup_node_data = json.load(f, object_pairs_hook=OrderedDict)
-    with open(test_data_path("miserables_inconsistent_link_keys.json")) as f:
+    with open(data_path_test("miserables_inconsistent_link_keys.json")) as f:
         incon_keys = json.load(f, object_pairs_hook=OrderedDict)
-    with open(test_data_path("miserables_invalid_link_keys.json")) as f:
+    with open(data_path_test("miserables_invalid_link_keys.json")) as f:
         inval_keys = json.load(f, object_pairs_hook=OrderedDict)
 
     # Act: Test all the data files and save their outcomes

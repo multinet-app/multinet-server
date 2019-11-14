@@ -45,7 +45,7 @@ def decode_data(input: bytes) -> str:
     return body
 
 
-def test_data_path(file_name: str) -> str:
+def data_path_test(file_name: str) -> str:
     """Load data from the test directory."""
     file_path = os.path.join(TEST_DATA_DIR, file_name)
     print(file_path)

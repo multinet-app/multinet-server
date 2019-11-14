@@ -30,13 +30,12 @@ def test_validate_d3_json():
     # Assert: Check the outcomes against what we expect
     assert len(outcome1) == 0
 
-    assert outcome2[0] == {"error": "node_duplicates"}
     assert len(outcome2) == 1
+    assert outcome2[0] == {"error": "node_duplicates"}
 
-    assert outcome3[0] == {"error": "inconsistent_link_keys"}
     assert len(outcome3) == 1
+    assert outcome3[0] == {"error": "inconsistent_link_keys"}
 
-    print(outcome4)
+    assert len(outcome4) == 2
     assert outcome4[0] == {"error": "invalid_link_keys"}
     assert outcome4[1] == {"error": "inconsistent_link_keys"}
-    assert len(outcome4) == 2

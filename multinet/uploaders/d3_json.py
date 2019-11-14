@@ -8,7 +8,6 @@ from ..errors import ValidationFailed
 from ..util import decode_data
 
 from flask import Blueprint, request
-from flask import current_app as app
 
 # Import types
 from typing import Any, List
@@ -36,8 +35,8 @@ def validate_d3_json(data: dict) -> List[dict]:
         data_errors.append({"error": "inconsistent_link_keys"})
 
     # Check for duplicated nodes
-    ids = [row["id"] for row in data["nodes"]]
-    if len(ids) != len(set(ids)):
+    ids = set(row["id"] for row in data["nodes"])
+    if len(data["nodes"]) != len(ids):
         data_errors.append({"error": "node_duplicates"})
 
     return data_errors
@@ -52,8 +51,6 @@ def upload(workspace: str, table: str) -> Any:
     `data` - the json data, passed in the request body. The json data should contain
     nodes: [] and links: []
     """
-    app.logger.info("Bulk Loading D3 Json Data")
-
     # Get data from the request and load it as json
     body = decode_data(request.data)
     data = json.load(StringIO(body), object_pairs_hook=OrderedDict)
@@ -63,21 +60,18 @@ def upload(workspace: str, table: str) -> Any:
     if len(errors) > 0:
         raise ValidationFailed(errors)
 
-    # Extract each table to pandas dataframes and change column names
+    # Change column names from the d3 format to the arango format
     nodes = data["nodes"]
-    for i in range(0, len(nodes)):
-        nodes[i]["_key"] = nodes[i]["id"]
-        del nodes[i]["id"]
+    for node in nodes:
+        node["_key"] = node["id"]
+        del node["id"]
 
     links = data["links"]
-    for i in range(0, len(links)):
-        links[i]["_from"] = table + "_nodes/" + links[i]["source"]
-        links[i]["_to"] = table + "_nodes/" + links[i]["target"]
-        del links[i]["source"]
-        del links[i]["target"]
-
-    print("nodes" + str(nodes))
-    print("links" + str(links))
+    for link in links:
+        link["_from"] = table + "_nodes/" + link["source"]
+        link["_to"] = table + "_nodes/" + link["target"]
+        del link["source"]
+        del link["target"]
 
     # Create the workspace
     space = db.db(workspace)

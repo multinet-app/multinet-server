@@ -68,22 +68,25 @@ def upload(workspace: str, table: str) -> Any:
 
     links = data["links"]
     for link in links:
-        link["_from"] = table + "_nodes/" + link["source"]
-        link["_to"] = table + "_nodes/" + link["target"]
+        link["_from"] = "%s_nodes/%s" % (table, link["source"])
+        link["_to"] = "%s_nodes/%s" % (table, link["target"])
         del link["source"]
         del link["target"]
 
-    # Create the workspace
+    # Create or retrieve the workspace
     space = db.db(workspace)
-    if space.has_collection(table + "_nodes") or space.has_collection(table + "_links"):
-        nodes_coll = space.collection(table + "_nodes")
-        links_coll = space.collection(table + "_links")
+    if space.has_collection("%s_nodes" % table):
+        nodes_coll = space.collection("%s_nodes" % table)
     else:
-        nodes_coll = space.create_collection(table + "_nodes", edge=False)
-        links_coll = space.create_collection(table + "_links", edge=True)
+        nodes_coll = space.create_collection("%s_nodes" % table, edge=False)
+
+    if space.has_collection("%s_links" % table):
+        links_coll = space.collection("%s_links" % table)
+    else:
+        links_coll = space.create_collection("%s_links" % table, edge=True)
 
     # Insert data
     nodes_coll.insert_many(nodes)
     links_coll.insert_many(links)
 
-    return dict(count=len(nodes) + len(links))
+    return dict(nodecount=len(nodes), edgecount=len(links))

@@ -3,6 +3,7 @@ import json
 import os
 from collections import OrderedDict
 
+from multinet.util import test_data_path
 from multinet.uploaders.d3_json import validate_d3_json
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
@@ -11,7 +12,8 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 def test_validate_d3_json():
     """Tests the validate_csv function."""
     # Arrange: Set file paths
-    good_file = os.path.join(TEST_DATA_DIR, "miserables.json")
+    good_file = test_data_path("miserables.json")
+    # good_file = os.path.join(TEST_DATA_DIR, "miserables.json")
     duplicated_nodes = os.path.join(TEST_DATA_DIR, "miserables_duplicate_nodes.json")
     incon_keys = os.path.join(TEST_DATA_DIR, "miserables_inconsistent_link_keys.json")
     inval_keys = os.path.join(TEST_DATA_DIR, "miserables_invalid_link_keys.json")

@@ -68,22 +68,22 @@ def upload(workspace: str, table: str) -> Any:
 
     links = data["links"]
     for link in links:
-        link["_from"] = "%s_nodes/%s" % (table, link["source"])
-        link["_to"] = "%s_nodes/%s" % (table, link["target"])
+        link["_from"] = f"{table}_nodes/{link['source']}"
+        link["_to"] = f"{table}_nodes/{link['source']}"
         del link["source"]
         del link["target"]
 
     # Create or retrieve the workspace
     space = db.db(workspace)
-    if space.has_collection("%s_nodes" % table):
-        nodes_coll = space.collection("%s_nodes" % table)
+    if space.has_collection(f"{table}_nodes"):
+        nodes_coll = space.collection(f"{table}_nodes")
     else:
-        nodes_coll = space.create_collection("%s_nodes" % table, edge=False)
+        nodes_coll = space.create_collection(f"{table}_nodes", edge=False)
 
-    if space.has_collection("%s_links" % table):
-        links_coll = space.collection("%s_links" % table)
+    if space.has_collection(f"{table}_links"):
+        links_coll = space.collection(f"{table}_links")
     else:
-        links_coll = space.create_collection("%s_links" % table, edge=True)
+        links_coll = space.create_collection(f"{table}_links", edge=True)
 
     # Insert data
     nodes_coll.insert_many(nodes)

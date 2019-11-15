@@ -69,7 +69,7 @@ def upload(workspace: str, table: str) -> Any:
     links = data["links"]
     for link in links:
         link["_from"] = f"{table}_nodes/{link['source']}"
-        link["_to"] = f"{table}_nodes/{link['source']}"
+        link["_to"] = f"{table}_nodes/{link['target']}"
         del link["source"]
         del link["target"]
 

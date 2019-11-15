@@ -1,5 +1,6 @@
 """Utility functions."""
 import json
+import os
 
 from flask import Response
 
@@ -7,6 +8,8 @@ from typing import Sequence, Any, Generator
 
 from . import db
 from .errors import DatabaseNotLive, DecodeFailed
+
+TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
@@ -40,3 +43,10 @@ def decode_data(input: bytes) -> str:
         raise DecodeFailed(str(e))
 
     return body
+
+
+def data_path(file_name: str) -> str:
+    """Load data from the test directory."""
+    file_path = os.path.join(TEST_DATA_DIR, file_name)
+    print(file_path)
+    return file_path

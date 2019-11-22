@@ -13,6 +13,7 @@
         depressed
         large
         v-on="on"
+        id="add-workspace"
       >
         New Workspace
         <v-spacer />
@@ -34,6 +35,7 @@
 
       <v-card-text class="px-4 pt-4 pb-1">
         <v-text-field
+          id="workspace-name"
           autofocus
           filled
           label="Workspace name"
@@ -46,6 +48,7 @@
       <v-card-actions class="px-4 py-3">
         <v-spacer></v-spacer>
         <v-btn
+          id="create-workspace"
           color="grey darken-3"
           dark
           depressed

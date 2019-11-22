@@ -5,7 +5,17 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lint:test": "eslint test/**/*.test.js",
+    "test:server:up": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-up",
+    "test:server:down": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-down",
+    "test:server:clean": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-clean",
+    "test:server:restart": "yarn test:server:down; yarn test:server:clean && yarn test:server:up",
+    "test:client:up": "sh ./scripts/start.sh",
+    "test:client:down": "sh ./scripts/stop.sh",
+    "test:client:restart": "yarn test:client:down; yarn test:client:up",
+    "test:cmd": "tape -r esm test/**/*.test.js | tap-spec",
+    "test": "yarn test:server:restart && yarn test:client:restart && yarn test:cmd; code=$?; yarn test:server:down; yarn test:client:down; if [ ${code} = 0 ]; then true; else false; fi"
   },
   "dependencies": {
     "axios": "^0.18.1",
@@ -20,9 +30,15 @@
     "@vue/cli-plugin-babel": "^3.11.0",
     "@vue/cli-plugin-typescript": "^3.11.0",
     "@vue/cli-service": "^3.11.0",
+    "eslint": "^6.7.0",
+    "eslint-plugin-tape": "^1.1.0",
+    "esm": "^3.2.25",
     "lint-staged": "^8.1.5",
+    "puppeteer": "^2.0.0",
     "sass": "^1.22.9",
     "sass-loader": "^7.2.0",
+    "tap-spec": "^5.0.0",
+    "tape": "^4.11.0",
     "typescript": "^3.4.3",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.3.0"

@@ -34,6 +34,7 @@ jobs:
           node-version: '10.x'
       - run: cd client && yarn install
       - run: cd client && yarn lint
+      - run: cd client && yarn lint:test
       - run: cd client && yarn test
 
       # Build and test Multinet client library.

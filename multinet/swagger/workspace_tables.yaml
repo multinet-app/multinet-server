@@ -1,0 +1,31 @@
+Retrieve the tables of a single workspace.
+---
+parameters:
+  - name: workspace
+    in: path
+    description: Name of the workspace whose tables to retrieve
+    required: true
+    schema:
+      type: string
+  - name: type
+    in: query
+    default: all
+    enum:
+      - node
+      - edge
+      - all
+    description: The type of table to retrieve
+    schema:
+      type: string
+
+responses:
+  "200":
+    description: A list of table names belonging to the specified workspace
+    schema:
+      type: array
+      items:
+        type: string
+  "404":
+    description: Specified workspace could not be found
+    schema:
+      type: string

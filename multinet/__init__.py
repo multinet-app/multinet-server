@@ -15,7 +15,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
     CORS(app)
-    Swagger(app)
+    Swagger(app, template_file="swagger/template.yaml")
 
     # Set up logging.
     app.logger.addHandler(default_handler)

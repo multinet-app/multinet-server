@@ -19,13 +19,13 @@ parameters:
       type: string
 
 responses:
-  "200":
+  200:
     description: A list of table names belonging to the specified workspace
     schema:
       type: array
       items:
         type: string
-  "404":
+  404:
     description: Specified workspace could not be found
     schema:
-      type: string
+      $ref: "#/definitions/missing_entity"

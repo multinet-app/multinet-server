@@ -1,0 +1,9 @@
+swagger: "2.0"
+info:
+  title: "MultiNet API"
+  description: "REST API for interacting with MultiNet server"
+  version: "0.1"
+
+definitions:
+  missing_entity:
+    type: string

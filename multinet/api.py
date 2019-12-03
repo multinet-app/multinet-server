@@ -45,6 +45,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
+@swag_from("swagger/table_rows.yaml")
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
     """Retrieve the rows and headers of a table."""
     rows = db.workspace_table(workspace, table, offset, limit)
@@ -52,6 +53,7 @@ def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
+@swag_from("swagger/workspace_graphs.yaml")
 def get_workspace_graphs(workspace: str) -> Any:
     """Retrieve the graphs of a single workspace."""
     graphs = db.workspace_graphs(workspace)
@@ -59,6 +61,7 @@ def get_workspace_graphs(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
+@swag_from("swagger/workspace_graph.yaml")
 def get_workspace_graph(workspace: str, graph: str) -> Any:
     """Retrieve information about a graph."""
     return db.workspace_graph(workspace, graph)
@@ -66,6 +69,7 @@ def get_workspace_graph(workspace: str, graph: str) -> Any:
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>/nodes", methods=["GET"])
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
+@swag_from("swagger/graph_nodes.yaml")
 def get_graph_nodes(
     workspace: str, graph: str, offset: int = 0, limit: int = 30
 ) -> Any:
@@ -77,6 +81,7 @@ def get_graph_nodes(
     "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/attributes",
     methods=["GET"],
 )
+@swag_from("swagger/node_data.yaml")
 def get_node_data(workspace: str, graph: str, table: str, node: str) -> Any:
     """Return the attributes associated with a node."""
     return db.graph_node(workspace, graph, table, node)
@@ -86,7 +91,8 @@ def get_node_data(workspace: str, graph: str, table: str, node: str) -> Any:
     "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/edges", methods=["GET"]
 )
 @use_kwargs({"direction": fields.Str(), "offset": fields.Int(), "limit": fields.Int()})
-def get_graph_node(
+@swag_from("swagger/node_edges.yaml")
+def get_node_edges(
     workspace: str,
     graph: str,
     table: str,

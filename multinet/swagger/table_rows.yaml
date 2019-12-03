@@ -1,0 +1,19 @@
+Retrieve the rows of a table
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+  - $ref: "#/parameters/offset"
+  - $ref: "#/parameters/limit"
+
+responses:
+  200:
+    description: A list of records from the requested table
+    schema:
+      type: array
+      items:
+        type: object
+  404:
+    description: Specified workspace or table could not be found
+    schema:
+      type: string

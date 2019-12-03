@@ -4,6 +4,77 @@ info:
   description: "REST API for interacting with MultiNet server"
   version: "0.1"
 
-definitions:
-  missing_entity:
-    type: string
+parameters:
+  workspace:
+    name: workspace
+    in: path
+    description: Name of target workspace
+    required: true
+    schema:
+      type: string
+
+  table:
+    name: table
+    in: path
+    description: Name of target table
+    required: true
+    schema:
+      type: string
+
+  graph:
+    name: graph
+    in: path
+    description: Name of target graph
+    required: true
+    schema:
+      type: string
+
+  node:
+    name: node
+    in: path
+    description: ID of a node
+    required: true
+    schema:
+      type: string
+
+  direction:
+    name: direction
+    description: The type of edges to retrieve
+    in: query
+    default: all
+    enum:
+      - incoming
+      - outgoing
+      - all
+    schema:
+      type: string
+
+  table_type:
+    name: type
+    description: The type of table to retrieve
+    in: query
+    default: all
+    enum:
+      - node
+      - edge
+      - all
+    schema:
+      type: string
+
+  offset:
+    name: offset
+    in: query
+    description: Offset index into a collection
+    default: 0
+    minimum: 0
+    schema:
+      type: integer
+
+  limit:
+    name: limit
+    in: query
+    description: Limiting size for query results
+    default: 30
+    minimum: 0
+    schema:
+      type: integer

@@ -1,12 +1,11 @@
-Retrieve the tables of a single workspace.
+Retrieve the graphs of a single workspace.
 ---
 parameters:
   - $ref: "#/parameters/workspace"
-  - $ref: "#/parameters/table_type"
 
 responses:
   200:
-    description: A list of table names belonging to the specified workspace
+    description: A list of graphs belonging to the specified workspace
     schema:
       type: array
       items:

@@ -1,0 +1,25 @@
+Retrieve a single graph from a workspace.
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+
+responses:
+  200:
+    description: Details of a single graph
+    schema:
+      type: object
+      properties:
+        nodeTables:
+          description: The node tables associated with this graph
+          type: array
+          items:
+            type: string
+        edgeTable:
+          description: The edge table associated with this graph
+          type: string
+
+  404:
+    description: Specified workspace or graph could not be found
+    schema:
+      type: string

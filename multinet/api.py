@@ -137,7 +137,7 @@ def delete_workspace(workspace: str) -> Any:
     return workspace
 
 
-@bp.route("/workspaces/<workspace>/graph/<graph>", methods=["POST"])
+@bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["POST"])
 @use_kwargs({"node_tables": fields.List(fields.Str()), "edge_table": fields.Str()})
 @swag_from("swagger/create_graph.yaml")
 def create_graph(

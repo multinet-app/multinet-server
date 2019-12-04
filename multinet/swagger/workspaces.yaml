@@ -7,3 +7,6 @@ responses:
       type: array
       items:
         $ref: "#/definitions/entity_name"
+
+tags:
+  - workspace

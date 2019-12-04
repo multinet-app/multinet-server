@@ -189,3 +189,11 @@ parameters:
     minimum: 0
     schema:
       type: integer
+
+tags:
+  - name: workspace
+    description: Workspace retrieval, inspection, creation, and deletion
+  - name: graph
+    description: Graph retrieval, inspection, traversal, creation, and deletion
+  - name: table
+    description: Table retrieval, inspection, creation, and deletion

@@ -16,3 +16,6 @@ responses:
     description: Specified workspace or graph could not be found
     schema:
       $ref: "#/definitions/entity_name"
+
+tags:
+  - graph

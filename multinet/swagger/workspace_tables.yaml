@@ -16,3 +16,6 @@ responses:
     description: Specified workspace could not be found
     schema:
       $ref: "#/definitions/entity_name"
+
+tags:
+  - table

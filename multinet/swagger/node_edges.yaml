@@ -19,3 +19,6 @@ responses:
     description: Specified workspace, graph, table, or node could not be found
     schema:
       $ref: "#/definitions/entity_name"
+
+tags:
+  - graph

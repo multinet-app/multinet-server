@@ -4,6 +4,117 @@ info:
   description: "REST API for interacting with MultiNet server"
   version: "0.1"
 
+definitions:
+  entity_name:
+    description: The name of a workspace, table, graph, node, or edge
+    type: string
+    example: fizzbin
+
+  workspace:
+    description: A description of a workspace, including its permissions
+    type: object
+    required:
+      - name
+      - owner
+      - readers
+      - writers
+    properties:
+      name:
+        description: The name of the workspace
+        type: string
+      owner:
+        description: The owner of the workspace, who has read and write access, and can also delete it
+        type: string
+      readers:
+        description: A list of users with read access to the workspace
+        type: array
+        items:
+          type: string
+      writers:
+        description: A list of users with write access to the workspace
+        type: array
+        items:
+          type: string
+    example:
+      name: engineering
+      owner: laforge
+      readers:
+        - worf
+        - data
+        - troi
+      writers:
+        - picard
+        - riker
+
+  graph:
+    description: A description of a graph, including its constituent tables
+    type: object
+    properties:
+      nodeTables:
+        description: The node tables associated with this graph
+        type: array
+        items:
+          type: string
+      edgeTable:
+        description: The edge table associated with this graph
+        type: string
+    example:
+      nodeTables:
+        - table1
+        - table2
+      edgeTable:
+        - edges
+
+  node_data:
+    description: A record containing data associated with a single node
+    type: object
+    required:
+      - _key
+      - _id
+    properties:
+      _key:
+        description: An identifier for this record unique within its table
+        type: string
+      _id:
+        description: A globally unique identifier including both the table name and the key
+        type: string
+    additionalProperties: true
+    example:
+      _key: "113"
+      _id: "table_name/113"
+      name: "Jean-Luc Picard"
+      rank: "Captain"
+      commission: "USS-1701-D"
+
+  edge_data:
+    type: object
+    required:
+      - _key
+      - _id
+      - _from
+      - _to
+    properties:
+      _key:
+        description: An identifier for this record unique within its table
+        type: string
+      _id:
+        description: A globally unique identifier including both the table name and the key
+        type: string
+      _from:
+        description: An id for the origin node
+        type: string
+      _to:
+        description: An id for the target node
+        type: string
+    additionalProperties: true
+    example:
+      _key: "247"
+      _id: "edge_table_name/247"
+      _from: "table1/23"
+      _to: "table4/21"
+      bandwidth: 43.1
+      color: "red"
+
 parameters:
   workspace:
     name: workspace
@@ -32,7 +143,7 @@ parameters:
   node:
     name: node
     in: path
-    description: ID of a node
+    description: Key of a node
     required: true
     schema:
       type: string

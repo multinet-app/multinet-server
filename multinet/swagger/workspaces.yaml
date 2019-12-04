@@ -6,4 +6,4 @@ responses:
     schema:
       type: array
       items:
-        type: string
+        $ref: "#/definitions/entity_name"

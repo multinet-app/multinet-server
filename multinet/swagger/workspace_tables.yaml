@@ -10,8 +10,9 @@ responses:
     schema:
       type: array
       items:
-        type: string
+        $ref: "#/definitions/entity_name"
+
   404:
     description: Specified workspace could not be found
     schema:
-      type: string
+      $ref: "#/definitions/entity_name"

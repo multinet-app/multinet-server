@@ -10,9 +10,9 @@ responses:
   200:
     description: An object encoding the node's data attributes
     schema:
-      type: object
+      $ref: "#/definitions/node_data"
 
   404:
     description: Specified workspace, graph, table, or node could not be found
     schema:
-      type: string
+      $ref: "#/definitions/entity_name"

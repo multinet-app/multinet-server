@@ -8,18 +8,10 @@ responses:
   200:
     description: Details of a single graph
     schema:
-      type: object
-      properties:
-        nodeTables:
-          description: The node tables associated with this graph
-          type: array
-          items:
-            type: string
-        edgeTable:
-          description: The edge table associated with this graph
-          type: string
+      $ref: "#/definitions/graph"
+
 
   404:
     description: Specified workspace or graph could not be found
     schema:
-      type: string
+      $ref: "#/definitions/entity_name"

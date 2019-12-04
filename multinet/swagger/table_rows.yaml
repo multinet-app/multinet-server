@@ -12,8 +12,9 @@ responses:
     schema:
       type: array
       items:
-        type: object
+        $ref: "#/definitions/node_data"
+
   404:
     description: Specified workspace or table could not be found
     schema:
-      type: string
+      $ref: "#/definitions/entity_name"

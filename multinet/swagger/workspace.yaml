@@ -6,21 +6,9 @@ responses:
   200:
     description: Metadata about the specified workspace
     schema:
-      type: object
-      properties:
-        name:
-          type: string
-        owner:
-          type: string
-        readers:
-          type: array
-          items:
-            type: string
-        writers:
-          type: array
-          items:
-            type: string
+      $ref: "#/definitions/workspace"
+
   404:
     description: Specified workspace could not be found
     schema:
-      type: string
+      $ref: "#/definitions/entity_name"

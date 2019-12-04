@@ -110,6 +110,7 @@ def get_node_edges(
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])
+@swag_from("swagger/create_workspace.yaml")
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
     db.create_workspace(workspace)
@@ -128,6 +129,7 @@ def aql(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>", methods=["DELETE"])
+@swag_from("swagger/delete_workspace.yaml")
 def delete_workspace(workspace: str) -> Any:
     """Delete a workspace."""
     db.delete_workspace(workspace)

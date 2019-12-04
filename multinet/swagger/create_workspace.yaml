@@ -1,0 +1,18 @@
+Create a new workspace
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+
+responses:
+  200:
+    description: Workspace successfully created
+    schema:
+      $ref: "#/definitions/entity_name"
+
+  400:
+    description: Workspace already exists
+    schema:
+      $ref: "#/definitions/entity_name"
+
+tags:
+  - workspace

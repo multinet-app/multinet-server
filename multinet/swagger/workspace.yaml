@@ -2,6 +2,7 @@ Retrieve a single workspace.
 ---
 parameters:
   - $ref: "#/parameters/workspace"
+
 responses:
   200:
     description: Metadata about the specified workspace

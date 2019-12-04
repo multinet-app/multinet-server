@@ -1,0 +1,26 @@
+Upload a nested JSON file to a collection of tables
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+  - name: data
+    in: body
+    description: JSON content of file
+    schema:
+      type: object
+
+responses:
+  200:
+    description: JSON uploaded to tables
+    schema:
+      type: object
+      properties:
+        edgecount:
+          type: integer
+        int_nodecount:
+          type: integer
+        leaf_nodecount:
+          type: integer
+
+tags:
+  - uploader

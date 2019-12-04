@@ -1,0 +1,32 @@
+Upload a csv file to a table
+---
+consumes:
+  - text/csv
+
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+  - name: data
+    in: body
+    description: Raw CSV text
+    schema:
+      type: string
+      example: |-
+        _key,name,rank
+        0,picard,captain
+        1,riker,commander
+        2,data,lieutenant commander
+
+responses:
+  200:
+    description: CSV uploaded to table
+    schema:
+      type: object
+      properties:
+        count:
+          type: integer
+      example:
+        count: 3
+
+tags:
+  - uploader

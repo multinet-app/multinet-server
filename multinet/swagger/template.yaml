@@ -200,3 +200,5 @@ tags:
     description: Graph retrieval, inspection, traversal, creation, and deletion
   - name: table
     description: Table retrieval, inspection, creation, and deletion
+  - name: uploader
+    description: Uploaders for various input data formats

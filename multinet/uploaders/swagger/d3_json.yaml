@@ -1,4 +1,4 @@
-Upload a nested JSON file to a collection of tables
+Upload a D3 JSON graph file to a collection of tables
 ---
 consumes:
   - text/plain
@@ -8,21 +8,19 @@ parameters:
   - $ref: "#/parameters/table"
   - name: data
     in: body
-    description: Raw JSON content of file
+    description: Raw JSON text
     schema:
-      type: object
+      type: string
 
 responses:
   200:
-    description: JSON uploaded to tables
+    description: D3 data uploaded to tables
     schema:
       type: object
       properties:
         edgecount:
           type: integer
-        int_nodecount:
-          type: integer
-        leaf_nodecount:
+        nodecount:
           type: integer
 
 tags:

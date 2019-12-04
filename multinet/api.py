@@ -118,6 +118,7 @@ def create_workspace(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/aql", methods=["POST"])
+@swag_from("swagger/aql.yaml")
 def aql(workspace: str) -> Any:
     """Perform an AQL query in the given workspace."""
     query = request.data.decode("utf8")

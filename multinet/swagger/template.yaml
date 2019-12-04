@@ -5,6 +5,9 @@ info:
   version: "0.1"
 
 definitions:
+  any_type:
+    description: Can have any type
+
   entity_name:
     description: The name of a workspace, table, graph, node, or edge
     type: string

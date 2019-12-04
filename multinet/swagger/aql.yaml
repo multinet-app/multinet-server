@@ -1,0 +1,33 @@
+Execute an AQL query against a workspace.
+---
+consumes:
+  - text/plain
+parameters:
+  - $ref: "#/parameters/workspace"
+  - name: query
+    description: AQL query string
+    in: body
+    schema:
+      type: string
+      example: |-
+        FOR d IN table1
+          LIMIT 10, 20
+          RETURN d.name
+
+responses:
+  200:
+    description: Results of the AQL query
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/any_type"
+      example:
+        - _id: table1/0
+          name: Picard
+        - _id: table1/1
+          name: Riker
+        - _id: table1/2
+          name: Troi
+
+tags:
+  - workspace

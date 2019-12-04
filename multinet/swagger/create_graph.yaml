@@ -1,0 +1,33 @@
+Create a new graph
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+  - name: node_tables
+    in: query
+    description: List of node tables associated with this graph
+    required: true
+    schema:
+      type: array
+      items:
+        $ref: "#/definitions/entity_name"
+  - name: edge_table
+    in: query
+    description: Edge table associated with this graph
+    required: true
+    schema:
+      $ref: "#/definitions/entity_name"
+
+responses:
+  200:
+    description: Graph successfully created
+    schema:
+      $ref: "#/definitions/entity_name"
+
+  400:
+    description: Graph could not be created
+    schema:
+      $ref: "#/definitions/entity_name"
+
+tags:
+  - graph

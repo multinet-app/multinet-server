@@ -5,6 +5,7 @@
   >
     <template v-slot:activator="{ on }">
       <v-btn
+        id="add-graph"
         class="new-button"
         color="blue darken-2"
         fab
@@ -28,6 +29,7 @@
           <v-layout wrap>
             <v-flex>
               <v-text-field
+                autofocus
                 filled
                 label="Graph name"
                 v-model="newGraph"

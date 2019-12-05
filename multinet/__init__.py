@@ -37,7 +37,13 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
         return """
             <h1>Multinet API</h1>
             <div>
+              <p>
                 See <a href="https://multinet.app">Multinet website</a> for details.
+              </p>
+
+              <p>
+                Check out the <a href="/apidocs">API documentation</a>.
+              </p>
             </div>
         """
 

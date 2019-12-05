@@ -12,6 +12,27 @@ responses:
       items:
         $ref: "#/definitions/entity_name"
 
+  400:
+    description: Bad table type
+    schema:
+      type: object
+      properties:
+        argument:
+          type: string
+        value:
+          type: string
+        allowed:
+          type: array
+          items:
+            type: string
+      example:
+        argument: type
+        value: foobar
+        allowed:
+          - all
+          - node
+          - edge
+
   404:
     description: Specified workspace could not be found
     schema:

@@ -15,6 +15,27 @@ responses:
     schema:
       $ref: "#/definitions/entity_names"
 
+  400:
+    description: Bad edge type
+    schema:
+      type: object
+      properties:
+        argument:
+          type: string
+        value:
+          type: string
+        allowed:
+          type: array
+          items:
+            type: string
+      example:
+        argument: type
+        value: foobar
+        allowed:
+          - all
+          - incoming
+          - outgoing
+
   404:
     description: Specified workspace, graph, table, or node could not be found
     schema:

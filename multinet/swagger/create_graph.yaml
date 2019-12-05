@@ -29,5 +29,10 @@ responses:
     schema:
       $ref: "#/definitions/entity_name"
 
+  409:
+    description: Graph already exists
+    schema:
+      $ref: "#/definitions/entity_name"
+
 tags:
   - graph

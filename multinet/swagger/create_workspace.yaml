@@ -10,6 +10,11 @@ responses:
       $ref: "#/definitions/entity_name"
 
   400:
+    description: Invalid workspace name
+    schema:
+      $ref: "#/definitions/entity_name"
+
+  409:
     description: Workspace already exists
     schema:
       $ref: "#/definitions/entity_name"

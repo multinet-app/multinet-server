@@ -29,5 +29,10 @@ responses:
         - _id: table1/2
           name: Troi
 
+  400:
+    description: Missing AQL query
+    schema:
+      type: string
+
 tags:
   - workspace

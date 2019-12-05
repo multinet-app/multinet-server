@@ -2,6 +2,7 @@
 from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
+from flasgger import Swagger
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
@@ -14,6 +15,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
     CORS(app)
+    Swagger(app, template_file="swagger/template.yaml")
 
     # Set up logging.
     app.logger.addHandler(default_handler)
@@ -35,7 +37,13 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
         return """
             <h1>Multinet API</h1>
             <div>
+              <p>
                 See <a href="https://multinet.app">Multinet website</a> for details.
+              </p>
+
+              <p>
+                Check out the <a href="/apidocs">API documentation</a>.
+              </p>
             </div>
         """
 

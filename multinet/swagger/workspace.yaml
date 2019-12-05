@@ -1,0 +1,19 @@
+Retrieve a single workspace.
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+
+responses:
+  200:
+    description: Metadata about the specified workspace
+    schema:
+      $ref: "#/definitions/workspace"
+
+  404:
+    description: Specified workspace could not be found
+    schema:
+      type: string
+      example: workspace_that_doesnt_exist
+
+tags:
+  - workspace

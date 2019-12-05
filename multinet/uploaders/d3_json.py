@@ -1,4 +1,5 @@
 """Multinet uploader for nested JSON files."""
+from flasgger import swag_from
 import json
 from io import StringIO
 from collections import OrderedDict
@@ -43,6 +44,7 @@ def validate_d3_json(data: dict) -> List[dict]:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@swag_from("swagger/d3_json.yaml")
 def upload(workspace: str, table: str) -> Any:
     """Store a d3 json-encoded graph into the database as a node and edge table.
 

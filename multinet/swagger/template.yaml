@@ -1,0 +1,205 @@
+swagger: "2.0"
+info:
+  title: "MultiNet API"
+  description: "REST API for interacting with MultiNet server"
+  version: "0.1"
+
+definitions:
+  any_type:
+    description: Can have any type
+
+  workspace:
+    description: A description of a workspace, including its permissions
+    type: object
+    required:
+      - name
+      - owner
+      - readers
+      - writers
+    properties:
+      name:
+        description: The name of the workspace
+        type: string
+      owner:
+        description: The owner of the workspace, who has read and write access, and can also delete it
+        type: string
+      readers:
+        description: A list of users with read access to the workspace
+        type: array
+        items:
+          type: string
+      writers:
+        description: A list of users with write access to the workspace
+        type: array
+        items:
+          type: string
+    example:
+      name: engineering
+      owner: laforge
+      readers:
+        - worf
+        - data
+        - troi
+      writers:
+        - picard
+        - riker
+
+  graph:
+    description: A description of a graph, including its constituent tables
+    type: object
+    properties:
+      nodeTables:
+        description: The node tables associated with this graph
+        type: array
+        items:
+          type: string
+      edgeTable:
+        description: The edge table associated with this graph
+        type: string
+    example:
+      nodeTables:
+        - table1
+        - table2
+      edgeTable:
+        - edges
+
+  node_data:
+    description: A record containing data associated with a single node
+    type: object
+    required:
+      - _key
+      - _id
+    properties:
+      _key:
+        description: An identifier for this record unique within its table
+        type: string
+      _id:
+        description: A globally unique identifier including both the table name and the key
+        type: string
+    additionalProperties: true
+    example:
+      _key: "113"
+      _id: "table_name/113"
+      name: "Jean-Luc Picard"
+      rank: "Captain"
+      commission: "USS-1701-D"
+
+  edge_data:
+    type: object
+    required:
+      - _key
+      - _id
+      - _from
+      - _to
+    properties:
+      _key:
+        description: An identifier for this record unique within its table
+        type: string
+      _id:
+        description: A globally unique identifier including both the table name and the key
+        type: string
+      _from:
+        description: An id for the origin node
+        type: string
+      _to:
+        description: An id for the target node
+        type: string
+    additionalProperties: true
+    example:
+      _key: "247"
+      _id: "edge_table_name/247"
+      _from: "table1/23"
+      _to: "table4/21"
+      bandwidth: 43.1
+      color: "red"
+
+parameters:
+  workspace:
+    name: workspace
+    in: path
+    description: Name of target workspace
+    required: true
+    schema:
+      type: string
+      example: workspace3
+
+  table:
+    name: table
+    in: path
+    description: Name of target table
+    required: true
+    schema:
+      type: string
+      example: table4
+
+  graph:
+    name: graph
+    in: path
+    description: Name of target graph
+    required: true
+    schema:
+      type: string
+      example: graph6
+
+  node:
+    name: node
+    in: path
+    description: Key of a node
+    required: true
+    schema:
+      type: string
+      example: key0
+
+  direction:
+    name: direction
+    description: The type of edges to retrieve
+    in: query
+    default: all
+    enum:
+      - incoming
+      - outgoing
+      - all
+    schema:
+      type: string
+
+  table_type:
+    name: type
+    description: The type of table to retrieve
+    in: query
+    default: all
+    enum:
+      - node
+      - edge
+      - all
+    schema:
+      type: string
+
+  offset:
+    name: offset
+    in: query
+    description: Offset index into a collection
+    default: 0
+    minimum: 0
+    schema:
+      type: integer
+      example: 0
+
+  limit:
+    name: limit
+    in: query
+    description: Limiting size for query results
+    default: 30
+    minimum: 0
+    schema:
+      type: integer
+      example: 30
+
+tags:
+  - name: workspace
+    description: Workspace retrieval, inspection, creation, and deletion
+  - name: graph
+    description: Graph retrieval, inspection, traversal, creation, and deletion
+  - name: table
+    description: Table retrieval, inspection, creation, and deletion
+  - name: uploader
+    description: Uploaders for various input data formats

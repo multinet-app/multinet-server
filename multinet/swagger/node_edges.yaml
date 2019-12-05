@@ -1,0 +1,52 @@
+Retrieve the edges of a graph node
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+  - $ref: "#/parameters/table"
+  - $ref: "#/parameters/node"
+  - $ref: "#/parameters/direction"
+  - $ref: "#/parameters/offset"
+  - $ref: "#/parameters/limit"
+
+responses:
+  200:
+    description: A list of edges
+    schema:
+      type: array
+      items:
+        type: string
+      example:
+        - edge0
+        - edge10
+        - edge13
+
+  400:
+    description: Bad edge type
+    schema:
+      type: object
+      properties:
+        argument:
+          type: string
+        value:
+          type: string
+        allowed:
+          type: array
+          items:
+            type: string
+      example:
+        argument: type
+        value: foobar
+        allowed:
+          - all
+          - incoming
+          - outgoing
+
+  404:
+    description: Specified workspace, graph, table, or node could not be found
+    schema:
+      type: string
+      example: node_that_doesnt_exist
+
+tags:
+  - graph

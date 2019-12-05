@@ -1,0 +1,28 @@
+Retrieve the nodes of a graph
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+  - $ref: "#/parameters/offset"
+  - $ref: "#/parameters/limit"
+
+responses:
+  200:
+    description: A list of nodes from the requested graph
+    schema:
+      type: array
+      items:
+        type: string
+      example:
+        - key0
+        - key31
+        - key47
+
+  404:
+    description: Specified workspace or graph could not be found
+    schema:
+      type: string
+      example: graph_that_doesnt_exist
+
+tags:
+  - graph

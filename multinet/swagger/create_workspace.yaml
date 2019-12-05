@@ -1,0 +1,26 @@
+Create a new workspace
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+
+responses:
+  200:
+    description: Workspace successfully created
+    schema:
+      type: string
+      example: workspace3
+
+  400:
+    description: Invalid workspace name
+    schema:
+      type: string
+      example: workspace3
+
+  409:
+    description: Workspace already exists
+    schema:
+      type: string
+      example: workspace3
+
+tags:
+  - workspace

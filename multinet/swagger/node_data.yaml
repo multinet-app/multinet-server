@@ -1,0 +1,22 @@
+Retrieve the attributes from a graph node
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+  - $ref: "#/parameters/table"
+  - $ref: "#/parameters/node"
+
+responses:
+  200:
+    description: An object encoding the node's data attributes
+    schema:
+      $ref: "#/definitions/node_data"
+
+  404:
+    description: Specified workspace, graph, table, or node could not be found
+    schema:
+      type: string
+      example: table_that_doesnt_exist
+
+tags:
+  - graph

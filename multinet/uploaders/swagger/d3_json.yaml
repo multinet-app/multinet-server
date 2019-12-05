@@ -22,6 +22,9 @@ responses:
           type: integer
         nodecount:
           type: integer
+      example:
+        edgecount: 5
+        nodecount: 4
 
   400:
     description: Validation failed

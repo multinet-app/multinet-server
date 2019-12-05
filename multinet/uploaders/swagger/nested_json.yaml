@@ -24,6 +24,10 @@ responses:
           type: integer
         leaf_nodecount:
           type: integer
+      example:
+        edgecount: 54
+        leaf_nodecount: 31
+        int_nodecount: 24
 
 tags:
   - uploader

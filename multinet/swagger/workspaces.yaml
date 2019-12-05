@@ -6,7 +6,11 @@ responses:
     schema:
       type: array
       items:
-        $ref: "#/definitions/entity_name"
+        type: string
+      example:
+        - scratch
+        - workspace10
+        - personnel
 
 tags:
   - workspace

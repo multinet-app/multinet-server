@@ -9,12 +9,16 @@ responses:
     schema:
       type: array
       items:
-        $ref: "#/definitions/entity_name"
+        type: string
+      example:
+        - graph1
+        - graph4
 
   404:
     description: Specified workspace could not be found
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: workspace_that_doesnt_exist
 
 tags:
   - graph

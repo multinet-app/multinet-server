@@ -10,29 +10,36 @@ parameters:
     schema:
       type: array
       items:
-        $ref: "#/definitions/entity_name"
+        type: string
+      example:
+        - internal_nodes
+        - leaf_nodes
   - name: edge_table
     in: query
     description: Edge table associated with this graph
     required: true
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: edgetable11
 
 responses:
   200:
     description: Graph successfully created
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: graph21
 
   400:
     description: Graph could not be created
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: graph21
 
   409:
     description: Graph already exists
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: graph21
 
 tags:
   - graph

@@ -33,6 +33,7 @@ responses:
     description: Missing AQL query
     schema:
       type: string
+      example: ""
 
 tags:
   - workspace

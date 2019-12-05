@@ -12,7 +12,8 @@ responses:
   404:
     description: Specified workspace could not be found
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: workspace_that_doesnt_exist
 
 tags:
   - workspace

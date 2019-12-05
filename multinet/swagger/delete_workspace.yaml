@@ -7,7 +7,8 @@ responses:
   200:
     description: Workspace successfully deleted
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: workspace3
 
 tags:
   - workspace

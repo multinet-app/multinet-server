@@ -10,7 +10,11 @@ responses:
     schema:
       type: array
       items:
-        $ref: "#/definitions/entity_name"
+        type: string
+      example:
+        - table0
+        - table13
+        - table39
 
   400:
     description: Bad table type
@@ -36,7 +40,8 @@ responses:
   404:
     description: Specified workspace could not be found
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: workspace_that_doesnt_exist
 
 tags:
   - table

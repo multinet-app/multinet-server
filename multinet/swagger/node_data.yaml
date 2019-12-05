@@ -15,7 +15,8 @@ responses:
   404:
     description: Specified workspace, graph, table, or node could not be found
     schema:
-      $ref: "#/definitions/entity_name"
+      type: string
+      example: table_that_doesnt_exist
 
 tags:
   - graph

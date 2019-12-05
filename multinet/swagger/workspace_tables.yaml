@@ -1,0 +1,47 @@
+Retrieve the tables of a single workspace.
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table_type"
+
+responses:
+  200:
+    description: A list of table names belonging to the specified workspace
+    schema:
+      type: array
+      items:
+        type: string
+      example:
+        - table0
+        - table13
+        - table39
+
+  400:
+    description: Bad table type
+    schema:
+      type: object
+      properties:
+        argument:
+          type: string
+        value:
+          type: string
+        allowed:
+          type: array
+          items:
+            type: string
+      example:
+        argument: type
+        value: foobar
+        allowed:
+          - all
+          - node
+          - edge
+
+  404:
+    description: Specified workspace could not be found
+    schema:
+      type: string
+      example: workspace_that_doesnt_exist
+
+tags:
+  - table

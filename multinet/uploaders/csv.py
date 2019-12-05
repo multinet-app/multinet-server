@@ -1,5 +1,6 @@
 """Multinet uploader for CSV files."""
 import csv
+from flasgger import swag_from
 from io import StringIO
 import re
 
@@ -64,6 +65,7 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@swag_from("swagger/csv.yaml")
 def upload(workspace: str, table: str) -> Any:
     """
     Store a CSV file into the database as a node or edge table.

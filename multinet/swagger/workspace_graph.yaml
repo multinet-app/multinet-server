@@ -1,0 +1,21 @@
+Retrieve a single graph from a workspace.
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+
+responses:
+  200:
+    description: Details of a single graph
+    schema:
+      $ref: "#/definitions/graph"
+
+
+  404:
+    description: Specified workspace or graph could not be found
+    schema:
+      type: string
+      example: graph_that_doesnt_exist
+
+tags:
+  - graph

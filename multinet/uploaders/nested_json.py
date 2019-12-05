@@ -1,4 +1,5 @@
 """Multinet uploader for nested JSON files."""
+from flasgger import swag_from
 import itertools
 import json
 
@@ -74,6 +75,7 @@ def analyze_nested_json(
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@swag_from("swagger/nested_json.yaml")
 def upload(workspace: str, table: str) -> Any:
     """
     Store a nested_json tree into the database in coordinated node and edge tables.

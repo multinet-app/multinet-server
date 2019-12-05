@@ -1,0 +1,14 @@
+Delete a workspace
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+
+responses:
+  200:
+    description: Workspace successfully deleted
+    schema:
+      type: string
+      example: workspace3
+
+tags:
+  - workspace

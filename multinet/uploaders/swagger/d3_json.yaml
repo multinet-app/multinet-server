@@ -1,0 +1,57 @@
+Upload a D3 JSON graph file to a collection of tables
+---
+consumes:
+  - text/plain
+
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+  - name: data
+    in: body
+    description: Raw JSON text
+    schema:
+      type: string
+      example: |-
+        {
+          "nodes": [
+            {"id": "a"},
+            {"id": "b"},
+            {"id": "c"},
+            {"id": "d"}
+          ],
+          "links": [
+            {"source": "a", "target": "b"},
+            {"source": "b", "target": "c"},
+            {"source": "c", "target": "d"},
+            {"source": "d", "target": "a"},
+            {"source": "a", "target": "c"},
+            {"source": "b", "target": "d}
+          ]
+        }
+
+responses:
+  200:
+    description: D3 data uploaded to tables
+    schema:
+      type: object
+      properties:
+        edgecount:
+          type: integer
+        nodecount:
+          type: integer
+      example:
+        edgecount: 5
+        nodecount: 4
+
+  400:
+    description: Validation failed
+    schema:
+      type: array
+      items:
+        type: object
+        additionalProperties: true
+      example:
+        - error: structure
+
+tags:
+  - uploader

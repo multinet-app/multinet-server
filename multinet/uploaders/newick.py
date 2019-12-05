@@ -1,4 +1,5 @@
 """Multinet uploader for Newick tree files."""
+from flasgger import swag_from
 import uuid
 import newick
 
@@ -61,6 +62,7 @@ def validate_newick(tree: List[newick.Node]) -> None:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@swag_from("swagger/newick.yaml")
 def upload(workspace: str, table: str) -> Any:
     """
     Store a newick tree into the database in coordinated node and edge tables.

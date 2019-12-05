@@ -1,0 +1,45 @@
+Create a new graph
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+  - name: node_tables
+    in: query
+    description: List of node tables associated with this graph
+    required: true
+    schema:
+      type: array
+      items:
+        type: string
+      example:
+        - internal_nodes
+        - leaf_nodes
+  - name: edge_table
+    in: query
+    description: Edge table associated with this graph
+    required: true
+    schema:
+      type: string
+      example: edgetable11
+
+responses:
+  200:
+    description: Graph successfully created
+    schema:
+      type: string
+      example: graph21
+
+  400:
+    description: Graph could not be created
+    schema:
+      type: string
+      example: graph21
+
+  409:
+    description: Graph already exists
+    schema:
+      type: string
+      example: graph21
+
+tags:
+  - graph

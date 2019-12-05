@@ -24,5 +24,18 @@ responses:
         nodecount:
           type: integer
 
+  400:
+    description: Validation failed
+    schema:
+      type: array
+      items:
+        type: object
+        additionalProperties: true
+      example:
+        - error: duplicate
+          detail:
+            - key0
+            - key47
+
 tags:
   - uploader

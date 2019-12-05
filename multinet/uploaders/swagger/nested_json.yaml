@@ -11,6 +11,52 @@ parameters:
     description: Raw JSON content of file
     schema:
       type: object
+      example: |-
+        {
+          "children": [
+            "children": [
+              {
+                "edge_data": {
+                  "weight": 12.28
+                },
+                "incoming_order": 0,
+                "node_data": {
+                  "name": "a",
+                  "awesomeness": 0.41
+                },
+                "node_fields": [
+                  "name",
+                  "awesomeness"
+                ]
+              }
+            ],
+            "edge_data": {
+              "weight": 3.78
+            },
+            "incoming_order": 3,
+            "node_data": {
+              "name": "c",
+              "awesomeness": 21.438
+            },
+            "node_fields": [
+              "name",
+              "awesomeness"
+            ]
+
+          ],
+          "edge_data": {
+            "weight": 10.4
+          },
+          "incoming_order": 2,
+          "node_data": {
+            "name": "b",
+            "awesomeness": 0.35
+          },
+          "node_fields": [
+            "name",
+            "awesomeness"
+          ]
+        }
 
 responses:
   200:

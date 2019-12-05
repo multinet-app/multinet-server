@@ -11,6 +11,23 @@ parameters:
     description: Raw JSON text
     schema:
       type: string
+      example: |-
+        {
+          "nodes": [
+            {"id": "a"},
+            {"id": "b"},
+            {"id": "c"},
+            {"id": "d"}
+          ],
+          "links": [
+            {"source": "a", "target": "b"},
+            {"source": "b", "target": "c"},
+            {"source": "c", "target": "d"},
+            {"source": "d", "target": "a"},
+            {"source": "a", "target": "c"},
+            {"source": "b", "target": "d}
+          ]
+        }
 
 responses:
   200:

@@ -10,7 +10,13 @@ responses:
   200:
     description: A list of nodes from the requested graph
     schema:
-      $ref: "#/definitions/entity_names"
+      type: array
+      items:
+        $ref: "#/definitions/entity_name"
+      example:
+        - key0
+        - key31
+        - key47
 
   404:
     description: Specified workspace or graph could not be found

@@ -23,7 +23,7 @@ export interface EdgesSpec {
 
 export type TableType = 'all' | 'node' | 'edge';
 
-export type UploadType = 'csv' | 'nested_json' | 'newick';
+export type UploadType = 'csv' | 'nested_json' | 'newick' | 'd3_json';
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 

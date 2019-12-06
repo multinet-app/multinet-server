@@ -29,6 +29,7 @@ pre-commit = "==1.18.2"
 flake8-mypy = "*"
 pep8-naming = "*"
 flasgger = "*"
+uwsgi = "*"
 
 [requires]
 python_version = "3.7"

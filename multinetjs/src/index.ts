@@ -118,6 +118,10 @@ class MultinetAPI {
     return this.client.post(`/workspaces/${workspace}`);
   }
 
+  public deleteWorkspace(workspace: string): Promise<string> {
+    return this.client.delete(`/workspaces/${workspace}`);
+  }
+
   public async uploadTable(workspace: string, table: string, options: UploadTableOptionsSpec): Promise<Array<{}>> {
     let text;
     if (typeof options.data === 'string') {

@@ -32,4 +32,16 @@ export class Client {
         });
     });
   }
+
+  public delete(path: string, params: {} = {}): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.axios.delete(path, params)
+        .then((resp) => {
+          resolve(resp.data);
+        })
+        .catch((resp) => {
+          reject(resp.response);
+        });
+    });
+  }
 }

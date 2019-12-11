@@ -21,7 +21,7 @@
     "axios": "^0.18.1",
     "core-js": "^2.6.5",
     "material-design-icons-iconfont": "^5.0.1",
-    "multinet": "^0.2.0",
+    "multinet": "0.3.0",
     "vue": "^2.6.10",
     "vue-router": "^3.0.2",
     "vuetify": "^2.1.5"
@@ -39,7 +39,7 @@
     "sass-loader": "^7.2.0",
     "tap-spec": "^5.0.0",
     "tape": "^4.11.0",
-    "typescript": "^3.4.3",
+    "typescript": "^3.6.3",
     "vue-template-compiler": "^2.6.10",
     "vuetify-loader": "^1.3.0"
   },

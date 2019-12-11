@@ -30,22 +30,12 @@
         Your Workspaces
         <v-spacer />
 
-          <v-tooltip right>
-            <template v-slot:activator="{ on }">
-              <v-scroll-x-transition>
-                <v-btn
-                  icon
-                  small
-                  text
-                  v-if="somethingChecked"
-                  v-on="on"
-                >
-                  <v-icon color="red accent-3" size="22px">delete_sweep</v-icon>
-                </v-btn>
-              </v-scroll-x-transition>
-            </template>
-            <span>Delete selected</span>
-          </v-tooltip>
+          <delete-workspace-dialog
+            :somethingChecked="somethingChecked"
+            :selection="selection"
+            @deleted="delayedRefresh(1000)"
+            />
+
       </v-subheader>
 
       <v-divider></v-divider>
@@ -86,35 +76,68 @@ import Vue from 'vue';
 
 import api from '@/api';
 import WorkspaceDialog from '@/components/WorkspaceDialog.vue';
+import DeleteWorkspaceDialog from '@/components/DeleteWorkspaceDialog.vue';
+
+interface CheckboxTable {
+  [index: string]: boolean;
+}
 
 export default Vue.extend({
   data() {
     return {
       newWorkspace: '',
       workspaces: [] as string[],
-      checkbox: {},
+      checkbox: {} as CheckboxTable,
     };
   },
+
   components: {
+    DeleteWorkspaceDialog,
     WorkspaceDialog,
   },
+
   computed: {
     somethingChecked(): boolean {
       return Object.values(this.checkbox)
         .some((d) => !!d);
     },
+
+    selection(): string[] {
+      const {
+        checkbox,
+      } = this;
+
+      return Object.keys(checkbox).filter((d) => !!checkbox[d]);
+    },
   },
+
   methods: {
     route(workspace: string) {
       this.$router.push(`/workspaces/${workspace}`);
     },
+
+    unroute() {
+      this.$router.replace('/');
+    },
+
     addWorkspace(workspace: string) {
       const workspaces = this.workspaces.concat([workspace]);
       this.workspaces = workspaces.sort();
     },
+
+    delayedRefresh(ms: number) {
+      this.checkbox = {};
+      this.unroute();
+      window.setTimeout(() => this.refresh(), ms);
+    },
+
+    async refresh() {
+      this.workspaces = await api.workspaces();
+    },
   },
+
   async created() {
-    this.workspaces = await api.workspaces();
+    this.refresh();
   },
 });
 </script>

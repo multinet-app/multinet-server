@@ -141,6 +141,10 @@ class MultinetAPI {
       edge_table: options.edgeTable,
     });
   }
+
+  public deleteGraph(workspace: string, graph: string): Promise<string> {
+    return this.client.delete(`/workspaces/${workspace}/graphs/${graph}`);
+  }
 }
 
 export function multinetApi(baseURL: string): MultinetAPI {

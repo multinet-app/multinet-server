@@ -135,6 +135,10 @@ class MultinetAPI {
     });
   }
 
+  public deleteTable(workspace: string, table: string): Promise<string> {
+    return this.client.delete(`/workspaces/${workspace}/tables/${table}`);
+  }
+
   public createGraph(workspace: string, graph: string, options: CreateGraphOptionsSpec): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graphs/${graph}`, {
       node_tables: options.nodeTables,

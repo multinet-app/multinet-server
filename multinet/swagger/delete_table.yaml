@@ -1,0 +1,15 @@
+Delete a table
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+
+responses:
+  200:
+    description: Table successfully deleted
+    schema:
+      type: string
+      example: table4
+
+tags:
+  - table

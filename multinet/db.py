@@ -283,6 +283,16 @@ def table_fields(workspace: str, table: str, arango: ArangoClient) -> List[str]:
 
 
 @with_client
+def delete_table(workspace: str, table: str, arango: ArangoClient) -> str:
+    """Delete a table."""
+    space = db(workspace, arango=arango)
+    if space.has_collection(table):
+        space.delete_collection(table)
+
+    return table
+
+
+@with_client
 def aql_query(
     workspace: str, query: str, arango: ArangoClient
 ) -> Generator[dict, None, None]:

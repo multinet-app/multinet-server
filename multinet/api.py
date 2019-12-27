@@ -213,3 +213,11 @@ def delete_graph(workspace: str, graph: str) -> Any:
     """Delete a graph."""
     db.delete_graph(workspace, graph)
     return graph
+
+
+@bp.route("/workspaces/<workspace>/tables/<table>", methods=["DELETE"])
+@swag_from("swagger/delete_table.yaml")
+def delete_table(workspace: str, table: str) -> Any:
+    """Delete a table."""
+    db.delete_table(workspace, table)
+    return table

@@ -317,6 +317,16 @@ def create_graph(
 
 
 @with_client
+def delete_graph(workspace: str, graph: str, arango: ArangoClient) -> str:
+    """Delete graph `graph` from workspace `workspace`."""
+    space = db(workspace, arango=arango)
+    if space.has_graph(graph):
+        space.delete_graph(graph)
+
+    return graph
+
+
+@with_client
 def graph_node_tables(
     workspace: str, graph: str, arango: ArangoClient
 ) -> List[StandardCollection]:

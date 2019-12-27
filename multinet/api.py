@@ -205,3 +205,11 @@ def create_graph(
 
     db.create_graph(workspace, graph, node_tables, edge_table)
     return graph
+
+
+@bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["DELETE"])
+@swag_from("swagger/delete_graph.yaml")
+def delete_graph(workspace: str, graph: str) -> Any:
+    """Delete a graph."""
+    db.delete_graph(workspace, graph)
+    return graph

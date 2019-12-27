@@ -1,0 +1,15 @@
+Delete a graph
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+
+responses:
+  200:
+    description: Graph successfully deleted
+    schema:
+      type: string
+      example: graph5
+
+tags:
+  - graph

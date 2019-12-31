@@ -81,6 +81,7 @@
             text
           >
             <item-panel
+              ref="tablePanel"
               title="Tables"
               :items="tables"
               :workspace="workspace"
@@ -91,6 +92,14 @@
                   :workspace="workspace"
                   @success="update"
                   />
+
+                <template v-slot:deleter="deleter">
+                  <delete-table-dialog
+                    :selection="deleter.selection"
+                    :workspace="deleter.workspace"
+                    @deleted="update"
+                    />
+                </template>
             </item-panel>
 
           </v-card>
@@ -106,6 +115,7 @@
             text
           >
             <item-panel
+              ref="graphPanel"
               title="Graphs"
               :items="graphs"
               :workspace="workspace"
@@ -118,6 +128,14 @@
                   :workspace="workspace"
                   @success="update"
                   />
+
+                <template v-slot:deleter="deleter">
+                  <delete-graph-dialog
+                    :selection="deleter.selection"
+                    :workspace="deleter.workspace"
+                    @deleted="update"
+                    />
+                </template>
             </item-panel>
 
           </v-card>
@@ -133,7 +151,9 @@ import Vue from 'vue';
 import api from '@/api';
 import ItemPanel from '@/components/ItemPanel.vue';
 import GraphDialog from '@/components/GraphDialog.vue';
+import DeleteGraphDialog from '@/components/DeleteGraphDialog.vue';
 import TableDialog from '@/components/TableDialog.vue';
+import DeleteTableDialog from '@/components/DeleteTableDialog.vue';
 
 import { FileTypeTable } from '@/types';
 
@@ -142,7 +162,9 @@ export default Vue.extend({
   components: {
     ItemPanel,
     GraphDialog,
+    DeleteGraphDialog,
     TableDialog,
+    DeleteTableDialog,
   },
   props: ['workspace', 'title'],
   data() {
@@ -165,7 +187,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    async update() {
+    async update(this: any) {
       // Get lists of node and edge tables.
       const nodeTables = await api.tables(this.workspace, { type: 'node' });
       const edgeTables = await api.tables(this.workspace, { type: 'edge' });
@@ -176,6 +198,10 @@ export default Vue.extend({
 
       // Get list of graphs.
       this.graphs = await api.graphs(this.workspace);
+
+      // Instruct both ItemPanels to clear their checkbox state.
+      this.$refs.graphPanel.clearCheckboxes();
+      this.$refs.tablePanel.clearCheckboxes();
     },
   },
   created() {

@@ -7,16 +7,22 @@ import sys
 def main():
     """Run main function."""
 
+    with open(sys.argv[1]) as nodes:
+        reader = csv.DictReader(nodes)
+        ids = set(n["_key"] for n in reader)
+
     reader = csv.DictReader(sys.stdin)
     writer = csv.DictWriter(sys.stdout, reader.fieldnames)
 
     writer.writeheader()
     for row in reader:
-        # Prepend the presumed node table name to the from/to columns.
-        row["_from"] = f'airports/{row["_from"]}'
-        row["_to"] = f'airports/{row["_to"]}'
+        # Filter out flights to or from undeclared airports.
+        if row["_from"] in ids and row["_to"] in ids:
+            # Prepend the presumed node table name to the from/to columns.
+            row["_from"] = f'airports/{row["_from"]}'
+            row["_to"] = f'airports/{row["_to"]}'
 
-        writer.writerow(row)
+            writer.writerow(row)
 
     return 0
 

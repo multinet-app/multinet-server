@@ -92,7 +92,6 @@
                   :workspace="workspace"
                   @success="update"
                   />
-
                 <template v-slot:deleter="deleter">
                   <delete-table-dialog
                     :selection="deleter.selection"
@@ -128,7 +127,6 @@
                   :workspace="workspace"
                   @success="update"
                   />
-
                 <template v-slot:deleter="deleter">
                   <delete-graph-dialog
                     :selection="deleter.selection"

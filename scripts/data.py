@@ -2,6 +2,7 @@
 
 import csv
 import click
+from hashlib import md5
 
 from pathlib import Path
 from typing import Tuple, List
@@ -9,7 +10,9 @@ from typing import Tuple, List
 from multinet.db import create_workspace, get_workspace_db, delete_workspace
 from multinet.errors import WorkspaceNotFound
 
-WORKSPACE_NAME = "example_data"
+WORKSPACE_NAME = f"example_data_{md5('test'.encode()).digest().hex()}"
+NODE_TABLE_KEY = "node"
+EDGE_TABLE_KEY = "edge"
 
 
 def determine_table_types(paths) -> Tuple:
@@ -19,11 +22,6 @@ def determine_table_types(paths) -> Tuple:
     The format of the returned tuple is (Node Table, Edge Table).
     If the format of the 2 files isn't relatively consistent, an Exception is thrown.
     """
-
-    if len(paths) != 2:
-        raise Exception(
-            f"Directory {paths[0].parents[1]} must contain exactly 2 csv files."
-        )
 
     def is_edge_table(header: List) -> bool:
         if "_from" in header and "_to" in header:
@@ -35,9 +33,7 @@ def determine_table_types(paths) -> Tuple:
             return True
         return False
 
-    edge_table = None
-    node_table = None
-    conflict = False
+    types = []
 
     for path in paths:
         with path.open(mode="r") as in_file:
@@ -45,26 +41,16 @@ def determine_table_types(paths) -> Tuple:
             columns = header.split(",")
 
             if is_edge_table(columns):
-                if edge_table is not None:
-                    conflict = True
-                else:
-                    edge_table = path
+                types.append(EDGE_TABLE_KEY)
 
             elif is_node_table(columns):
-                if node_table is not None:
-                    conflict = True
-                else:
-                    node_table = path
+                types.append(NODE_TABLE_KEY)
             else:
                 raise Exception(
                     f"Path {path} is neither a node table nor an edge table."
                 )
 
-    if conflict:
-        path_strings = list(map(lambda x: str(x), paths))
-        raise Exception(f"Conflicting headers between files: {path_strings}")
-
-    return (node_table, edge_table)
+    return tuple(types)
 
 
 @click.group()
@@ -83,7 +69,8 @@ def populate():
         print(f'Processing dataset "{dataset_name}"')
 
         files = tuple(path.glob("*.csv"))
-        node_table, edge_table = determine_table_types(files)
+        tables_types = determine_table_types(files)
+        tables = zip(files, tables_types)
 
         try:
             workspace = get_workspace_db(WORKSPACE_NAME)
@@ -91,9 +78,9 @@ def populate():
             create_workspace(WORKSPACE_NAME)
             workspace = get_workspace_db(WORKSPACE_NAME)
 
-        for i, file in enumerate((node_table, edge_table)):
+        for file, table_type in tables:
             table_name = file.stem
-            edge = i == 1
+            edge = table_type == EDGE_TABLE_KEY
 
             with file.open(mode="r") as csv_file:
                 rows = list(csv.DictReader(csv_file))
@@ -103,7 +90,6 @@ def populate():
             else:
                 coll = workspace.create_collection(table_name, edge=edge)
                 inserted = len(coll.insert_many(rows))
-                table_type = "edge" if edge else "node"
 
                 print(
                     f'\tInserted {inserted} rows into {table_type} table "{table_name}"'

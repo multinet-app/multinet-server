@@ -1,10 +1,12 @@
 """Script that populates initial data into the multinet backend."""
 
 import csv
+import click
+
 from pathlib import Path
 from typing import Tuple, List
 
-from multinet.db import create_workspace, get_workspace_db
+from multinet.db import create_workspace, get_workspace_db, delete_workspace
 from multinet.errors import WorkspaceNotFound
 
 WORKSPACE_NAME = "example_data"
@@ -65,7 +67,15 @@ def determine_table_types(paths) -> Tuple:
     return (node_table, edge_table)
 
 
-if __name__ == "__main__":
+@click.group()
+def cli():
+    """Script that helps with bootstrapping example data."""
+    pass
+
+
+@cli.command("populate")
+def populate():
+    """Populate arangodb with example data."""
     data_dir = Path(__file__).absolute().parents[1] / "data"
 
     for path in data_dir.iterdir():
@@ -98,3 +108,13 @@ if __name__ == "__main__":
                 print(
                     f'\tInserted {inserted} rows into {table_type} table "{table_name}"'
                 )
+
+
+@cli.command("clean")
+def clean():
+    """Remove example data."""
+    delete_workspace(WORKSPACE_NAME)
+
+
+if __name__ == "__main__":
+    cli()

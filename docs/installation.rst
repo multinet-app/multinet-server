@@ -10,7 +10,13 @@ Set Up Multinet
        $ git clone https://github.com/multinet-app/multinet
        $ cd multinet
 
-2. Start the Arango database using docker-compose: ::
+2. Copy the default env file: ::
+       $ cp .env.default .env
+
+3. Set the ``ARANGO_DATA`` environment variable, along with any other necessary variables. An example of this would be: ::
+       $ echo ARANGO_DATA=~/.local/multinet/arango >> .env
+
+4. Start the Arango database using docker-compose: ::
 
        $ docker-compose up
 
@@ -24,7 +30,7 @@ Set Up Multinet
 
        $ ARANGO_DATA=~/.local/multinet/arango docker-compose up
 
-3. Inspect the ``.env`` file, which contains a few useful environment variable
+5. Inspect the ``.env`` file, which contains a few useful environment variable
    declarations. The most important one at the moment is ``FLASK_SERVE_PORT``,
    which controls which local port the server will listen on for incoming
    connections. This same variable also controls how the client application
@@ -33,11 +39,11 @@ Set Up Multinet
    If the port listed in this file is not free on your system, edit the value to
    an alternative port number.
 
-4. Use pipenv to create a virtual environment and install the dependencies: ::
+6. Use pipenv to create a virtual environment and install the dependencies: ::
 
        $ pipenv install
 
-5. Install the pre-commit hook: ::
+7. Install the pre-commit hook: ::
 
        $ pipenv run pre-commit install
 
@@ -46,7 +52,7 @@ Set Up Multinet
    fix these manually, or run ``black`` via ``pipenv run format`` to fix them
    automatically.
 
-6. Start the Multinet server: ::
+8. Start the Multinet server: ::
 
        $ pipenv run serve
 

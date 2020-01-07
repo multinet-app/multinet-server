@@ -11,14 +11,16 @@ Set Up Multinet
        $ cd multinet
 
 2. Copy the default env file: ::
+
        $ cp .env.default .env
 
 3. Set the ``ARANGO_DATA`` environment variable, along with any other necessary variables. An example of this would be: ::
+
        $ echo ARANGO_DATA=~/.local/multinet/arango >> .env
 
 4. Start the Arango database using docker-compose: ::
 
-       $ docker-compose up
+       $ docker-compose up -d
 
    NOTE: macOS users may encounter errors in this step regarding filemounts
    denied to the Docker process; to solve this issue, create a data directory
@@ -28,7 +30,7 @@ Set Up Multinet
 
    and then launch the Docker container using::
 
-       $ ARANGO_DATA=~/.local/multinet/arango docker-compose up
+       $ ARANGO_DATA=~/.local/multinet/arango docker-compose up -d
 
 5. Inspect the ``.env`` file, which contains a few useful environment variable
    declarations. The most important one at the moment is ``FLASK_SERVE_PORT``,
@@ -72,7 +74,7 @@ an ``ARANGO_PASSWORD`` environment variable.
 
 To illustrate, if the Step 2 invocation looks like::
 
-    $ ARANGO_PASSWORD=hunter2 docker-compose up
+    $ ARANGO_PASSWORD=hunter2 docker-compose up -d
 
 then the corresponding command to launch the server in Step 5 will look like::
 

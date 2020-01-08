@@ -130,6 +130,11 @@
                   >
                     <v-icon>chevron_left</v-icon>
                   </v-btn>
+
+                  <span class="overline" style="vertical-align: middle;">
+                    {{ currentIncomingPageNumber }} of {{ lastIncomingPageNumber }}
+                  </span>
+
                   <v-btn
                     icon
                     :disabled="!nextIncoming"
@@ -181,6 +186,11 @@
                   >
                     <v-icon>chevron_left</v-icon>
                   </v-btn>
+
+                  <span class="overline" style="vertical-align: middle;">
+                    {{ currentOutgoingPageNumber }} of {{ lastOutgoingPageNumber }}
+                  </span>
+
                   <v-btn
                     icon
                     :disabled="!nextOutgoing"
@@ -257,18 +267,10 @@ export default Vue.extend({
   },
   computed: {
     lastIncomingPage(): number {
-      return (
-        this.totalIncoming % this.pageCount
-          ? Math.floor(this.totalIncoming / this.pageCount)
-          : this.totalIncoming / this.pageCount - 1
-      ) * this.pageCount;
+      return this.computePageNumber(this.totalIncoming) * this.pageCount;
     },
     lastOutgoingPage(): number {
-      return (
-        this.totalOutgoing % this.pageCount
-          ? Math.floor(this.totalOutgoing / this.pageCount)
-          : this.totalOutgoing / this.pageCount - 1
-      ) * this.pageCount;
+      return this.computePageNumber(this.totalOutgoing) * this.pageCount;
     },
     nextIncoming(): boolean {
       return this.lastIncomingPage !== this.offsetIncoming;
@@ -281,6 +283,22 @@ export default Vue.extend({
     },
     prevOutgoing(): boolean {
       return 0 !== this.offsetOutgoing;
+    },
+
+    currentIncomingPageNumber(): number {
+      return this.computePageNumber(this.offsetIncoming) + 1;
+    },
+
+    lastIncomingPageNumber(): number {
+      return this.computePageNumber(this.totalIncoming) + 1;
+    },
+
+    currentOutgoingPageNumber(): number {
+      return this.computePageNumber(this.offsetOutgoing) + 1;
+    },
+
+    lastOutgoingPageNumber(): number {
+      return this.computePageNumber(this.totalOutgoing) + 1;
     },
 
     attributeTable() {
@@ -340,6 +358,10 @@ export default Vue.extend({
       } else if (edgeType === 'outgoing') {
         this.offsetOutgoing = 0;
       }
+    },
+
+    computePageNumber(offset: number) {
+      return Math.floor(offset / this.pageCount);
     },
   },
   watch: {

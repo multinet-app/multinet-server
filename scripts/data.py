@@ -17,10 +17,10 @@ EDGE_TABLE_KEY = "edge"
 
 def determine_table_types(paths) -> Tuple:
     """
-    Given 2 csv file names, determines the edge table and node table.
+    Given several csv file Path objects, determines the edge table and node table.
 
-    The format of the returned tuple is (Node Table, Edge Table).
-    If the format of the 2 files isn't relatively consistent, an Exception is thrown.
+    The returned tuple contains the types of each path (respecting order).
+    If the format of one of the paths isn't consistent an error is thrown.
     """
 
     def is_edge_table(header: List) -> bool:
@@ -100,6 +100,7 @@ def populate():
 def clean():
     """Remove example data."""
     delete_workspace(WORKSPACE_NAME)
+    print(f"Deleted workspace {WORKSPACE_NAME}")
 
 
 if __name__ == "__main__":

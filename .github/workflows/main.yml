@@ -20,6 +20,9 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
 
+      # Copy Env File
+      - run: cp .env.default .env
+
       # Build and test Multinet server.
       - run: pip install pipenv
       - run: pipenv install --dev --deploy
@@ -36,6 +39,7 @@ jobs:
       - run: cd client && yarn lint
       - run: cd client && yarn lint:test
       - run: cd client && yarn test
+      - run: cd client && yarn build
 
       # Build and test Multinet client library.
       - run: cd multinetjs && yarn install

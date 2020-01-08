@@ -14,11 +14,20 @@ Set Up Multinet
 
        $ cp .env.default .env
 
-3. Set the ``ARANGO_DATA`` environment variable, along with any other necessary variables. An example of this would be: ::
+3. Inspect the ``.env`` file, which contains a few useful environment variable
+   declarations. The most important one at the moment is ``FLASK_SERVE_PORT``,
+   which controls which local port the server will listen on for incoming
+   connections. This same variable also controls how the client application
+   proxies API requests so they are routed correctly to the server.
+
+   If the port listed in this file is not free on your system, edit the value to
+   an alternative port number.
+
+4. Set the ``ARANGO_DATA`` environment variable, along with any other necessary variables. An example of this would be: ::
 
        $ echo ARANGO_DATA=~/.local/multinet/arango >> .env
 
-4. Start the Arango database using docker-compose: ::
+5. Start the Arango database using docker-compose: ::
 
        $ docker-compose up -d
 
@@ -31,15 +40,6 @@ Set Up Multinet
    and then launch the Docker container using::
 
        $ ARANGO_DATA=~/.local/multinet/arango docker-compose up -d
-
-5. Inspect the ``.env`` file, which contains a few useful environment variable
-   declarations. The most important one at the moment is ``FLASK_SERVE_PORT``,
-   which controls which local port the server will listen on for incoming
-   connections. This same variable also controls how the client application
-   proxies API requests so they are routed correctly to the server.
-
-   If the port listed in this file is not free on your system, edit the value to
-   an alternative port number.
 
 6. Use pipenv to create a virtual environment and install the dependencies: ::
 

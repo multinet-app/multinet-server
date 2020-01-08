@@ -56,3 +56,6 @@ arango/
 arango-apps/
 server.out
 server.pid
+
+# Environment Variables
+.env

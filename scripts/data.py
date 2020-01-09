@@ -7,6 +7,8 @@ import requests
 from pathlib import Path
 
 
+DATA_DIR = Path(__file__).absolute().parents[1] / "data"
+
 DEFAULT_HOST = os.environ.get("MULTINET_HOST", "localhost")
 DEFAULT_PORT = os.environ.get("MULTINET_PORT", "5000")
 DEFAULT_ADDRESS = f"{DEFAULT_HOST}:{DEFAULT_PORT}"
@@ -44,25 +46,23 @@ def create_workspace(workspace: str) -> bool:
     return False
 
 
-def collection_exists(workspace: str, collection: str) -> bool:
-    """Check if the collection exists."""
-    resp = requests.get(
-        f"{root_api_endpoint()}/workspaces/{workspace}/tables/{collection}"
-    )
+def table_exists(workspace: str, table: str) -> bool:
+    """Check if the table exists."""
+    resp = requests.get(f"{root_api_endpoint()}/workspaces/{workspace}/tables/{table}")
 
     if resp.status_code == 400:
         return True
     return False
 
 
-def create_collection(workspace: str, collection: str, data: str) -> bool:
+def create_table(workspace: str, table: str, data: str) -> bool:
     """
-    Create collection.
+    Create table.
 
     Returns True if successful, False otherwise
     """
     resp = requests.post(
-        f"{root_api_endpoint()}/csv/{workspace}/{collection}", data=data.encode("utf-8")
+        f"{root_api_endpoint()}/csv/{workspace}/{table}", data=data.encode("utf-8")
     )
 
     if resp.ok:
@@ -93,9 +93,7 @@ def populate(address: str):
 
     print(f"Populating data on {server_address}...")
 
-    data_dir = Path(__file__).absolute().parents[1] / "data"
-
-    for path in data_dir.iterdir():
+    for path in DATA_DIR.iterdir():
         dataset_name = path.name
         print(f'Processing dataset "{dataset_name}"')
 
@@ -115,13 +113,13 @@ def populate(address: str):
         for file in files:
             table_name = file.stem
 
-            if collection_exists(dataset_name, table_name):
+            if table_exists(dataset_name, table_name):
                 print(f'\tTable "{table_name}" already exists, skipping...')
             else:
                 with file.open(mode="r") as csv_file:
                     csv_data = csv_file.read()
 
-                if not create_collection(dataset_name, table_name, csv_data):
+                if not create_table(dataset_name, table_name, csv_data):
                     print(f"\tError creating table {table_name}.")
                 else:
                     print(f"\tTable {table_name} created.")
@@ -129,13 +127,6 @@ def populate(address: str):
     script_complete_string = "Data population complete."
     print("-" * len(script_complete_string))
     print(script_complete_string)
-
-
-@cli.command("clean")
-def clean():
-    """Remove example data."""
-    # Determine this part
-    pass
 
 
 if __name__ == "__main__":

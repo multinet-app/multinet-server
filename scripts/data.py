@@ -111,6 +111,11 @@ def create_table(workspace: str, table: str, data: str) -> bool:
     return False
 
 
+def log(text: str, indent: int):
+    """Log to console output."""
+    click.echo(click.wrap_text(text, initial_indent=(indent * " ")))
+
+
 @click.group()
 def cli():
     """Script that helps with bootstrapping example data."""
@@ -122,6 +127,8 @@ def cli():
 def populate(address: str):
     """Populate arangodb with example data."""
     global server_address
+    log_tabstop = 4
+    log_indent = 0
 
     if address is not None:
         address_parts = address.split(":")
@@ -132,23 +139,28 @@ def populate(address: str):
 
         server_address = address
 
-    print(f"Populating data on {server_address}...")
+    log(f"Populating data on {server_address}...", indent=log_indent)
 
     for path in DATA_DIR.iterdir():
         workspace = path.name
-        print(f'Processing dataset "{workspace}"')
+
+        log(f'Processing dataset "{workspace}"', indent=log_indent)
+        log_indent += log_tabstop
 
         files = tuple(path.glob("*.csv"))
 
         try:
             if check_workspace_exists(workspace):
-                print(f'\tWorkspace "{workspace}" already exists, skipping...')
+                log(
+                    f'Workspace "{workspace}" already exists, skipping...',
+                    indent=log_indent,
+                )
                 continue
         except requests.exceptions.ConnectionError:
             raise Exception(f"\tConnection could not be established at {address}")
 
         if not create_workspace(workspace):
-            print(f"\tError creating workspace {workspace}.")
+            log(f"Error creating workspace {workspace}.", indent=log_indent)
             continue
 
         # Create Tables
@@ -156,19 +168,23 @@ def populate(address: str):
             table_name = file.stem
 
             if table_exists(workspace, table_name):
-                print(f'\tTable "{table_name}" already exists, skipping...')
+                log(
+                    f'Table "{table_name}" already exists, skipping...',
+                    indent=log_indent,
+                )
+
             else:
                 with file.open(mode="r") as csv_file:
                     csv_data = csv_file.read()
 
                 if not create_table(workspace, table_name, csv_data):
-                    print(f"\tError creating table {table_name}.")
+                    log(f"Error creating table {table_name}.", indent=log_indent)
                 else:
-                    print(f"\tTable {table_name} created.")
+                    log(f"Table {table_name} created.", indent=log_indent)
 
         # Create Graphs
         edge_tables = get_edge_tables(workspace)
-        print(f"\tGenerating graphs...")
+        log(f"Generating graphs...", indent=log_indent)
 
         for edge_table in edge_tables:
             rows = get_table_rows(workspace, edge_table)
@@ -190,9 +206,10 @@ def populate(address: str):
                 edge_table,
             )
 
+    log_indent -= log_tabstop
     script_complete_string = "Data population complete."
-    print("-" * len(script_complete_string))
-    print(script_complete_string)
+    log("-" * len(script_complete_string), indent=log_indent)
+    log(script_complete_string, indent=log_indent)
 
 
 if __name__ == "__main__":

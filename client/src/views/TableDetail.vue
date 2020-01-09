@@ -65,25 +65,12 @@
         </v-btn>
       </v-app-bar>
       <div class="wrapper">
-        <v-simple-table
-          fixed-header
-          height="calc(100vh - 64px)"
-        >
-          <thead>
-            <tr>
-              <th v-for="head in this.headers" :key="head" class="head">
-                {{head}}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="row-wrap">
-            <tr v-for="(row, index) in rowKeys" :key="row.value" :class="rowClassName(index)">
-              <td v-for="col in row" :key="col.key">
-                {{col.value}}
-              </td>
-            </tr>
-          </tbody>
-        </v-simple-table>
+        <v-data-table
+          class="table-details"
+          :headers="dataTableHeaders"
+          :items="dataTableRows"
+          :items-per-page="15"
+        />
       </div>
     </v-content>
   </v-container>
@@ -105,6 +92,33 @@ export default Vue.extend({
       tables: [] as string[],
       editing: false,
     };
+  },
+  computed: {
+    dataTableHeaders(this: any) {
+      const {
+        headers,
+      } = this;
+
+      return headers.map((header: Array<keyof TableRow>) => ({
+        text: header,
+        value: header,
+      }));
+    },
+
+    dataTableRows() {
+      const result = [] as TableRow[];
+
+      this.rowKeys.forEach((rowKey) => {
+        const obj = {} as TableRow;
+        rowKey.forEach((entry) => {
+          obj[entry.key] = entry.value;
+        });
+
+        result.push(obj);
+      });
+
+      return result;
+    },
   },
   methods: {
     rowClassName(index: number): 'even-row' | 'odd-row' {
@@ -181,24 +195,6 @@ export default Vue.extend({
 table{
   margin:auto;
 }
-th.head{
-  text-transform: uppercase;
-  background-color: #1976d2 !important;
-  color:#fff !important;
-  height: 59px;
-}
-tr.even-row {
-  background-color: #F3F6F6;
-  padding: 10px 10px;
-}
-tr.odd-row {
-  margin:3px;
-  padding: 10px 10px;
-}
-td.col{
-  margin:5px;
-  padding:5px 25px;
-}
 .ws-detail-title {
   align-items: center;
   display: flex;
@@ -222,5 +218,18 @@ td.col{
   font-size: 20px;
   letter-spacing: 2px !important;
   padding-top: 14px;
+}
+
+.table-details table th {
+  background-color: #1976d2 !important;
+  color:#fff !important;
+  height: 59px;
+  white-space: nowrap;
+}
+.table-details table td {
+  white-space: nowrap;
+}
+.table-details table tr:nth-of-type(even) {
+  background-color: #F3F6F6;
 }
 </style>

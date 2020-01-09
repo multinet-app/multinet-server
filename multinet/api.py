@@ -48,8 +48,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
 @swag_from("swagger/table_rows.yaml")
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
     """Retrieve the rows and headers of a table."""
-    rows = db.workspace_table(workspace, table, offset, limit)
-    return util.stream(rows)
+    return db.workspace_table(workspace, table, offset, limit)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])

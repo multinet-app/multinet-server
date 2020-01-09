@@ -187,7 +187,16 @@ def workspace_table(
       RETURN d
     """
 
-    return aql_query(workspace, query)
+    count_query = f"""
+    FOR d in {table}
+        COLLECT WITH COUNT INTO count
+        return count
+    """
+
+    count = aql_query(workspace, count_query)
+    rows = aql_query(workspace, query)
+
+    return {"count": list(count)[0], "rows": list(rows)}
 
 
 @with_client

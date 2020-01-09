@@ -106,6 +106,37 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes`, options);
   }
 
+  public async *nodeStream(workspace: string, graph: string, options: { pagesize?: number } = {}): Generator<{}[], undefined, void> {
+    const pagesize = options.pagesize || 30;
+
+    const probe = await this.nodes(workspace, graph, {
+      offset: 0,
+      limit: 0
+    });
+    const total = probe.count;
+
+    const pages = Math.floor(total / pagesize);
+    const extra = total % pagesize;
+
+    for (let i = 0; i < pages; i++) {
+      const page = await this.nodes(workspace, graph, {
+        offset: pagesize * i,
+        limit: pagesize,
+      });
+
+      yield page;
+    }
+
+    if (extra > 0) {
+      const page = await this.nodes(workspace, graph, {
+        offset: pagesize * pages,
+        limit: extra,
+      });
+
+      yield page;
+    }
+  }
+
   public attributes(workspace: string, graph: string, nodeId: string): Promise<{}> {
     return this.client.get(`workspaces/${workspace}/graphs/${graph}/nodes/${nodeId}/attributes`);
   }

@@ -1,56 +1,73 @@
 """Script that populates initial data into the multinet backend."""
 
-import csv
+import os
 import click
-from hashlib import md5
+import requests
 
 from pathlib import Path
-from typing import Tuple, List
-
-from multinet.db import create_workspace, get_workspace_db, delete_workspace
-from multinet.errors import WorkspaceNotFound
-
-WORKSPACE_NAME = f"example_data_{md5('test'.encode()).digest().hex()}"
-NODE_TABLE_KEY = "node"
-EDGE_TABLE_KEY = "edge"
 
 
-def determine_table_types(paths) -> Tuple:
+DEFAULT_HOST = os.environ.get("MULTINET_HOST", "localhost")
+DEFAULT_PORT = os.environ.get("MULTINET_PORT", "5000")
+DEFAULT_ADDRESS = f"{DEFAULT_HOST}:{DEFAULT_PORT}"
+
+server_address = DEFAULT_ADDRESS
+
+
+def root_api_endpoint() -> str:
+    """Return the shared root api endpoint."""
+    return f"http://{server_address}/api"
+
+
+def check_workspace_exists(workspace: str) -> bool:
+    """Return if the specified workspace exists yet or not."""
+
+    resp = requests.get(f"http://{server_address}/api/workspaces/{workspace}")
+
+    if resp.status_code == 200:
+        return True
+
+    return False
+
+
+def create_workspace(workspace: str) -> bool:
     """
-    Given several csv file Path objects, determines the edge table and node table.
+    Create the workspace.
 
-    The returned tuple contains the types of each path (respecting order).
-    If the format of one of the paths isn't consistent an error is thrown.
+    Returns True if successful, False otherwise
     """
+    resp = requests.post(f"{root_api_endpoint()}/workspaces/{workspace}")
 
-    def is_edge_table(header: List) -> bool:
-        if "_from" in header and "_to" in header:
-            return True
-        return False
+    if resp.ok:
+        return True
 
-    def is_node_table(header: List) -> bool:
-        if "_key" in header:
-            return True
-        return False
+    return False
 
-    types = []
 
-    for path in paths:
-        with path.open(mode="r") as in_file:
-            header = in_file.readline().strip()
-            columns = header.split(",")
+def collection_exists(workspace: str, collection: str) -> bool:
+    """Check if the collection exists."""
+    resp = requests.get(
+        f"{root_api_endpoint()}/workspaces/{workspace}/tables/{collection}"
+    )
 
-            if is_edge_table(columns):
-                types.append(EDGE_TABLE_KEY)
+    if resp.status_code == 400:
+        return True
+    return False
 
-            elif is_node_table(columns):
-                types.append(NODE_TABLE_KEY)
-            else:
-                raise Exception(
-                    f"Path {path} is neither a node table nor an edge table."
-                )
 
-    return tuple(types)
+def create_collection(workspace: str, collection: str, data: str) -> bool:
+    """
+    Create collection.
+
+    Returns True if successful, False otherwise
+    """
+    resp = requests.post(
+        f"{root_api_endpoint()}/csv/{workspace}/{collection}", data=data.encode("utf-8")
+    )
+
+    if resp.ok:
+        return True
+    return False
 
 
 @click.group()
@@ -60,8 +77,22 @@ def cli():
 
 
 @cli.command("populate")
-def populate():
+@click.argument("address", nargs=1, required=False)
+def populate(address: str):
     """Populate arangodb with example data."""
+    global server_address
+
+    if address is not None:
+        address_parts = address.split(":")
+        address_parts = [x for x in address_parts if x]
+
+        if len(address_parts) != 2:
+            raise Exception("Invalid passed address.")
+
+        server_address = address
+
+    print(f"Populating data on {server_address}...")
+
     data_dir = Path(__file__).absolute().parents[1] / "data"
 
     for path in data_dir.iterdir():
@@ -69,38 +100,42 @@ def populate():
         print(f'Processing dataset "{dataset_name}"')
 
         files = tuple(path.glob("*.csv"))
-        tables_types = determine_table_types(files)
-        tables = zip(files, tables_types)
 
         try:
-            workspace = get_workspace_db(WORKSPACE_NAME)
-        except WorkspaceNotFound:
-            create_workspace(WORKSPACE_NAME)
-            workspace = get_workspace_db(WORKSPACE_NAME)
+            if check_workspace_exists(dataset_name):
+                print(f'\tWorkspace "{dataset_name}" already exists, skipping...')
+                continue
+        except requests.exceptions.ConnectionError:
+            raise Exception(f"\tConnection could not be established at {address}")
 
-        for file, table_type in tables:
+        if not create_workspace(dataset_name):
+            print(f"\tError creating workspace {dataset_name}.")
+            continue
+
+        for file in files:
             table_name = file.stem
-            edge = table_type == EDGE_TABLE_KEY
 
-            with file.open(mode="r") as csv_file:
-                rows = list(csv.DictReader(csv_file))
-
-            if workspace.has_collection(table_name):
+            if collection_exists(dataset_name, table_name):
                 print(f'\tTable "{table_name}" already exists, skipping...')
             else:
-                coll = workspace.create_collection(table_name, edge=edge)
-                inserted = len(coll.insert_many(rows))
+                with file.open(mode="r") as csv_file:
+                    csv_data = csv_file.read()
 
-                print(
-                    f'\tInserted {inserted} rows into {table_type} table "{table_name}"'
-                )
+                if not create_collection(dataset_name, table_name, csv_data):
+                    print(f"\tError creating table {table_name}.")
+                else:
+                    print(f"\tTable {table_name} created.")
+
+    script_complete_string = "Data population complete."
+    print("-" * len(script_complete_string))
+    print(script_complete_string)
 
 
 @cli.command("clean")
 def clean():
     """Remove example data."""
-    delete_workspace(WORKSPACE_NAME)
-    print(f"Deleted workspace {WORKSPACE_NAME}")
+    # Determine this part
+    pass
 
 
 if __name__ == "__main__":

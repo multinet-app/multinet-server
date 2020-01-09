@@ -255,7 +255,7 @@ def graph_nodes(
     FOR c in [{", ".join(node_tables)}]
       FOR d in c
         LIMIT {offset}, {limit}
-        RETURN d._id
+        RETURN d
     """
     nodes = aql_query(workspace, node_query, arango=arango)
 

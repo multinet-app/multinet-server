@@ -1,5 +1,10 @@
 import { Client } from './client';
 
+export interface TableRow {
+  _key: string;
+  _id: string;
+}
+
 export interface GraphSpec {
   edgeTable: string;
   nodeTables: string[];
@@ -7,7 +12,7 @@ export interface GraphSpec {
 
 export interface NodesSpec {
   count: number;
-  nodes: string[];
+  nodes: TableRow[];
 }
 
 export interface Edge {

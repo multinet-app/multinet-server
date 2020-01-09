@@ -3,8 +3,10 @@
 import os
 import click
 import requests
+import json
 
 from pathlib import Path
+from typing import List
 
 
 DATA_DIR = Path(__file__).absolute().parents[1] / "data"
@@ -21,12 +23,36 @@ def root_api_endpoint() -> str:
     return f"http://{server_address}/api"
 
 
+def get_edge_tables(workspace: str) -> List[str]:
+    """Return the edge tables for a given workspace."""
+    resp = requests.get(
+        f"{root_api_endpoint()}/workspaces/{workspace}/tables?type=edge"
+    )
+
+    if resp.ok:
+        tables = json.loads(resp.text)
+        return tables
+
+    return []
+
+
+def get_table_rows(workspace: str, table: str) -> List:
+    """Return the rows of a table."""
+    resp = requests.get(f"{root_api_endpoint()}/workspaces/{workspace}/tables/{table}")
+
+    if resp.ok:
+        rows = json.loads(resp.text)
+        return rows
+
+    return []
+
+
 def check_workspace_exists(workspace: str) -> bool:
     """Return if the specified workspace exists yet or not."""
 
-    resp = requests.get(f"http://{server_address}/api/workspaces/{workspace}")
+    resp = requests.get(f"{root_api_endpoint()}/workspaces/{workspace}")
 
-    if resp.status_code == 200:
+    if resp.ok:
         return True
 
     return False
@@ -39,6 +65,21 @@ def create_workspace(workspace: str) -> bool:
     Returns True if successful, False otherwise
     """
     resp = requests.post(f"{root_api_endpoint()}/workspaces/{workspace}")
+
+    if resp.ok:
+        return True
+
+    return False
+
+
+def create_graph(
+    workspace: str, graph_name: str, node_tables: List[str], edge_table: str
+) -> bool:
+    """Create a graph."""
+    resp = requests.post(
+        f"{root_api_endpoint()}/workspaces/{workspace}/graphs/{graph_name}",
+        params={"node_tables": node_tables, "edge_table": edge_table},
+    )
 
     if resp.ok:
         return True
@@ -94,35 +135,60 @@ def populate(address: str):
     print(f"Populating data on {server_address}...")
 
     for path in DATA_DIR.iterdir():
-        dataset_name = path.name
-        print(f'Processing dataset "{dataset_name}"')
+        workspace = path.name
+        print(f'Processing dataset "{workspace}"')
 
         files = tuple(path.glob("*.csv"))
 
         try:
-            if check_workspace_exists(dataset_name):
-                print(f'\tWorkspace "{dataset_name}" already exists, skipping...')
+            if check_workspace_exists(workspace):
+                print(f'\tWorkspace "{workspace}" already exists, skipping...')
                 continue
         except requests.exceptions.ConnectionError:
             raise Exception(f"\tConnection could not be established at {address}")
 
-        if not create_workspace(dataset_name):
-            print(f"\tError creating workspace {dataset_name}.")
+        if not create_workspace(workspace):
+            print(f"\tError creating workspace {workspace}.")
             continue
 
+        # Create Tables
         for file in files:
             table_name = file.stem
 
-            if table_exists(dataset_name, table_name):
+            if table_exists(workspace, table_name):
                 print(f'\tTable "{table_name}" already exists, skipping...')
             else:
                 with file.open(mode="r") as csv_file:
                     csv_data = csv_file.read()
 
-                if not create_table(dataset_name, table_name, csv_data):
+                if not create_table(workspace, table_name, csv_data):
                     print(f"\tError creating table {table_name}.")
                 else:
                     print(f"\tTable {table_name} created.")
+
+        # Create Graphs
+        edge_tables = get_edge_tables(workspace)
+        print(f"\tGenerating graphs...")
+
+        for edge_table in edge_tables:
+            rows = get_table_rows(workspace, edge_table)
+            rows = [
+                {k: v for k, v in row.items() if k == "_from" or k == "_to"}
+                for row in rows
+            ]
+
+            associated_node_tables = set()
+
+            for row in rows:
+                associated_node_tables.add(row["_from"].split("/")[0])
+                associated_node_tables.add(row["_to"].split("/")[0])
+
+            create_graph(
+                workspace,
+                f"{'-'.join([edge_table, *associated_node_tables])}",
+                list(associated_node_tables),
+                edge_table,
+            )
 
     script_complete_string = "Data population complete."
     print("-" * len(script_complete_string))

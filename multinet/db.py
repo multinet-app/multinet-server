@@ -177,7 +177,7 @@ def workspace_tables(
 @with_client
 def workspace_table(
     workspace: str, table: str, offset: int, limit: int, arango: ArangoClient
-) -> Generator[dict, None, None]:
+) -> dict:
     """Return a specific table named `name` in workspace `workspace`."""
     get_table_collection(workspace, table, arango=arango)
 
@@ -187,7 +187,16 @@ def workspace_table(
       RETURN d
     """
 
-    return aql_query(workspace, query)
+    count_query = f"""
+    FOR d in {table}
+        COLLECT WITH COUNT INTO count
+        return count
+    """
+
+    count = aql_query(workspace, count_query)
+    rows = aql_query(workspace, query)
+
+    return {"count": list(count)[0], "rows": list(rows)}
 
 
 @with_client

@@ -177,7 +177,7 @@ def workspace_tables(
 @with_client
 def workspace_table(
     workspace: str, table: str, offset: int, limit: int, arango: ArangoClient
-) -> Generator[dict, None, None]:
+) -> dict:
     """Return a specific table named `name` in workspace `workspace`."""
     get_table_collection(workspace, table, arango=arango)
 

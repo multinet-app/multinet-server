@@ -1,6 +1,7 @@
 """Low-level database operations."""
 import os
 
+from itertools import chain
 from arango import ArangoClient
 from arango.database import StandardDatabase, StandardCollection
 from arango.exceptions import DatabaseCreateError
@@ -19,6 +20,8 @@ from .errors import (
     InvalidName,
     AlreadyExists,
 )
+
+from .util import get_edge_table_properties
 
 
 # Type definitions.
@@ -307,21 +310,44 @@ def aql_query(
 def create_graph(
     workspace: str,
     graph: str,
-    node_tables: List[str],
     edge_table: str,
     arango: ArangoClient,
+    from_vertex_collections: Optional[str] = None,
+    to_vertex_collections: Optional[str] = None,
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     space = db(workspace, arango=arango)
     if space.has_graph(graph):
         return False
     else:
-        g = space.create_graph(graph)
-        g.create_edge_definition(
-            edge_collection=edge_table,
-            from_vertex_collections=node_tables,
-            to_vertex_collections=node_tables,
+        if not from_vertex_collections or not to_vertex_collections:
+            _, (
+                from_vertex_collections,
+                to_vertex_collections,
+            ) = get_edge_table_properties(workspace, edge_table)
+
+        new_edge_def = {
+            "edge_collection": edge_table,
+            "from_vertex_collections": from_vertex_collections,
+            "to_vertex_collections": to_vertex_collections,
+        }
+
+        edge_defs = list(
+            chain.from_iterable([g["edge_definitions"] for g in space.graphs()])
         )
+        conflicts = [
+            e_def
+            for e_def in edge_defs
+            if e_def["edge_collection"] == edge_table and e_def != new_edge_def
+        ]
+
+        if conflicts:
+            # THIS SHOULDN'T HAPPEN
+            # TODO: Add error
+            return False
+
+        g = space.create_graph(graph)
+        g.create_edge_definition(**new_edge_def)
 
         return True
 

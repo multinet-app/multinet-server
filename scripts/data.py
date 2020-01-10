@@ -135,7 +135,7 @@ def populate(address: str):
         address_parts = [x for x in address_parts if x]
 
         if len(address_parts) != 2:
-            raise Exception("Invalid passed address.")
+            raise Exception("Address must be of the form HOSTNAME:PORT")
 
         server_address = address
 

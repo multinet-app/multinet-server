@@ -150,11 +150,13 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 
+    edge_table_properties = util.get_edge_table_properties(workspace, edge_table)
+    node_tables = edge_table_properties["table_keys"]
+    from_tables = edge_table_properties["from_tables"]
+    to_tables = edge_table_properties["to_tables"]
+
     errors = []
-    node_tables, (from_tables, to_tables) = util.get_edge_table_properties(
-        workspace, edge_table
-    )
-    for table, keys in node_tables:
+    for table, keys in node_tables.items():
         if not loaded_workspace.has_collection(table):
             errors.append(f"Reference to undefined table: {table}")
         else:

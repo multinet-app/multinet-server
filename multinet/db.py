@@ -7,7 +7,7 @@ from arango.database import StandardDatabase, StandardCollection
 from arango.exceptions import DatabaseCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Callable, Any, Optional, Sequence, List, Generator, Tuple
+from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
 from mypy_extensions import TypedDict
 from .types import EdgeDirection, TableType
 
@@ -312,8 +312,8 @@ def create_graph(
     graph: str,
     edge_table: str,
     arango: ArangoClient,
-    from_vertex_collections: Optional[str] = None,
-    to_vertex_collections: Optional[str] = None,
+    from_vertex_collections: Optional[Set[str]] = None,
+    to_vertex_collections: Optional[Set[str]] = None,
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     space = db(workspace, arango=arango)
@@ -321,15 +321,17 @@ def create_graph(
         return False
     else:
         if not from_vertex_collections or not to_vertex_collections:
-            _, (
-                from_vertex_collections,
-                to_vertex_collections,
-            ) = get_edge_table_properties(workspace, edge_table)
+            properties = get_edge_table_properties(workspace, edge_table)
+            _from_vertex_collections: Set[str] = properties["from_tables"]
+            _to_vertex_collections: Set[str] = properties["to_tables"]
+        else:
+            _from_vertex_collections = from_vertex_collections
+            _to_vertex_collections = to_vertex_collections
 
         new_edge_def = {
             "edge_collection": edge_table,
-            "from_vertex_collections": from_vertex_collections,
-            "to_vertex_collections": to_vertex_collections,
+            "from_vertex_collections": list(_from_vertex_collections),
+            "to_vertex_collections": list(_to_vertex_collections),
         }
 
         edge_defs = list(
@@ -344,6 +346,7 @@ def create_graph(
         if conflicts:
             # THIS SHOULDN'T HAPPEN
             # TODO: Add error
+            print("CONFLICTING EDGE DEFINITIONS:", conflicts)
             return False
 
         g = space.create_graph(graph)

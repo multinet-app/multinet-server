@@ -4,18 +4,16 @@ import os
 
 from flask import Response
 
-from typing import Sequence, Any, Generator, Tuple, List, Set
+from typing import Sequence, Any, Generator
 
 from . import db
 from .errors import DatabaseNotLive, DecodeFailed
+from .types import EdgeTableProperties
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 
 
-# TODO: Replace Tuple structure with a TypedDict
-def get_edge_table_properties(
-    workspace: str, edge_table: str
-) -> Tuple[List[Tuple[str, Set[str]]], Tuple[List[str], List[str]]]:
+def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTableProperties:
     """Return extracted information about an edge table."""
 
     loaded_workspace = db.db(workspace)
@@ -36,8 +34,7 @@ def get_edge_table_properties(
             else:
                 tables_to_keys[table] = {key}
 
-    mapping_list = [(table, tables_to_keys[table]) for table in tables_to_keys.keys()]
-    return (mapping_list, (list(from_tables), list(to_tables)))
+    return dict(table_keys=tables_to_keys, from_tables=from_tables, to_tables=to_tables)
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:

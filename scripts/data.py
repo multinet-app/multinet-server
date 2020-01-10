@@ -91,7 +91,7 @@ def table_exists(workspace: str, table: str) -> bool:
     """Check if the table exists."""
     resp = requests.get(f"{root_api_endpoint()}/workspaces/{workspace}/tables/{table}")
 
-    if resp.status_code == 400:
+    if resp.status_code == 200:
         return True
     return False
 
@@ -111,9 +111,17 @@ def create_table(workspace: str, table: str, data: str) -> bool:
     return False
 
 
-def log(text: str, indent: int):
+def log(text: str, indent: int, error=False, success=False):
     """Log to console output."""
-    click.echo(click.wrap_text(text, initial_indent=(indent * " ")))
+
+    fg = None
+    if error:
+        fg = "red"
+    elif success:
+        fg = "green"
+
+    text = click.wrap_text(text, initial_indent=(indent * " "))
+    click.echo(click.style(text, fg=fg))
 
 
 @click.group()
@@ -169,10 +177,13 @@ def populate(address: str):
 
             if table_exists(workspace, table_name):
                 log(
-                    f'Table "{table_name}" already exists, skipping...',
+                    f'FATAL: Table "{table_name}" already exists '
+                    "in newly created workspace.",
                     indent=log_indent,
+                    error=True,
                 )
-
+                log("Exiting...", indent=log_indent, error=True)
+                exit(1)
             else:
                 with file.open(mode="r") as csv_file:
                     csv_data = csv_file.read()
@@ -209,7 +220,7 @@ def populate(address: str):
     log_indent -= log_tabstop
     script_complete_string = "Data population complete."
     log("-" * len(script_complete_string), indent=log_indent)
-    log(script_complete_string, indent=log_indent)
+    log(script_complete_string, indent=log_indent, success=True)
 
 
 if __name__ == "__main__":

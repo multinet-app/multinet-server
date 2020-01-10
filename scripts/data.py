@@ -210,12 +210,7 @@ def populate(address: str):
                 associated_node_tables.add(row["_from"].split("/")[0])
                 associated_node_tables.add(row["_to"].split("/")[0])
 
-            create_graph(
-                workspace,
-                f"{'-'.join([edge_table, *associated_node_tables])}",
-                list(associated_node_tables),
-                edge_table,
-            )
+            create_graph(workspace, workspace, list(associated_node_tables), edge_table)
 
     log_indent -= log_tabstop
     script_complete_string = "Data population complete."

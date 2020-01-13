@@ -5,7 +5,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
-from .types import EdgeDirection, TableType
+from .types import EdgeDirection, TableType, ValidatonFailedError
 
 from . import db, util
 from .errors import (
@@ -167,9 +167,9 @@ def create_graph(
     edges = loaded_workspace.collection(edge_table).all()
 
     # Iterate through each edge and check for undefined tables
-    errors = []
+    errors: List[ValidatonFailedError] = []
     valid_tables: Dict[str, Set[str]] = dict()
-    invalid_tables = set()
+    invalid_tables: Set[str] = set()
     for edge in edges:
         nodes = (edge["_from"].split("/"), edge["_to"].split("/"))
 
@@ -182,8 +182,9 @@ def create_graph(
                 valid_tables[table] = {key}
 
     if invalid_tables:
-        for table in invalid_tables:
-            errors.append(f"Reference to undefined table: {table}")
+        errors.append(
+            {"type": "graph_creation_undefined_tables", "body": list(invalid_tables)}
+        )
 
     # Iterate through each node table and check for nonexistent keys
     for table in valid_tables:
@@ -194,11 +195,12 @@ def create_graph(
 
         if len(nonexistent_keys) > 0:
             errors.append(
-                f"Nonexistent keys {', '.join(nonexistent_keys)} "
-                f"referenced in table: {table}"
+                {
+                    "type": "graph_creation_undefined_keys",
+                    "body": {"table": table, "keys": list(nonexistent_keys)},
+                }
             )
 
-    # TODO: Update this with the proper JSON schema
     if errors:
         raise ValidationFailed(errors)
 

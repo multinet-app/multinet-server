@@ -1,7 +1,7 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
 
 from typing import Tuple, Any, Union, List
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]

@@ -1,0 +1,84 @@
+{
+    "errors": [
+        // Graph creation
+        {
+            "type": "graph_creation_undefined_tables",
+            "body": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        {
+            "type": "graph_creation_undefined_keys",
+            "body": {
+                "table": "blah",
+                "keys": [
+                    "1",
+                    "2",
+                    "3"
+                ]
+            }
+        },
+
+        // CSV
+        {
+            "type": "csv_duplicate_keys",
+            "body": [
+                "1",
+                "2",
+                "3"
+            ]
+        },
+        {
+            "type": "csv_invalid_syntax",
+            "body": [
+                {
+                    "row": 10,
+                    "field": "_from"
+                },
+                {
+                    "row": 20,
+                    "field": "_to"
+                }
+            ]
+        },
+        {
+            "type": "csv_unsupported_table"
+        },
+
+        // D3 JSON
+        {
+            "type": "d3_invalid_structure"
+        },
+        {
+            "type": "d3_invalid_link_keys"
+        },
+        {
+            "type": "d3_inconsistent_link_keys"
+        },
+        {
+            "type": "d3_node_duplicates"
+        },
+
+        // Newick
+        {
+            "type": "newick_duplicate_keys",
+            "body": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        {
+            "type": "newick_duplicate_edges",
+            "body": [
+                {
+                    "_from": "table/12",
+                    "_to": "table/20",
+                    "length": 5
+                }
+            ]
+        }
+    ]
+}

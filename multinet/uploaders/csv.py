@@ -7,12 +7,13 @@ import re
 from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
+from ..types import ValidatonFailedError, CSVInvalidSyntax
 
 from flask import Blueprint, request
 from flask import current_app as app
 
 # Import types
-from typing import Set, MutableMapping, Sequence, Any
+from typing import Set, MutableMapping, Sequence, Any, List
 
 
 bp = Blueprint("csv", __name__)
@@ -21,7 +22,7 @@ bp.before_request(util.require_db)
 
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
-    data_errors = []
+    data_errors: List[ValidatonFailedError] = []
 
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
@@ -36,15 +37,16 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
                 unique_keys.add(key)
 
         if len(duplicates) > 0:
-            data_errors.append({"error": "duplicate", "detail": list(duplicates)})
+            data_errors.append({"type": "csv_duplicate_keys", "body": list(duplicates)})
+
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
         valid_cell = re.compile("[^/]+/[^/]+")
 
-        detail = []
+        invalid_syntax_errors: List[CSVInvalidSyntax] = []
 
         for i, row in enumerate(rows):
-            fields = []
+            fields: List[str] = []
             if not valid_cell.match(row["_from"]):
                 fields.append("_from")
             if not valid_cell.match(row["_to"]):
@@ -52,13 +54,15 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                detail.append({"fields": fields, "row": i + 2})
+                invalid_syntax_errors.append({"fields": fields, "row": i + 2})
 
-        if detail:
-            data_errors.append({"error": "syntax", "detail": detail})
+        if invalid_syntax_errors:
+            data_errors.append(
+                {"type": "csv_invalid_syntax", "body": invalid_syntax_errors}
+            )
     else:
         # Unsupported Table, error since we don't know what's coming in
-        data_errors.append({"error": "unsupported"})
+        data_errors.append({"type": "csv_unsupported_table"})
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

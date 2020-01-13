@@ -148,7 +148,12 @@ def cli():
 @cli.command("populate")
 @click.argument("address", nargs=1, required=False)
 def populate(address: str):
-    """Populate arangodb with example data."""
+    """
+    Populate the multinet instance with example data.
+
+    If the server address is not provided as a command argument, this script checks the
+    MULTINET_HOST and MULTINET_PORT environment variables, defaulting to localhost:5000.
+    """
     global server_address
     log_tabstop = 4
     log_indent = 0

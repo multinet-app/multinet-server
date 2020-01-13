@@ -4,7 +4,7 @@ import os
 
 from flask import Response
 
-from typing import Sequence, Any, Generator
+from typing import Sequence, Any, Generator, Dict, Set
 
 from . import db
 from .errors import DatabaseNotLive, DecodeFailed
@@ -19,7 +19,7 @@ def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTablePrope
     loaded_workspace = db.db(workspace)
     edges = list(loaded_workspace.collection(edge_table).all())
 
-    tables_to_keys = {}
+    tables_to_keys: Dict[str, Set] = {}
     from_tables = set()
     to_tables = set()
 

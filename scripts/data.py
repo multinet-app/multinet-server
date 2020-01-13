@@ -23,6 +23,15 @@ def root_api_endpoint() -> str:
     return f"http://{server_address}/api"
 
 
+def check_server_connection() -> bool:
+    """Check if the server is running."""
+    try:
+        requests.get(f"{root_api_endpoint()}/workspaces")
+        return True
+    except requests.exceptions.ConnectionError:
+        return False
+
+
 def get_edge_tables(workspace: str) -> List[str]:
     """Return the edge tables for a given workspace."""
     resp = requests.get(
@@ -111,7 +120,7 @@ def create_table(workspace: str, table: str, data: str) -> bool:
     return False
 
 
-def log(text: str, indent: int, error=False, success=False):
+def log(text: str, indent: int = 0, error=False, success=False):
     """Log to console output."""
 
     fg = None
@@ -122,6 +131,12 @@ def log(text: str, indent: int, error=False, success=False):
 
     text = click.wrap_text(text, initial_indent=(indent * " "))
     click.echo(click.style(text, fg=fg))
+
+
+def fatal(text: str, indent: int = 0):
+    """Log and immediately exit."""
+    log(text, indent, error=True)
+    exit(1)
 
 
 @click.group()
@@ -147,6 +162,9 @@ def populate(address: str):
 
         server_address = address
 
+    if not check_server_connection():
+        fatal(f"Could not establish connection at {server_address}.", indent=log_indent)
+
     log(f"Populating data on {server_address}...", indent=log_indent)
 
     for path in DATA_DIR.iterdir():
@@ -157,15 +175,12 @@ def populate(address: str):
 
         files = tuple(path.glob("*.csv"))
 
-        try:
-            if check_workspace_exists(workspace):
-                log(
-                    f'Workspace "{workspace}" already exists, skipping...',
-                    indent=log_indent,
-                )
-                continue
-        except requests.exceptions.ConnectionError:
-            raise Exception(f"\tConnection could not be established at {address}")
+        if check_workspace_exists(workspace):
+            log(
+                f'Workspace "{workspace}" already exists, skipping...',
+                indent=log_indent,
+            )
+            continue
 
         if not create_workspace(workspace):
             log(f"Error creating workspace {workspace}.", indent=log_indent)
@@ -176,14 +191,11 @@ def populate(address: str):
             table_name = file.stem
 
             if table_exists(workspace, table_name):
-                log(
+                fatal(
                     f'FATAL: Table "{table_name}" already exists '
                     "in newly created workspace.",
                     indent=log_indent,
-                    error=True,
                 )
-                log("Exiting...", indent=log_indent, error=True)
-                exit(1)
             else:
                 with file.open(mode="r") as csv_file:
                     csv_data = csv_file.read()

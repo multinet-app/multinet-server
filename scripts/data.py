@@ -23,13 +23,15 @@ def root_api_endpoint() -> str:
     return f"http://{server_address}/api"
 
 
-def check_server_connection() -> bool:
+def check_server_connection() -> None:
     """Check if the server is running."""
     try:
         requests.get(f"{root_api_endpoint()}/workspaces")
-        return True
+        return
     except requests.exceptions.ConnectionError:
-        return False
+        fatal(f"Could not establish connection at {server_address}.")
+    except requests.exceptions.InvalidURL:
+        fatal(f"Invalid address {server_address}.")
 
 
 def get_edge_tables(workspace: str) -> List[str]:
@@ -159,16 +161,9 @@ def populate(address: str):
     log_indent = 0
 
     if address is not None:
-        address_parts = address.split(":")
-        address_parts = [x for x in address_parts if x]
-
-        if len(address_parts) != 2:
-            raise Exception("Address must be of the form HOSTNAME:PORT")
-
         server_address = address
 
-    if not check_server_connection():
-        fatal(f"Could not establish connection at {server_address}.", indent=log_indent)
+    check_server_connection()
 
     log(f"Populating data on {server_address}...", indent=log_indent)
 

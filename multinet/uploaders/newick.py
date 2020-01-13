@@ -10,7 +10,7 @@ from ..util import decode_data
 from flask import Blueprint, request
 from flask import current_app as app
 
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Dict, Set, FrozenSet, Tuple
 
 bp = Blueprint("newick", __name__)
 bp.before_request(util.require_db)
@@ -19,41 +19,45 @@ bp.before_request(util.require_db)
 def validate_newick(tree: List[newick.Node]) -> None:
     """Validate newick tree."""
     data_errors: List[Dict[str, Any]] = []
-    unique_keys: List[str] = []
-    duplicate_keys: List[str] = []
-    unique_edges: List[dict] = []
-    duplicate_edges: List[dict] = []
+    unique_keys: Set[str] = set()
+    duplicate_keys: Set[str] = set()
+    unique_edges: Set[FrozenSet[Tuple[str, object]]] = set()
+    duplicate_edges: Set[FrozenSet[Tuple[str, object]]] = set()
 
     def read_tree(parent: Optional[str], node: newick.Node) -> None:
         key = node.name or uuid.uuid4().hex
 
-        if key not in unique_keys:
-            unique_keys.append(key)
-        elif key not in duplicate_keys:
-            duplicate_keys.append(key)
+        if key in unique_keys:
+            duplicate_keys.add(key)
+        else:
+            unique_keys.add(key)
 
         for desc in node.descendants:
             read_tree(key, desc)
 
         if parent:
-            edge = {
-                "_from": "table/%s" % (parent),
-                "_to": "table/%s" % (key),
-                "length": node.length,
-            }
+            edge = frozenset(
+                {
+                    "_from": f"table/{parent}",
+                    "_to": f"table/{key}",
+                    "length": node.length,
+                }.items()
+            )
 
-            if edge not in unique_edges:
-                unique_edges.append(edge)
-            elif edge not in duplicate_edges:
-                duplicate_edges.append(edge)
+            if edge in unique_edges:
+                duplicate_edges.add(edge)
+            else:
+                unique_edges.add(edge)
 
     read_tree(None, tree[0])
 
     if len(duplicate_keys) > 0:
-        data_errors.append({"error": "duplicate", "detail": duplicate_keys})
+        data_errors.append({"error": "duplicate", "detail": list(duplicate_keys)})
 
     if len(duplicate_edges) > 0:
-        data_errors.append({"error": "duplicate", "detail": duplicate_edges})
+        data_errors.append(
+            {"error": "duplicate", "detail": [dict(x) for x in duplicate_edges]}
+        )
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

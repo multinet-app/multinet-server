@@ -6,6 +6,7 @@ import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
 from multinet.uploaders.csv import validate_csv, decode_data
+from multinet.types import BasicError
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
@@ -30,10 +31,9 @@ def test_validate_csv():
         validate_csv(rows)
 
     validation_resp = v_error.value.errors[0]
-    assert "error" in validation_resp
-    duplicate_keys = validation_resp["detail"]
-    assert "5" in duplicate_keys
-    assert "2" in duplicate_keys
+    correct = BasicError(type="csv_duplicate_keys", body=["2", "5"])
+    assert validation_resp["type"] == correct["type"]
+    assert sorted(validation_resp["body"]) == sorted(correct["body"])
 
     # Test invalid syntax
     with open(invalid_headers_file_path) as test_file:
@@ -44,8 +44,7 @@ def test_validate_csv():
         validate_csv(rows)
 
     validation_resp = v_error.value.errors[0]
-    invalid_rows = [x["row"] for x in validation_resp["detail"]]
-    assert "error" in validation_resp
+    invalid_rows = [x["row"] for x in validation_resp["body"]]
     assert 3 in invalid_rows
     assert 4 in invalid_rows
     assert 5 in invalid_rows

@@ -81,25 +81,26 @@ test('multinet test', async (t) => {
 
   try {
     let members = await api.table(newWorkspace, 'members');
-    t.equal(members.length, 30, 'asking for table yields 30 items');
+    t.equal(members.count, 254, 'table reports 254 items');
+    t.equal(members.rows.length, 30, 'asking for table yields 30 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 50,
     });
-    t.equal(members.length, 50, 'asking table for 50 items yields 50 items');
+    t.equal(members.rows.length, 50, 'asking table for 50 items yields 50 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 254,
     });
-    t.equal(members.length, 254, 'asking table for all items yields 254 items');
+    t.equal(members.rows.length, 254, 'asking table for all items yields 254 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 300,
     });
-    t.equal(members.length, 254, 'asking table for more than 254 items yields 254 items');
+    t.equal(members.rows.length, 254, 'asking table for more than 254 items yields 254 items');
   } catch(e) {
     t.fail(failMessage(`api.table("${newWorkspace}", "members")`, e));
   }

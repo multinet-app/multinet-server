@@ -62,7 +62,7 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                invalid_syntax_errors.append({"fields": fields, "row": i + 2})
+                invalid_syntax_errors.append(CSVInvalidRow(fields=fields, row=i + 2))
 
         if invalid_syntax_errors:
             data_errors.append(

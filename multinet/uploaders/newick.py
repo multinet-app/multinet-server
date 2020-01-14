@@ -6,7 +6,12 @@ import newick
 from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
-from ..types import ValidatonFailedError, NewickDuplicateEdge
+from ..types import (
+    ValidationFailedError,
+    NewickDuplicateEdges,
+    NewickDuplicateEdge,
+    BasicError,
+)
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -19,7 +24,7 @@ bp.before_request(util.require_db)
 
 def validate_newick(tree: List[newick.Node]) -> None:
     """Validate newick tree."""
-    data_errors: List[ValidatonFailedError] = []
+    data_errors: List[ValidationFailedError] = []
     unique_keys: Set[str] = set()
     duplicate_keys: Set[str] = set()
     unique_edges: Set[FrozenSet[Tuple[str, object]]] = set()
@@ -54,18 +59,18 @@ def validate_newick(tree: List[newick.Node]) -> None:
 
     if len(duplicate_keys) > 0:
         data_errors.append(
-            {"type": "newick_duplicate_keys", "body": list(duplicate_keys)}
+            BasicError(type="newick_duplicate_keys", body=list(duplicate_keys))
         )
 
     if len(duplicate_edges) > 0:
         # TODO: Fix mypy complaints on line below
         data_errors.append(
-            {
-                "type": "newick_duplicate_edges",
-                "body": [
+            NewickDuplicateEdges(
+                type="newick_duplicate_edges",
+                body=[
                     NewickDuplicateEdge(x) for x in duplicate_edges  # type: ignore
                 ],
-            }
+            )
         )
 
     if len(data_errors) > 0:

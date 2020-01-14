@@ -5,7 +5,13 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
-from .types import EdgeDirection, TableType, ValidatonFailedError
+from .types import (
+    EdgeDirection,
+    TableType,
+    ValidationFailedError,
+    BasicError,
+    GraphUndefinedKeys,
+)
 
 from . import db, util
 from .errors import (
@@ -167,7 +173,7 @@ def create_graph(
     edges = loaded_workspace.collection(edge_table).all()
 
     # Iterate through each edge and check for undefined tables
-    errors: List[ValidatonFailedError] = []
+    errors: List[ValidationFailedError] = []
     valid_tables: Dict[str, Set[str]] = dict()
     invalid_tables: Set[str] = set()
     for edge in edges:
@@ -183,7 +189,9 @@ def create_graph(
 
     if invalid_tables:
         errors.append(
-            {"type": "graph_creation_undefined_tables", "body": list(invalid_tables)}
+            BasicError(
+                type="graph_creation_undefined_tables", body=list(invalid_tables)
+            )
         )
 
     # Iterate through each node table and check for nonexistent keys
@@ -195,10 +203,10 @@ def create_graph(
 
         if len(nonexistent_keys) > 0:
             errors.append(
-                {
-                    "type": "graph_creation_undefined_keys",
-                    "body": {"table": table, "keys": list(nonexistent_keys)},
-                }
+                GraphUndefinedKeys(
+                    type="graph_creation_undefined_keys",
+                    body={"table": table, "keys": list(nonexistent_keys)},
+                )
             )
 
     if errors:

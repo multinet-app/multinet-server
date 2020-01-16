@@ -1,10 +1,9 @@
 """Low-level database operations."""
 import os
 
-from itertools import chain
 from arango import ArangoClient
 from arango.database import StandardDatabase, StandardCollection
-from arango.exceptions import DatabaseCreateError
+from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
 from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
@@ -19,6 +18,7 @@ from .errors import (
     NodeNotFound,
     InvalidName,
     AlreadyExists,
+    GraphCreationError,
 )
 
 from .util import get_edge_table_properties
@@ -319,40 +319,30 @@ def create_graph(
     space = db(workspace, arango=arango)
     if space.has_graph(graph):
         return False
+
+    if not from_vertex_collections or not to_vertex_collections:
+        properties = get_edge_table_properties(workspace, edge_table)
+        _from_vertex_collections: Set[str] = properties["from_tables"]
+        _to_vertex_collections: Set[str] = properties["to_tables"]
     else:
-        if not from_vertex_collections or not to_vertex_collections:
-            properties = get_edge_table_properties(workspace, edge_table)
-            _from_vertex_collections: Set[str] = properties["from_tables"]
-            _to_vertex_collections: Set[str] = properties["to_tables"]
-        else:
-            _from_vertex_collections = from_vertex_collections
-            _to_vertex_collections = to_vertex_collections
+        _from_vertex_collections = from_vertex_collections
+        _to_vertex_collections = to_vertex_collections
 
-        new_edge_def = {
-            "edge_collection": edge_table,
-            "from_vertex_collections": list(_from_vertex_collections),
-            "to_vertex_collections": list(_to_vertex_collections),
-        }
-
-        edge_defs = list(
-            chain.from_iterable([g["edge_definitions"] for g in space.graphs()])
+    try:
+        space.create_graph(
+            graph,
+            edge_definitions=[
+                {
+                    "edge_collection": edge_table,
+                    "from_vertex_collections": list(_from_vertex_collections),
+                    "to_vertex_collections": list(_to_vertex_collections),
+                }
+            ],
         )
-        conflicts = [
-            e_def
-            for e_def in edge_defs
-            if e_def["edge_collection"] == edge_table and e_def != new_edge_def
-        ]
+    except EdgeDefinitionCreateError as e:
+        raise GraphCreationError(str(e))
 
-        if conflicts:
-            # THIS SHOULDN'T HAPPEN
-            # TODO: Add error
-            print("CONFLICTING EDGE DEFINITIONS:", conflicts)
-            return False
-
-        g = space.create_graph(graph)
-        g.create_edge_definition(**new_edge_def)
-
-        return True
+    return True
 
 
 @with_client

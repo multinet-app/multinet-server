@@ -14,21 +14,29 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test
 
 
 def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTableProperties:
-    """Return extracted information about an edge table."""
+    """
+    Return extracted information about an edge table.
+
+    Extracts 3 pieces of data from an edge table.
+
+    table_keys: A mapping of all referenced tables to their respective referenced keys.
+    from_tables: A set containing the tables referenced in the _from column.
+    to_tables: A set containing the tables referenced in the _to column.
+    """
 
     loaded_workspace = db.db(workspace)
-    edges = list(loaded_workspace.collection(edge_table).all())
+    edges = loaded_workspace.collection(edge_table).all()
 
-    tables_to_keys: Dict[str, Set] = {}
+    tables_to_keys: Dict[str, Set[str]] = {}
     from_tables = set()
     to_tables = set()
 
     for edge in edges:
-        nodes = (edge["_from"].split("/"), edge["_to"].split("/"))
-        from_tables.add(nodes[0][0])
-        to_tables.add(nodes[1][0])
+        from_node, to_node = edge["_from"].split("/"), edge["_to"].split("/")
+        from_tables.add(from_node[0])
+        to_tables.add(to_node[0])
 
-        for table, key in nodes:
+        for table, key in (from_node, to_node):
             if table in tables_to_keys:
                 tables_to_keys[table].add(key)
             else:

@@ -8,11 +8,11 @@ from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
 from ..types import (
-    ValidationFailedError,
+    ValidationFailure,
     CSVInvalidSyntax,
     CSVInvalidRow,
-    BasicError,
-    NoBodyError,
+    DuplicateKeys,
+    UnsupportedTable,
 )
 
 from flask import Blueprint, request
@@ -28,7 +28,7 @@ bp.before_request(util.require_db)
 
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
-    data_errors: List[ValidationFailedError] = []
+    data_errors: List[ValidationFailure] = []
 
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
@@ -43,9 +43,7 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
                 unique_keys.add(key)
 
         if len(duplicates) > 0:
-            data_errors.append(
-                BasicError(type="csv_duplicate_keys", body=list(duplicates))
-            )
+            data_errors.append(DuplicateKeys(body=list(duplicates)))
 
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
@@ -65,12 +63,10 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
                 invalid_syntax_errors.append(CSVInvalidRow(fields=fields, row=i + 2))
 
         if invalid_syntax_errors:
-            data_errors.append(
-                CSVInvalidSyntax(type="csv_invalid_syntax", body=invalid_syntax_errors)
-            )
+            data_errors.append(CSVInvalidSyntax(body=invalid_syntax_errors))
     else:
         # Unsupported Table, error since we don't know what's coming in
-        data_errors.append(NoBodyError(type="csv_unsupported_table"))
+        data_errors.append(UnsupportedTable())
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

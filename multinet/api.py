@@ -8,9 +8,9 @@ from typing import Any, Optional, List, Dict, Set
 from .types import (
     EdgeDirection,
     TableType,
-    ValidationFailedError,
-    BasicError,
-    GraphUndefinedKeys,
+    ValidationFailure,
+    GraphCreationUndefinedKeys,
+    GraphCreationUndefinedTables,
 )
 
 from . import db, util
@@ -173,7 +173,7 @@ def create_graph(
     edges = loaded_workspace.collection(edge_table).all()
 
     # Iterate through each edge and check for undefined tables
-    errors: List[ValidationFailedError] = []
+    errors: List[ValidationFailure] = []
     valid_tables: Dict[str, Set[str]] = dict()
     invalid_tables: Set[str] = set()
     for edge in edges:
@@ -188,11 +188,7 @@ def create_graph(
                 valid_tables[table] = {key}
 
     if invalid_tables:
-        errors.append(
-            BasicError(
-                type="graph_creation_undefined_tables", body=list(invalid_tables)
-            )
-        )
+        errors.append(GraphCreationUndefinedTables(body=list(invalid_tables)))
 
     # Iterate through each node table and check for nonexistent keys
     for table in valid_tables:
@@ -203,10 +199,7 @@ def create_graph(
 
         if len(nonexistent_keys) > 0:
             errors.append(
-                GraphUndefinedKeys(
-                    type="graph_creation_undefined_keys",
-                    body={"table": table, "keys": list(nonexistent_keys)},
-                )
+                GraphCreationUndefinedKeys(table=table, keys=list(nonexistent_keys))
             )
 
     if errors:

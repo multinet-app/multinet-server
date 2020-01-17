@@ -1,44 +1,68 @@
 """Custom types for Multinet codebase."""
-from typing import Union, List
+from typing import List
 from typing_extensions import Literal, TypedDict
+
+from dataclasses import dataclass
 
 EdgeDirection = Literal["all", "incoming", "outgoing"]
 TableType = Literal["all", "node", "edge"]
 
 
-class NoBodyError(TypedDict):
-    """A set of errors that have only a type and no body."""
-
-    type: Literal[
-        "csv_unsupported_table",
-        "d3_invalid_structure",
-        "d3_invalid_link_keys",
-        "d3_inconsistent_link_keys",
-        "d3_node_duplicates",
-    ]
+@dataclass
+class ValidationFailure:
+    """Base class for any validation errors."""
 
 
-class BasicError(TypedDict):
-    """A set of errors that have a body of type List[str]."""
+# Type only errors
+@dataclass
+class UnsupportedTable(ValidationFailure):
+    """Unsupported table type when uploading a file."""
 
-    type: Literal[
-        "graph_creation_undefined_tables", "csv_duplicate_keys", "newick_duplicate_keys"
-    ]
+
+@dataclass
+class D3InvalidStructure(ValidationFailure):
+    """Invalid structure in a D3 JSON file."""
+
+
+@dataclass
+class D3InvalidLinkKeys(ValidationFailure):
+    """Invalid link keys in a D3 JSON file."""
+
+
+@dataclass
+class D3InconsistentLinkKeys(ValidationFailure):
+    """Inconsistent link keys in a D3 JSON file."""
+
+
+@dataclass
+class D3NodeDuplicates(ValidationFailure):
+    """Duplicate nodes in a D3 JSON file."""
+
+
+# Basic Errors
+@dataclass
+class BasicError(ValidationFailure):
+    """Class for errors who have a basic body type."""
+
     body: List[str]
 
 
-class _GraphUndefinedKeysBody(TypedDict):
+@dataclass
+class GraphCreationUndefinedTables(BasicError):
+    """Undefined tables referenced in an edge table when creating a graph."""
+
+
+@dataclass
+class DuplicateKeys(BasicError):
+    """Duplicate keys detected when trying to create a table."""
+
+
+@dataclass
+class GraphCreationUndefinedKeys(ValidationFailure):
     """Undefined keys referencd in graph creation."""
 
     table: str
     keys: List[str]
-
-
-class GraphUndefinedKeys(TypedDict):
-    """Undefined keys referencd in graph creation."""
-
-    type: Literal["graph_creation_undefined_keys"]
-    body: _GraphUndefinedKeysBody
 
 
 class CSVInvalidRow(TypedDict):
@@ -48,10 +72,10 @@ class CSVInvalidRow(TypedDict):
     fields: List[str]
 
 
-class CSVInvalidSyntax(TypedDict):
+@dataclass
+class CSVInvalidSyntax(ValidationFailure):
     """Invalid syntax in a CSV file."""
 
-    type: Literal["csv_invalid_syntax"]
     body: List[CSVInvalidRow]
 
 
@@ -63,13 +87,8 @@ class NewickDuplicateEdge(TypedDict):
     length: int
 
 
-class NewickDuplicateEdges(TypedDict):
+@dataclass
+class NewickDuplicateEdges(ValidationFailure):
     """Duplicate edge in a newick file."""
 
-    type: Literal["newick_duplicate_edges"]
     body: List[NewickDuplicateEdge]
-
-
-ValidationFailedError = Union[
-    NoBodyError, BasicError, GraphUndefinedKeys, CSVInvalidSyntax, NewickDuplicateEdges
-]

@@ -175,13 +175,7 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     if errors:
         raise ValidationFailed(errors)
 
-    db.create_graph(
-        workspace,
-        graph,
-        edge_table,
-        from_vertex_collections=from_tables,
-        to_vertex_collections=to_tables,
-    )
+    db.create_graph(workspace, graph, edge_table, from_tables, to_tables)
     return graph
 
 

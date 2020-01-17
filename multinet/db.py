@@ -309,9 +309,9 @@ def create_graph(
     workspace: str,
     graph: str,
     edge_table: str,
-    arango: ArangoClient,
     from_vertex_collections: Set[str],
     to_vertex_collections: Set[str],
+    arango: ArangoClient,
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     space = db(workspace, arango=arango)

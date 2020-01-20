@@ -72,6 +72,7 @@
       <v-divider></v-divider>
 
       <v-card-actions class="px-4 py-3">
+        <validation-errors :errors="errors"></validation-errors>
         <v-spacer></v-spacer>
         <v-btn id="create-table" :disabled="tableCreateDisabled" @click="createTable">
           Create Table
@@ -82,11 +83,13 @@
 </template>
 
 <script lang="ts">
-import { UploadType } from 'multinet';
+import { UploadType, ValidationError } from 'multinet';
 import Vue from 'vue';
 
 import api from '@/api';
 import { FileTypeTable } from '@/types';
+
+import ValidationErrors from '@/components/ValidationErrors.vue';
 
 export default Vue.extend({
   name: 'TableDialog',
@@ -94,7 +97,9 @@ export default Vue.extend({
   props: {
     workspace: String,
   },
-
+  components: {
+    ValidationErrors,
+  },
   data() {
     return {
       tableCreationError: null as string | null,
@@ -108,6 +113,7 @@ export default Vue.extend({
         nested_json: {extension: ['json'], queryCall: 'nested_json'},
         d3_json: {extension: ['json'], queryCall: 'd3_json'},
       } as FileTypeTable,
+      errors: [] as ValidationError[],
     };
   },
 
@@ -129,21 +135,24 @@ export default Vue.extend({
 
     async createTable() {
       const queryType: UploadType = this.types[this.selectedType as string].queryCall;
-      try {
-        if (this.file === null) {
-          throw new Error('this.file must not be null');
-        }
 
+      if (this.file === null) {
+        // throw new Error('this.file must not be null');
+        return;
+      }
+
+      try {
         await api.uploadTable(this.workspace, this.newTable, {
           type: queryType,
           data: this.file,
         });
 
-        this.tableCreationError = null;
+        // this.tableCreationError = null;
         this.$emit('success');
         this.tableDialog = false;
       } catch (err) {
-        this.tableCreationError = err.response.data.message;
+        // this.tableCreationError = err.response.data.message;
+        this.errors = err.data.errors;
       }
     },
 

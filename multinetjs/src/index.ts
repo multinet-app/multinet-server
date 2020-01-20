@@ -1,4 +1,5 @@
 import { Client } from './client';
+export * from './errors';
 
 export interface TableRow {
   _key: string;

@@ -1,0 +1,21 @@
+Download a csv file to a table
+---
+consumes:
+  - text/csv
+
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+
+responses:
+  200:
+    description: CSV returned
+
+  404:
+    description: Workspace/Table Not Found
+    schema:
+      type: string
+      example:
+        "table_name"
+tags:
+  - downloader

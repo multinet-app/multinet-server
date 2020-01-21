@@ -1,2 +1,2 @@
 """Downloader blueprints for various filetypes."""
-from . import csv  # noqa: F401
+from . import csv, d3_json  # noqa: F401

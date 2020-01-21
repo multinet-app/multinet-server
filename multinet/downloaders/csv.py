@@ -30,7 +30,9 @@ def download(workspace: str, table: str) -> Any:
         raise NotFound("table", table)
 
     limit = db.workspace_table(workspace, table, 0, 0)["count"]
-    rows = db.workspace_table(workspace, table, 0, limit)["rows"]
+    rows = util.filter_unwanted_keys(
+        db.workspace_table(workspace, table, 0, limit)["rows"]
+    )
 
     io = StringIO()
     writer = csv.DictWriter(io, fieldnames=rows[0].keys())

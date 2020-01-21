@@ -4,12 +4,23 @@ import os
 
 from flask import Response
 
-from typing import Sequence, Any, Generator
+from typing import Sequence, Any, Generator, Dict
 
 from . import db
 from .errors import DatabaseNotLive, DecodeFailed
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
+
+
+def filter_unwanted_keys(rows: Sequence[Dict]) -> Sequence[Dict]:
+    """Remove any unwanted keys from the documents."""
+    unwanted = {"_rev", "_id"}
+    new_rows = []
+
+    for row in rows:
+        new_rows.append({k: v for k, v in row.items() if k not in unwanted})
+
+    return new_rows
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:

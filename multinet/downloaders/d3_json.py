@@ -59,9 +59,13 @@ def download(workspace: str, graph: str) -> Any:
 
         links.extend(edges)
 
-    response = make_response(dict(nodes=nodes, links=links))
+    response = make_response(
+        dict(
+            nodes=util.filter_unwanted_keys(nodes),
+            links=util.filter_unwanted_keys(links),
+        )
+    )
     response.headers["Content-Disposition"] = f"attachment; filename={graph}.json"
     response.headers["Content-type"] = "application/json"
 
-    # TODO: Filter out unwanted keys before returning
     return response

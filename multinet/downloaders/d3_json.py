@@ -49,8 +49,14 @@ def download(workspace: str, graph: str) -> Any:
         edges = list(loaded_graph.edge_collection(edge_table).all())
 
         for edge in edges:
-            source = "".join(pattern.search(edge["_from"]).groups())
-            target = "".join(pattern.search(edge["_to"]).groups())
+            source = edge["_from"]
+            target = edge["_to"]
+            source_match = pattern.search(source)
+            target_match = pattern.search(target)
+
+            if source_match and target_match:
+                source = "".join(source_match.groups())
+                target = "".join(target_match.groups())
 
             edge["source"] = source
             edge["target"] = target

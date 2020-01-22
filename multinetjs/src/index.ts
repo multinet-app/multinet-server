@@ -56,7 +56,6 @@ export interface UploadTableOptionsSpec {
 }
 
 export interface CreateGraphOptionsSpec {
-  nodeTables: string[];
   edgeTable: string;
 }
 
@@ -151,7 +150,6 @@ class MultinetAPI {
 
   public createGraph(workspace: string, graph: string, options: CreateGraphOptionsSpec): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graphs/${graph}`, {
-      node_tables: options.nodeTables,
       edge_table: options.edgeTable,
     });
   }

@@ -1,4 +1,4 @@
-Download a csv file to a table
+Download a table as a CSV file
 ---
 consumes:
   - text/csv

@@ -35,18 +35,17 @@ def download(workspace: str, graph: str) -> Any:
 
     node_tables = loaded_graph.vertex_collections()
     for node_table in node_tables:
-        table_nodes = list(loaded_graph.vertex_collection(node_table).all())
+        table_nodes = loaded_graph.vertex_collection(node_table).all()
 
         for node in table_nodes:
             node["id"] = node["_key"]
             del node["_key"]
-
-        nodes.extend(table_nodes)
+            nodes.append(node)
 
     pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
     edge_tables = [edef["edge_collection"] for edef in loaded_graph.edge_definitions()]
     for edge_table in edge_tables:
-        edges = list(loaded_graph.edge_collection(edge_table).all())
+        edges = loaded_graph.edge_collection(edge_table).all()
 
         for edge in edges:
             source = edge["_from"]
@@ -63,7 +62,7 @@ def download(workspace: str, graph: str) -> Any:
             del edge["_from"]
             del edge["_to"]
 
-        links.extend(edges)
+            links.append(edge)
 
     response = make_response(
         dict(

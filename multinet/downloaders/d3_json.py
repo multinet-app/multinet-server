@@ -3,8 +3,9 @@ import re
 
 from flasgger import swag_from
 
-from .. import db, util
-from ..errors import GraphNotFound
+from multinet.util import require_db, generate_filtered_docs
+from multinet.db import get_workspace_db
+from multinet.errors import GraphNotFound
 
 from flask import Blueprint, make_response
 
@@ -12,7 +13,7 @@ from flask import Blueprint, make_response
 from typing import Any
 
 bp = Blueprint("download_d3_json", __name__)
-bp.before_request(util.require_db)
+bp.before_request(require_db)
 
 
 @bp.route("/<workspace>/<graph>", methods=["GET"])
@@ -27,7 +28,7 @@ def download(workspace: str, graph: str) -> Any:
     nodes = []
     links = []
 
-    space = db.get_workspace_db(workspace)
+    space = get_workspace_db(workspace)
     if not space.has_graph(graph):
         raise GraphNotFound(workspace, graph)
 
@@ -66,8 +67,8 @@ def download(workspace: str, graph: str) -> Any:
 
     response = make_response(
         dict(
-            nodes=util.filter_unwanted_keys(nodes),
-            links=util.filter_unwanted_keys(links),
+            nodes=list(generate_filtered_docs(nodes)),
+            links=list(generate_filtered_docs(links)),
         )
     )
     response.headers["Content-Disposition"] = f"attachment; filename={graph}.json"

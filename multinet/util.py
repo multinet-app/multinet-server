@@ -12,15 +12,17 @@ from .errors import DatabaseNotLive, DecodeFailed
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 
 
-def filter_unwanted_keys(rows: Sequence[Dict]) -> Sequence[Dict]:
-    """Remove any unwanted keys from the documents."""
+def filter_unwanted_keys(row: Dict) -> Dict:
+    """Remove any unwanted keys from a document."""
     unwanted = {"_rev", "_id"}
-    new_rows = []
+    return {k: v for k, v in row.items() if k not in unwanted}
+
+
+def generate_filtered_docs(rows: Sequence[Dict]) -> Sequence[Dict]:
+    """Filter unwanted keys from all documents with a generator."""
 
     for row in rows:
-        new_rows.append({k: v for k, v in row.items() if k not in unwanted})
-
-    return new_rows
+        yield filter_unwanted_keys(row)
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:

@@ -3,8 +3,9 @@ import csv
 from flasgger import swag_from
 from io import StringIO
 
-from .. import db, util
-from ..errors import NotFound
+from multinet.util import require_db, filter_unwanted_keys, generate_filtered_docs
+from multinet.db import get_workspace_db, workspace_table
+from multinet.errors import NotFound
 
 from flask import Blueprint, make_response
 
@@ -13,7 +14,7 @@ from typing import Any
 
 
 bp = Blueprint("download_csv", __name__)
-bp.before_request(util.require_db)
+bp.before_request(require_db)
 
 
 @bp.route("/<workspace>/<table>", methods=["GET"])
@@ -25,19 +26,20 @@ def download(workspace: str, table: str) -> Any:
     `workspace` - the target workspace
     `table` - the target table
     """
-    space = db.get_workspace_db(workspace)
+    space = get_workspace_db(workspace)
     if not space.has_collection(table):
         raise NotFound("table", table)
 
-    limit = db.workspace_table(workspace, table, 0, 0)["count"]
-    rows = util.filter_unwanted_keys(
-        db.workspace_table(workspace, table, 0, limit)["rows"]
-    )
+    limit = workspace_table(workspace, table, 0, 0)["count"]
+    table_rows = workspace_table(workspace, table, 0, limit)["rows"]
+    fields = filter_unwanted_keys(table_rows[0]).keys()
 
     io = StringIO()
-    writer = csv.DictWriter(io, fieldnames=rows[0].keys())
+    writer = csv.DictWriter(io, fieldnames=fields)
+
     writer.writeheader()
-    writer.writerows(rows)
+    for row in generate_filtered_docs(table_rows):
+        writer.writerow(row)
 
     output = make_response(io.getvalue())
     output.headers["Content-Disposition"] = f"attachment; filename={table}.csv"

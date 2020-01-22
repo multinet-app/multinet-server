@@ -15,6 +15,11 @@ export interface NodesSpec {
   nodes: TableRow[];
 }
 
+export interface RowsSpec {
+  count: number;
+  rows: TableRow[];
+}
+
 export interface Edge {
   edge: string;
   from: string;
@@ -94,7 +99,7 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/tables`, options);
   }
 
-  public table(workspace: string, table: string, options: OffsetLimitSpec = {}): Promise<Array<{}>> {
+  public table(workspace: string, table: string, options: OffsetLimitSpec = {}): Promise<RowsSpec> {
     return this.client.get(`workspaces/${workspace}/tables/${table}`, options);
   }
 

@@ -20,7 +20,7 @@ bp.before_request(util.require_db)
 @swag_from("swagger/csv.yaml")
 def download(workspace: str, table: str) -> Any:
     """
-    Store a CSV file into the database as a node or edge table.
+    Download a table from the database as a CSV file.
 
     `workspace` - the target workspace
     `table` - the target table

@@ -18,7 +18,7 @@ def filter_unwanted_keys(row: Dict) -> Dict:
     return {k: v for k, v in row.items() if k not in unwanted}
 
 
-def generate_filtered_docs(rows: Sequence[Dict]) -> Sequence[Dict]:
+def generate_filtered_docs(rows: Sequence[Dict]) -> Generator[Dict, None, None]:
     """Filter unwanted keys from all documents with a generator."""
 
     for row in rows:

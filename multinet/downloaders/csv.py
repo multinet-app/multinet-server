@@ -17,7 +17,7 @@ bp = Blueprint("download_csv", __name__)
 bp.before_request(require_db)
 
 
-@bp.route("/<workspace>/<table>", methods=["GET"])
+@bp.route("/workspaces/<workspace>/tables/<table>/download", methods=["GET"])
 @swag_from("swagger/csv.yaml")
 def download(workspace: str, table: str) -> Any:
     """

@@ -27,8 +27,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app.register_blueprint(uploaders.nested_json.bp, url_prefix="/api/nested_json")
     app.register_blueprint(uploaders.d3_json.bp, url_prefix="/api/d3_json")
 
-    app.register_blueprint(downloaders.csv.bp, url_prefix="/api/csv/download")
-    app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api/d3_json/download")
+    app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
+    app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")
 
     # Register error handler.
     @app.errorhandler(ServerError)

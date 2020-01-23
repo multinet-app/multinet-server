@@ -16,7 +16,7 @@ bp = Blueprint("download_d3_json", __name__)
 bp.before_request(require_db)
 
 
-@bp.route("/<workspace>/<graph>", methods=["GET"])
+@bp.route("/workspaces/<workspace>/graphs/<graph>/download", methods=["GET"])
 @swag_from("swagger/d3_json.yaml")
 def download(workspace: str, graph: str) -> Any:
     """Return a graph as a d3 json-encoded graph.

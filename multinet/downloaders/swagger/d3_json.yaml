@@ -16,4 +16,4 @@ responses:
     description: Graph not found
 
 tags:
-  - downloader
+  - graph

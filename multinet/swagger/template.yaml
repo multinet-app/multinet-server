@@ -203,5 +203,3 @@ tags:
     description: Table retrieval, inspection, creation, and deletion
   - name: uploader
     description: Uploaders for various input data formats
-  - name: downloader
-    description: Downloaders for tables and graphs

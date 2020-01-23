@@ -4,10 +4,11 @@ import os
 
 from flask import Response
 
-from typing import Sequence, Any, Generator, Dict
+from typing import Sequence, Any, Generator, Dict, Set
 
 from . import db
 from .errors import DatabaseNotLive, DecodeFailed
+from .types import EdgeTableProperties
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 
@@ -23,6 +24,38 @@ def generate_filtered_docs(rows: Sequence[Dict]) -> Generator[Dict, None, None]:
 
     for row in rows:
         yield filter_unwanted_keys(row)
+
+
+def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTableProperties:
+    """
+    Return extracted information about an edge table.
+
+    Extracts 3 pieces of data from an edge table.
+
+    table_keys: A mapping of all referenced tables to their respective referenced keys.
+    from_tables: A set containing the tables referenced in the _from column.
+    to_tables: A set containing the tables referenced in the _to column.
+    """
+
+    loaded_workspace = db.db(workspace)
+    edges = loaded_workspace.collection(edge_table).all()
+
+    tables_to_keys: Dict[str, Set[str]] = {}
+    from_tables = set()
+    to_tables = set()
+
+    for edge in edges:
+        from_node, to_node = edge["_from"].split("/"), edge["_to"].split("/")
+        from_tables.add(from_node[0])
+        to_tables.add(to_node[0])
+
+        for table, key in (from_node, to_node):
+            if table in tables_to_keys:
+                tables_to_keys[table].add(key)
+            else:
+                tables_to_keys[table] = {key}
+
+    return dict(table_keys=tables_to_keys, from_tables=from_tables, to_tables=to_tables)
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:

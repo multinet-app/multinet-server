@@ -13,6 +13,19 @@ from .types import EdgeTableProperties
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 
 
+def filter_unwanted_keys(row: Dict) -> Dict:
+    """Remove any unwanted keys from a document."""
+    unwanted = {"_rev", "_id"}
+    return {k: v for k, v in row.items() if k not in unwanted}
+
+
+def generate_filtered_docs(rows: Sequence[Dict]) -> Generator[Dict, None, None]:
+    """Filter unwanted keys from all documents with a generator."""
+
+    for row in rows:
+        yield filter_unwanted_keys(row)
+
+
 def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTableProperties:
     """
     Return extracted information about an edge table.

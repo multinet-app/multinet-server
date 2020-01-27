@@ -6,14 +6,14 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
 from multinet.types import EdgeDirection, TableType
-from .validation import (
+from multinet.validation import (
     ValidationFailure,
     GraphCreationUndefinedKeys,
     GraphCreationUndefinedTable,
 )
 
-from . import db, util
-from .errors import (
+from multinet import db, util
+from multinet.errors import (
     ValidationFailed,
     BadQueryArgument,
     MalformedRequestBody,

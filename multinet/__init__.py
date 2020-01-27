@@ -6,9 +6,9 @@ from flasgger import Swagger
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
-from . import api
-from . import uploaders
-from .errors import ServerError
+from multinet import api
+from multinet import uploaders
+from multinet.errors import ServerError
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:

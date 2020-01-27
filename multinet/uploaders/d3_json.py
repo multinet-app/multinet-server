@@ -5,9 +5,9 @@ from flasgger import swag_from
 from dataclasses import dataclass
 from collections import OrderedDict
 
-from .. import db, util
-from ..errors import ValidationFailed
-from ..util import decode_data
+from multinet import db, util
+from multinet.errors import ValidationFailed
+from multinet.util import decode_data
 from multinet.validation import ValidationFailure
 
 from flask import Blueprint, request

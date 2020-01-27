@@ -3,7 +3,7 @@ from flasgger import swag_from
 import itertools
 import json
 
-from .. import db, util
+from multinet import db, util
 
 from flask import Blueprint, request
 

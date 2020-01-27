@@ -6,9 +6,9 @@ from flasgger import Swagger
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
-from . import api
-from . import uploaders
-from .errors import ServerError
+from multinet import api
+from multinet import uploaders, downloaders
+from multinet.errors import ServerError
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:
@@ -26,6 +26,9 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app.register_blueprint(uploaders.newick.bp, url_prefix="/api/newick")
     app.register_blueprint(uploaders.nested_json.bp, url_prefix="/api/nested_json")
     app.register_blueprint(uploaders.d3_json.bp, url_prefix="/api/d3_json")
+
+    app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
+    app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")
 
     # Register error handler.
     @app.errorhandler(ServerError)

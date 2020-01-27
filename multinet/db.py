@@ -3,14 +3,14 @@ import os
 
 from arango import ArangoClient
 from arango.database import StandardDatabase, StandardCollection
-from arango.exceptions import DatabaseCreateError
+from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Callable, Any, Optional, Sequence, List, Generator, Tuple
+from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
 from mypy_extensions import TypedDict
-from .types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, TableType
 
-from .errors import (
+from multinet.errors import (
     BadQueryArgument,
     WorkspaceNotFound,
     TableNotFound,
@@ -18,6 +18,7 @@ from .errors import (
     NodeNotFound,
     InvalidName,
     AlreadyExists,
+    GraphCreationError,
 )
 
 
@@ -316,23 +317,31 @@ def aql_query(
 def create_graph(
     workspace: str,
     graph: str,
-    node_tables: List[str],
     edge_table: str,
+    from_vertex_collections: Set[str],
+    to_vertex_collections: Set[str],
     arango: ArangoClient,
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
     space = db(workspace, arango=arango)
     if space.has_graph(graph):
         return False
-    else:
-        g = space.create_graph(graph)
-        g.create_edge_definition(
-            edge_collection=edge_table,
-            from_vertex_collections=node_tables,
-            to_vertex_collections=node_tables,
-        )
 
-        return True
+    try:
+        space.create_graph(
+            graph,
+            edge_definitions=[
+                {
+                    "edge_collection": edge_table,
+                    "from_vertex_collections": list(from_vertex_collections),
+                    "to_vertex_collections": list(to_vertex_collections),
+                }
+            ],
+        )
+    except EdgeDefinitionCreateError as e:
+        raise GraphCreationError(str(e))
+
+    return True
 
 
 @with_client

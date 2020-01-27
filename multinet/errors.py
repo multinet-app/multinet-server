@@ -174,3 +174,15 @@ class DecodeFailed(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.error, "400 Decode Failed")
+
+
+class GraphCreationError(ServerError):
+    """Exception for errors when creating a graph in Arango."""
+
+    def __init__(self, message: str):
+        """Initialize error message."""
+        self.message = message
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 error."""
+        return (self.message, "500 Graph Creation Failed")

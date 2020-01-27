@@ -1,43 +1,60 @@
-export interface NoBodyError {
-    type: 'csv_unsupported_table' | 'd3_invalid_structure' | 'd3_invalid_link_keys' | 'd3_inconsistent_link_keys' | 'd3_node_duplicates';
+export interface D3InvalidStructure {
+    type: 'D3InvalidStructure';
 }
 
-export interface BasicError {
-    type: 'graph_creation_undefined_tables' | 'csv_duplicated_keys' | 'newick_duplicate_keys';
-    body: string[];
+export interface D3InvalidLinkKeys {
+    type: 'D3InvalidLinkKeys';
 }
 
-export interface GraphUndefinedKeys {
-    type: 'graph_creation_undefined_keys';
-    body: {
-        table: string,
-        keys: string[]
-    };
+export interface D3InconsistentLinkKeys {
+    type: 'D3InconsistentLinkKeys';
 }
 
-export interface CSVInvalidSyntax {
-    type: 'csv_invalid_syntax';
-    body: [
-        {
-            row: number,
-            fields: string[]
-        }
-    ];
-}
-
-export interface NewickDuplicateEdges {
-    type: 'newick_duplicate_edges';
-    body: [
-        {
-            _from: string,
-            _to: string,
-            length: number
-        }
-    ];
+export interface D3NodeDuplicates {
+    type: 'D3NodeDuplicates';
 }
 
 
+export interface UnsupportedTable {
+    type: 'UnsupportedTable';
+}
 
+export interface DuplicateKey {
+    type: 'DuplicateKey';
+    key: string;
+}
 
-export type ValidationError = NoBodyError | BasicError | GraphUndefinedKeys | CSVInvalidSyntax | NewickDuplicateEdges;
+export interface GraphCreationUndefinedTables {
+    type: 'GraphCreationUndefinedTables';
+    table: string;
+}
 
+export interface GraphCreationUndefinedKeys {
+    type: 'GraphCreationUndefinedKeys';
+    table: string;
+    keys: string[];
+}
+
+export interface CsvInvalidRow {
+    type: 'CsvInvalidRow';
+    row: number;
+    fields: string[];
+}
+
+export interface NewickDuplicateEdge {
+    type: 'NewickDuplicateEdge';
+    _from: string;
+    _to: string;
+    length: number;
+}
+
+export type ValidationError = D3InconsistentLinkKeys
+    | D3InvalidLinkKeys
+    | D3NodeDuplicates
+    | D3InvalidStructure
+    | UnsupportedTable
+    | DuplicateKey
+    | GraphCreationUndefinedTables
+    | GraphCreationUndefinedKeys
+    | CsvInvalidRow
+    | NewickDuplicateEdge;

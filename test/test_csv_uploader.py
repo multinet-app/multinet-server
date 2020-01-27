@@ -5,8 +5,8 @@ import os
 import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
-from multinet.uploaders.csv import validate_csv, decode_data
-from multinet.types import BasicError
+from multinet.uploaders.csv import validate_csv, decode_data, CSVInvalidRow
+from multinet.validation import DuplicateKey
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
@@ -30,10 +30,9 @@ def test_validate_csv():
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows)
 
-    validation_resp = v_error.value.errors[0]
-    correct = BasicError(type="csv_duplicate_keys", body=["2", "5"])
-    assert validation_resp["type"] == correct["type"]
-    assert sorted(validation_resp["body"]) == sorted(correct["body"])
+    validation_resp = v_error.value.errors
+    correct = [err.asdict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
+    assert all([err in validation_resp for err in correct])
 
     # Test invalid syntax
     with open(invalid_headers_file_path) as test_file:
@@ -43,11 +42,16 @@ def test_validate_csv():
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows)
 
-    validation_resp = v_error.value.errors[0]
-    invalid_rows = [x["row"] for x in validation_resp["body"]]
-    assert 3 in invalid_rows
-    assert 4 in invalid_rows
-    assert 5 in invalid_rows
+    validation_resp = v_error.value.errors
+    correct = [
+        err.asdict()
+        for err in [
+            CSVInvalidRow(row=3, fields=["_from"]),
+            CSVInvalidRow(row=4, fields=["_to"]),
+            CSVInvalidRow(row=5, fields=["_from", "_to"]),
+        ]
+    ]
+    assert all([err in validation_resp for err in correct])
 
     # Test unicode decode errors
     test_data = b"\xff\xfe_\x00k\x00e\x00y\x00,\x00n\x00a\x00m\x00e\x00\n"

@@ -1,10 +1,18 @@
 <template>
-  <v-treeview dense :items="errorTree" open-on-click :openall="false" color="red" rounded></v-treeview>
+  <v-expansion-panels>
+    <v-expansion-panel
+      v-for="(item, i) in errors"
+      :key="i"
+    >
+      <v-expansion-panel-header class="red lighten-2">{{item.type}}</v-expansion-panel-header>
+      <v-expansion-panel-content class="red lighten-2">{{JSON.stringify(withoutTypes[i], null, 2)}}</v-expansion-panel-content>
+    </v-expansion-panel>
+  </v-expansion-panels>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from "vue";
-import { ValidationError, NoBodyError } from "multinet";
+import Vue, { PropType } from 'vue';
+import { ValidationError } from 'multinet';
 
 interface VueTreeView {
   id?: number;
@@ -18,10 +26,6 @@ interface ObjectType {
   [key: string]: BasicType | ObjectType;
 }
 
-function noErrorBody(err: ValidationError): err is NoBodyError {
-  return !('body' in err);
-}
-
 
 export default Vue.extend({
   name: 'ValidationErrors',
@@ -29,36 +33,15 @@ export default Vue.extend({
     errors: Array as PropType<ValidationError[]>,
   },
   computed: {
-    errorTree(): VueTreeView[] {
-      return this.errors.map((x: ValidationError) => ({
-        name: x.type,
-        children: noErrorBody(x) ? [] : this.toTreeRecursive(x.body),
-      }));
+    withoutTypes(): any[] {
+      return this.errors.map((err) => (
+        Object.keys(err)
+        .filter((key) => key !== 'type')
+        .reduce((obj, key) => ({...obj, [key]: err[key]}), {})
+      ));
     },
   },
-  methods: {
-    toTreeRecursive(node: ObjectType): VueTreeView[] {
-      const array = Object.keys(node).map((key) => {
-        if (node[key] instanceof Object) {
-          return {
-            name: key,
-            children: this.toTreeRecursive(node[key])
-          };
-        }
-
-        let name;
-        if (!isNaN(Number(key))) {
-          name = node[key];
-        } else {
-          name = `${key}: ${node[key]}`;
-        }
-
-        return { name };
-      });
-
-      return array;
-    },
-  },
+  methods: {},
 });
 </script>
 

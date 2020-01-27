@@ -72,7 +72,7 @@
       <v-divider></v-divider>
 
       <v-card-actions class="px-4 py-3">
-        <validation-errors :errors="errors"></validation-errors>
+        <validation-errors :errors="errors" class="pr-3"></validation-errors>
         <v-spacer></v-spacer>
         <v-btn id="create-table" :disabled="tableCreateDisabled" @click="createTable">
           Create Table

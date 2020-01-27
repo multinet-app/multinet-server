@@ -1,19 +1,14 @@
 """Multinet uploader for CSV files."""
 import csv
+import re
 from flasgger import swag_from
 from io import StringIO
-import re
+from dataclasses import dataclass
 
 from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
-from ..types import (
-    ValidationFailure,
-    CSVInvalidSyntax,
-    CSVInvalidRow,
-    DuplicateKeys,
-    UnsupportedTable,
-)
+from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -26,6 +21,14 @@ bp = Blueprint("csv", __name__)
 bp.before_request(util.require_db)
 
 
+@dataclass
+class CSVInvalidRow(ValidationFailure):
+    """Invalid syntax in a CSV file."""
+
+    row: int
+    fields: List[str]
+
+
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
@@ -35,21 +38,15 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
         # Node Table, check for key uniqueness
         keys = [row["_key"] for row in rows]
         unique_keys: Set[str] = set()
-        duplicates = set()
         for key in keys:
             if key in unique_keys:
-                duplicates.add(key)
+                data_errors.append(DuplicateKey(key=key))
             else:
                 unique_keys.add(key)
-
-        if len(duplicates) > 0:
-            data_errors.append(DuplicateKeys(body=list(duplicates)))
 
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
         valid_cell = re.compile("[^/]+/[^/]+")
-
-        invalid_syntax_errors: List[CSVInvalidRow] = []
 
         for i, row in enumerate(rows):
             fields: List[str] = []
@@ -60,10 +57,8 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                invalid_syntax_errors.append(CSVInvalidRow(fields=fields, row=i + 2))
+                data_errors.append(CSVInvalidRow(fields=fields, row=i + 2))
 
-        if invalid_syntax_errors:
-            data_errors.append(CSVInvalidSyntax(body=invalid_syntax_errors))
     else:
         # Unsupported Table, error since we don't know what's coming in
         data_errors.append(UnsupportedTable())

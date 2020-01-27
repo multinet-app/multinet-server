@@ -6,35 +6,38 @@ import newick
 from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
-from ..types import (
-    ValidationFailure,
-    DuplicateKeys,
-    NewickDuplicateEdges,
-    NewickDuplicateEdge,
-)
+from multinet.validation import ValidationFailure, DuplicateKey
 
+from dataclasses import dataclass
 from flask import Blueprint, request
 from flask import current_app as app
 
-from typing import Any, Optional, List, Set, FrozenSet, Tuple
+from typing import Any, Optional, List, Set, Tuple
 
 bp = Blueprint("newick", __name__)
 bp.before_request(util.require_db)
+
+
+@dataclass
+class NewickDuplicateEdge(ValidationFailure):
+    """The edge which is duplicated."""
+
+    _from: str
+    _to: str
+    length: int
 
 
 def validate_newick(tree: List[newick.Node]) -> None:
     """Validate newick tree."""
     data_errors: List[ValidationFailure] = []
     unique_keys: Set[str] = set()
-    duplicate_keys: Set[str] = set()
-    unique_edges: Set[FrozenSet[Tuple[str, object]]] = set()
-    duplicate_edges: Set[FrozenSet[Tuple[str, object]]] = set()
+    unique_edges: Set[Tuple[str, str, float]] = set()
 
     def read_tree(parent: Optional[str], node: newick.Node) -> None:
         key = node.name or uuid.uuid4().hex
 
         if key in unique_keys:
-            duplicate_keys.add(key)
+            data_errors.append(DuplicateKey(key=key))
         else:
             unique_keys.add(key)
 
@@ -42,33 +45,17 @@ def validate_newick(tree: List[newick.Node]) -> None:
             read_tree(key, desc)
 
         if parent:
-            edge = frozenset(
-                {
-                    "_from": f"table/{parent}",
-                    "_to": f"table/{key}",
-                    "length": node.length,
-                }.items()
-            )
-
-            if edge in unique_edges:
-                duplicate_edges.add(edge)
+            unique = (parent, key, node.length)
+            if unique in unique_edges:
+                data_errors.append(
+                    NewickDuplicateEdge(
+                        _from=f"table/{parent}", _to=f"table/{key}", length=node.length
+                    )
+                )
             else:
-                unique_edges.add(edge)
+                unique_edges.add(unique)
 
     read_tree(None, tree[0])
-
-    if len(duplicate_keys) > 0:
-        data_errors.append(DuplicateKeys(body=list(duplicate_keys)))
-
-    if len(duplicate_edges) > 0:
-        # TODO: Fix mypy complaints on line below
-        data_errors.append(
-            NewickDuplicateEdges(
-                body=[
-                    NewickDuplicateEdge(x) for x in duplicate_edges  # type: ignore
-                ]
-            )
-        )
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

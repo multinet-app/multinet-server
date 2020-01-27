@@ -2,9 +2,7 @@
 from typing import Tuple, Any, Union, List, Sequence
 from typing_extensions import TypedDict
 
-from .types import ValidationFailure
-
-from dataclasses import asdict
+from multinet.validation import ValidationFailure
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]
@@ -151,12 +149,7 @@ class ValidationFailed(ServerError):
 
     def __init__(self, errors: Sequence[ValidationFailure]):
         """Initialize the exception."""
-        self.errors = []
-
-        for error in errors:
-            d = asdict(error)
-            d["type"] = type(error).__name__
-            self.errors.append(d)
+        self.errors = [error.asdict() for error in errors]
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""

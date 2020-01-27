@@ -1,19 +1,14 @@
 """Multinet uploader for nested JSON files."""
-from flasgger import swag_from
 import json
 from io import StringIO
+from flasgger import swag_from
+from dataclasses import dataclass
 from collections import OrderedDict
 
 from .. import db, util
 from ..errors import ValidationFailed
 from ..util import decode_data
-from ..types import (
-    ValidationFailure,
-    D3InconsistentLinkKeys,
-    D3InvalidLinkKeys,
-    D3InvalidStructure,
-    D3NodeDuplicates,
-)
+from multinet.validation import ValidationFailure
 
 from flask import Blueprint, request
 
@@ -22,6 +17,26 @@ from typing import Any, List, Sequence
 
 bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
+
+
+@dataclass
+class D3InvalidStructure(ValidationFailure):
+    """Invalid structure in a D3 JSON file."""
+
+
+@dataclass
+class D3InvalidLinkKeys(ValidationFailure):
+    """Invalid link keys in a D3 JSON file."""
+
+
+@dataclass
+class D3InconsistentLinkKeys(ValidationFailure):
+    """Inconsistent link keys in a D3 JSON file."""
+
+
+@dataclass
+class D3NodeDuplicates(ValidationFailure):
+    """Duplicate nodes in a D3 JSON file."""
 
 
 def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:

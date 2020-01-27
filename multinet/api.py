@@ -5,12 +5,11 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List, Dict, Set
-from .types import (
-    EdgeDirection,
-    TableType,
+from multinet.types import EdgeDirection, TableType
+from .validation import (
     ValidationFailure,
     GraphCreationUndefinedKeys,
-    GraphCreationUndefinedTables,
+    GraphCreationUndefinedTable,
 )
 
 from . import db, util
@@ -175,20 +174,16 @@ def create_graph(
     # Iterate through each edge and check for undefined tables
     errors: List[ValidationFailure] = []
     valid_tables: Dict[str, Set[str]] = dict()
-    invalid_tables: Set[str] = set()
     for edge in edges:
         nodes = (edge["_from"].split("/"), edge["_to"].split("/"))
 
         for (table, key) in nodes:
             if table not in existing_tables:
-                invalid_tables.add(table)
+                errors.append(GraphCreationUndefinedTable(table=table))
             elif table in valid_tables:
                 valid_tables[table].add(key)
             else:
                 valid_tables[table] = {key}
-
-    if invalid_tables:
-        errors.append(GraphCreationUndefinedTables(body=list(invalid_tables)))
 
     # Iterate through each node table and check for nonexistent keys
     for table in valid_tables:

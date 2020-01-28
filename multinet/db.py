@@ -137,7 +137,7 @@ def get_workspaces(arango: ArangoClient) -> Generator[str, None, None]:
 
 @with_client
 def workspace_tables(
-    workspace: str, type: TableType, arango: ArangoClient
+    workspace: str, table_type: TableType, arango: ArangoClient
 ) -> Generator[str, None, None]:
     """Return a list of all table names in the workspace named `workspace`."""
 
@@ -163,14 +163,14 @@ def workspace_tables(
     def is_node(x: Tuple[Any, bool]) -> bool:
         return not is_edge(x)
 
-    if type == "all":
+    if table_type == "all":
         desired_type = pass_all
-    elif type == "node":
+    elif table_type == "node":
         desired_type = is_node
-    elif type == "edge":
+    elif table_type == "edge":
         desired_type = is_edge
     else:
-        raise BadQueryArgument("type", type, ["all", "node", "edge"])
+        raise BadQueryArgument("type", table_type, ["all", "node", "edge"])
 
     return (table[0] for table in tables if desired_type(table))
 

@@ -2,9 +2,11 @@
 from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
-from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional
+# NOTE: Not sure why mypy flags this
+from webargs.flaskparser import use_args, use_kwargs  # type: ignore
+
+from typing import Any, Optional, Dict
 from .types import EdgeDirection, TableType
 
 from . import db, util
@@ -35,11 +37,13 @@ def get_workspace(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
-@use_kwargs({"type": fields.Str()})
+@use_args({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
-def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
+def get_workspace_tables(args: Dict, workspace: str) -> Any:
     """Retrieve the tables of a single workspace."""
-    tables = db.workspace_tables(workspace, type)
+    # TODO: Fix mypy complaint about below expression.
+    table_type: TableType = args.get("type") or "all"  # type: ignore
+    tables = db.workspace_tables(workspace, table_type)
     return util.stream(tables)
 
 

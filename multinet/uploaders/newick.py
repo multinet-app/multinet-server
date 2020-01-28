@@ -121,4 +121,4 @@ def upload(workspace: str, table: str) -> Any:
 
     read_tree(None, tree[0])
 
-    return dict(edgecount=edgecount, nodecount=nodecount)
+    return {"edgecount": edgecount, "nodecount": nodecount}

@@ -55,7 +55,11 @@ def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTablePrope
             else:
                 tables_to_keys[table] = {key}
 
-    return dict(table_keys=tables_to_keys, from_tables=from_tables, to_tables=to_tables)
+    return {
+        "table_keys": tables_to_keys,
+        "from_tables": from_tables,
+        "to_tables": to_tables,
+    }
 
 
 def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
@@ -81,10 +85,10 @@ def require_db() -> None:
         raise DatabaseNotLive()
 
 
-def decode_data(input: bytes) -> str:
+def decode_data(input_data: bytes) -> str:
     """Decode the request data assuming utf8 encoding."""
     try:
-        body = input.decode("utf8")
+        body = input_data.decode("utf8")
     except UnicodeDecodeError as e:
         raise DecodeFailed(str(e))
 

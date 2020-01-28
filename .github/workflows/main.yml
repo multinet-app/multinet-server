@@ -39,6 +39,7 @@ jobs:
       - run: cd client && yarn lint
       - run: cd client && yarn lint:test
       - run: cd client && yarn test
+      - run: "cd client && git rev-parse HEAD >git-sha"
       - run: cd client && yarn build
 
       # Build and test Multinet client library.

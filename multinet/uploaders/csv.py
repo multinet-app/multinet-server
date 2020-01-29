@@ -22,7 +22,7 @@ bp.before_request(util.require_db)
 
 
 @dataclass
-class CSVInvalidRow(ValidationFailure):
+class InvalidRow(ValidationFailure):
     """Invalid syntax in a CSV file."""
 
     row: int
@@ -57,7 +57,7 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                data_errors.append(CSVInvalidRow(fields=fields, row=i + 2))
+                data_errors.append(InvalidRow(fields=fields, row=i + 2))
 
     else:
         # Unsupported Table, error since we don't know what's coming in

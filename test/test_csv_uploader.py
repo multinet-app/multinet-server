@@ -5,7 +5,7 @@ import os
 import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
-from multinet.uploaders.csv import validate_csv, decode_data, CSVInvalidRow
+from multinet.uploaders.csv import validate_csv, decode_data, InvalidRow
 from multinet.validation import DuplicateKey
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
@@ -46,9 +46,9 @@ def test_validate_csv():
     correct = [
         err.asdict()
         for err in [
-            CSVInvalidRow(row=3, fields=["_from"]),
-            CSVInvalidRow(row=4, fields=["_to"]),
-            CSVInvalidRow(row=5, fields=["_from", "_to"]),
+            InvalidRow(row=3, fields=["_from"]),
+            InvalidRow(row=4, fields=["_to"]),
+            InvalidRow(row=5, fields=["_from", "_to"]),
         ]
     ]
     assert all([err in validation_resp for err in correct])

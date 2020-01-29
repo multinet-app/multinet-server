@@ -1,44 +1,66 @@
 """Multinet uploader for nested JSON files."""
-from flasgger import swag_from
 import json
 from io import StringIO
+from flasgger import swag_from
+from dataclasses import dataclass
 from collections import OrderedDict
 
-from .. import db, util
-from ..errors import ValidationFailed
-from ..util import decode_data
+from multinet import db, util
+from multinet.errors import ValidationFailed
+from multinet.util import decode_data
+from multinet.validation import ValidationFailure
 
 from flask import Blueprint, request
 
 # Import types
-from typing import Any, List
+from typing import Any, List, Sequence
 
 bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
 
 
-def validate_d3_json(data: dict) -> List[dict]:
+@dataclass
+class InvalidStructure(ValidationFailure):
+    """Invalid structure in a D3 JSON file."""
+
+
+@dataclass
+class InvalidLinkKeys(ValidationFailure):
+    """Invalid link keys in a D3 JSON file."""
+
+
+@dataclass
+class InconsistentLinkKeys(ValidationFailure):
+    """Inconsistent link keys in a D3 JSON file."""
+
+
+@dataclass
+class NodeDuplicates(ValidationFailure):
+    """Duplicate nodes in a D3 JSON file."""
+
+
+def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
     """Perform any necessary d3 json validation, and return appropriate errors."""
-    data_errors = []
+    data_errors: List[ValidationFailure] = []
 
     # Check the structure of the uploaded file is what we expect
     if "nodes" not in data.keys() or "links" not in data.keys():
-        data_errors.append({"error": "structure"})
+        data_errors.append(InvalidStructure())
 
     # Check that links are in source -> target form
     if not all(
         "source" in row.keys() and "target" in row.keys() for row in data["links"]
     ):
-        data_errors.append({"error": "invalid_link_keys"})
+        data_errors.append(InvalidLinkKeys())
 
     # Check that the keys for each dictionary match
     if not all(data["links"][0].keys() == row.keys() for row in data["links"]):
-        data_errors.append({"error": "inconsistent_link_keys"})
+        data_errors.append(InconsistentLinkKeys())
 
     # Check for duplicated nodes
     ids = set(row["id"] for row in data["nodes"])
     if len(data["nodes"]) != len(ids):
-        data_errors.append({"error": "node_duplicates"})
+        data_errors.append(NodeDuplicates())
 
     return data_errors
 

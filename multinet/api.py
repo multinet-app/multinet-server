@@ -4,11 +4,12 @@ from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional
-from .types import EdgeDirection, TableType
+from typing import Any, Optional, List
+from multinet.types import EdgeDirection, TableType
+from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
-from . import db, util
-from .errors import (
+from multinet import db, util
+from multinet.errors import (
     ValidationFailed,
     BadQueryArgument,
     MalformedRequestBody,
@@ -156,21 +157,17 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     from_tables = edge_table_properties["from_tables"]
     to_tables = edge_table_properties["to_tables"]
 
-    errors = []
+    errors: List[ValidationFailure] = []
     for table, keys in referenced_tables.items():
         if not loaded_workspace.has_collection(table):
-            errors.append(f"Reference to undefined table: {table}")
+            errors.append(UndefinedTable(table=table))
         else:
             table_keys = set(loaded_workspace.collection(table).keys())
             undefined = keys - table_keys
 
             if undefined:
-                errors.append(
-                    f"Nonexistent keys {', '.join(undefined)} "
-                    f"referenced in table: {table}"
-                )
+                errors.append(UndefinedKeys(table=table, keys=list(undefined)))
 
-    # TODO: Update this with the proper JSON schema
     if errors:
         raise ValidationFailed(errors)
 

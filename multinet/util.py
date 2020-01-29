@@ -3,12 +3,11 @@ import json
 import os
 
 from flask import Response
-
 from typing import Sequence, Any, Generator, Dict, Set
 
-from . import db
-from .errors import DatabaseNotLive, DecodeFailed
-from .types import EdgeTableProperties
+from multinet import db
+from multinet.types import EdgeTableProperties
+from multinet.errors import DatabaseNotLive, DecodeFailed
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 

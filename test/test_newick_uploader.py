@@ -4,6 +4,7 @@ import os
 import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
+from multinet.validation import DuplicateKey
 from multinet.uploaders.newick import validate_newick, decode_data
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
@@ -24,8 +25,8 @@ def test_validate_newick():
     with pytest.raises(ValidationFailed) as v_error:
         validate_newick(body)
 
-    validation_resp = v_error.value.errors[0]
-    assert "error" in validation_resp.keys()
+    validation_resp = v_error.value.errors
+    assert DuplicateKey(key="A").asdict() in validation_resp
 
     # Test unicode decode errors
     test_data = (

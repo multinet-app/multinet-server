@@ -8,9 +8,9 @@ from requests.exceptions import ConnectionError
 
 from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
 from mypy_extensions import TypedDict
-from .types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, TableType
 
-from .errors import (
+from multinet.errors import (
     BadQueryArgument,
     WorkspaceNotFound,
     TableNotFound,

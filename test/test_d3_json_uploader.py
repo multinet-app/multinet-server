@@ -6,9 +6,9 @@ from collections import OrderedDict
 from multinet.util import data_path
 from multinet.uploaders.d3_json import (
     validate_d3_json,
-    D3InconsistentLinkKeys,
-    D3InvalidLinkKeys,
-    D3NodeDuplicates,
+    InconsistentLinkKeys,
+    InvalidLinkKeys,
+    NodeDuplicates,
 )
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
@@ -36,11 +36,11 @@ def test_validate_d3_json():
     assert len(outcome1) == 0
 
     assert len(outcome2) == 1
-    assert outcome2[0] == D3NodeDuplicates()
+    assert outcome2[0] == NodeDuplicates()
 
     assert len(outcome3) == 1
-    assert outcome3[0] == D3InconsistentLinkKeys()
+    assert outcome3[0] == InconsistentLinkKeys()
 
     assert len(outcome4) == 2
-    assert outcome4[0] == D3InvalidLinkKeys()
-    assert outcome4[1] == D3InconsistentLinkKeys()
+    assert outcome4[0] == InvalidLinkKeys()
+    assert outcome4[1] == InconsistentLinkKeys()

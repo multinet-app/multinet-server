@@ -6,11 +6,7 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType
-from multinet.validation import (
-    ValidationFailure,
-    GraphCreationUndefinedKeys,
-    GraphCreationUndefinedTable,
-)
+from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
 from multinet.errors import (
@@ -164,15 +160,13 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     errors: List[ValidationFailure] = []
     for table, keys in referenced_tables.items():
         if not loaded_workspace.has_collection(table):
-            errors.append(GraphCreationUndefinedTable(table=table))
+            errors.append(UndefinedTable(table=table))
         else:
             table_keys = set(loaded_workspace.collection(table).keys())
             undefined = keys - table_keys
 
             if undefined:
-                errors.append(
-                    GraphCreationUndefinedKeys(table=table, keys=list(undefined))
-                )
+                errors.append(UndefinedKeys(table=table, keys=list(undefined)))
 
     if errors:
         raise ValidationFailed(errors)

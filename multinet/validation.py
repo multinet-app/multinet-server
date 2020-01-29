@@ -21,14 +21,14 @@ class UnsupportedTable(ValidationFailure):
 
 
 @dataclass
-class GraphCreationUndefinedTable(ValidationFailure):
+class UndefinedTable(ValidationFailure):
     """Undefined table referenced in an edge table when creating a graph."""
 
     table: str
 
 
 @dataclass
-class GraphCreationUndefinedKeys(ValidationFailure):
+class UndefinedKeys(ValidationFailure):
     """Undefined keys referencd in graph creation."""
 
     table: str

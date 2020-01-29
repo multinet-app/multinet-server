@@ -20,22 +20,22 @@ bp.before_request(util.require_db)
 
 
 @dataclass
-class D3InvalidStructure(ValidationFailure):
+class InvalidStructure(ValidationFailure):
     """Invalid structure in a D3 JSON file."""
 
 
 @dataclass
-class D3InvalidLinkKeys(ValidationFailure):
+class InvalidLinkKeys(ValidationFailure):
     """Invalid link keys in a D3 JSON file."""
 
 
 @dataclass
-class D3InconsistentLinkKeys(ValidationFailure):
+class InconsistentLinkKeys(ValidationFailure):
     """Inconsistent link keys in a D3 JSON file."""
 
 
 @dataclass
-class D3NodeDuplicates(ValidationFailure):
+class NodeDuplicates(ValidationFailure):
     """Duplicate nodes in a D3 JSON file."""
 
 
@@ -45,22 +45,22 @@ def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
 
     # Check the structure of the uploaded file is what we expect
     if "nodes" not in data.keys() or "links" not in data.keys():
-        data_errors.append(D3InvalidStructure())
+        data_errors.append(InvalidStructure())
 
     # Check that links are in source -> target form
     if not all(
         "source" in row.keys() and "target" in row.keys() for row in data["links"]
     ):
-        data_errors.append(D3InvalidLinkKeys())
+        data_errors.append(InvalidLinkKeys())
 
     # Check that the keys for each dictionary match
     if not all(data["links"][0].keys() == row.keys() for row in data["links"]):
-        data_errors.append(D3InconsistentLinkKeys())
+        data_errors.append(InconsistentLinkKeys())
 
     # Check for duplicated nodes
     ids = set(row["id"] for row in data["nodes"])
     if len(data["nodes"]) != len(ids):
-        data_errors.append(D3NodeDuplicates())
+        data_errors.append(NodeDuplicates())
 
     return data_errors
 

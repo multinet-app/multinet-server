@@ -19,7 +19,7 @@ bp.before_request(util.require_db)
 
 
 @dataclass
-class NewickDuplicateEdge(ValidationFailure):
+class DuplicateEdge(ValidationFailure):
     """The edge which is duplicated."""
 
     _from: str
@@ -48,7 +48,7 @@ def validate_newick(tree: List[newick.Node]) -> None:
             unique = (parent, key, node.length)
             if unique in unique_edges:
                 data_errors.append(
-                    NewickDuplicateEdge(
+                    DuplicateEdge(
                         _from=f"table/{parent}", _to=f"table/{key}", length=node.length
                     )
                 )

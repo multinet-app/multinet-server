@@ -6,7 +6,16 @@ if [ -e server.pid ]; then
     exit 1
 fi
 
-FLASK_SERVE_PORT=50000 nohup yarn serve --port 58080 >server.out &
+# Gets the absolute filepath
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
+# Get the env vars
+FILE_PATH=$(dirname $(realpath "$0"))
+source $FILE_PATH/../../.env.test
+
+nohup yarn serve --port $CLIENT_SERVE_PORT >server.out &
 echo $! >server.pid
 
 # Loop until the client is up.
@@ -14,8 +23,8 @@ started=0
 count=0
 
 echo -n "waiting for client to come up"
-while [ ${started} = 0 ] && [ ${count} -lt 30 ]; do
-    headers=$(curl -s -I --max-time 0.5 http://localhost:58080/api/workspaces)
+while [ ${started} = 0 ] && [ ${count} -lt 60 ]; do
+    headers=$(curl -s -I --max-time 0.5 http://localhost:$CLIENT_SERVE_PORT/api/workspaces)
     curl_status=$?
 
     if [ ${curl_status} = 0 ]; then

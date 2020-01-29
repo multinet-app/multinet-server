@@ -14,7 +14,7 @@ realpath() {
 FILE_PATH=$(dirname $(realpath "$0"))
 
 # Get the env vars
-source $FILE_PATH/../.env.test
+source $FILE_PATH/../../.env.test
 
 # Launch the server in the background.
 nohup pipenv run serve >server.out &

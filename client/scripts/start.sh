@@ -15,7 +15,7 @@ realpath() {
 FILE_PATH=$(dirname $(realpath "$0"))
 source $FILE_PATH/../../.env.test
 
-nohup yarn serve --port $CLIENT_SERVE_PORT >server.out &
+nohup yarn serve --port ${CLIENT_SERVE_PORT} >server.out &
 echo $! >server.pid
 
 # Loop until the client is up.
@@ -24,7 +24,7 @@ count=0
 
 echo -n "waiting for client to come up"
 while [ ${started} = 0 ] && [ ${count} -lt 60 ]; do
-    headers=$(curl -s -I --max-time 0.5 http://localhost:$CLIENT_SERVE_PORT/api/workspaces)
+    headers=$(curl -s -I --max-time 0.5 http://localhost:${CLIENT_SERVE_PORT}/api/workspaces)
     curl_status=$?
 
     if [ ${curl_status} = 0 ]; then

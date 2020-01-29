@@ -38,6 +38,8 @@ jobs:
       - run: cd client && yarn install
       - run: cd client && yarn lint
       - run: cd client && yarn lint:test
+      - run: cd client && yarn test:server:up
+      - run: cd client && yarn test:client:up
       - run: cd client && yarn test
       - run: cd client && yarn build
 

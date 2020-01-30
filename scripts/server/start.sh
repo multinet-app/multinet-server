@@ -6,18 +6,16 @@ if [ -e server.pid ]; then
     exit 1
 fi
 
-# Gets the absolute 
+# Gets the absolute filepath
 realpath() {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 
-FILE_PATH=$(dirname $(realpath "$0"))
-
 # Get the env vars
+FILE_PATH=$(dirname $(realpath "$0"))
 source $FILE_PATH/../../.env.test
 
 # Launch the server in the background.
-echo "Flask serve port = "$FLASK_SERVE_PORT
 FLASK_SERVE_PORT=$FLASK_SERVE_PORT nohup pipenv run serve >server.out &
 echo $! >server.pid
 

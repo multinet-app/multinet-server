@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Consult the lockfile first.
 if [ -e server.pid ]; then

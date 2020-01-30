@@ -31,12 +31,6 @@ jobs:
       - run: pipenv run typecheck
       - run: pipenv run test
 
-      # Build and test Multinet client library.
-      - run: cd multinetjs && yarn install
-      - run: cd multinetjs && yarn build
-      - run: cd multinetjs && yarn lint
-      - run: cd multinetjs && yarn test
-
       # Build and test Multinet client app.
       - uses: actions/setup-node@v1
         with:
@@ -49,3 +43,10 @@ jobs:
       - run: cd client && yarn test:client:up
       - run: cd client && yarn test
       - run: cd client && yarn build
+
+
+      # Build and test Multinet client library.
+      - run: cd multinetjs && yarn install
+      - run: cd multinetjs && yarn build
+      - run: cd multinetjs && yarn lint
+      - run: cd multinetjs && yarn test

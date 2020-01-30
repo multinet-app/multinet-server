@@ -32,7 +32,7 @@ def test_validate_csv():
 
     validation_resp = v_error.value.errors
     correct = [err.asdict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
-    assert all([err in validation_resp for err in correct])
+    assert all(err in validation_resp for err in correct)
 
     # Test invalid syntax
     with open(invalid_headers_file_path) as test_file:
@@ -51,7 +51,7 @@ def test_validate_csv():
             InvalidRow(row=5, fields=["_from", "_to"]),
         ]
     ]
-    assert all([err in validation_resp for err in correct])
+    assert all(err in validation_resp for err in correct)
 
     # Test unicode decode errors
     test_data = b"\xff\xfe_\x00k\x00e\x00y\x00,\x00n\x00a\x00m\x00e\x00\n"

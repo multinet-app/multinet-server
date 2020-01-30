@@ -17,7 +17,8 @@ FILE_PATH=$(dirname $(realpath "$0"))
 source $FILE_PATH/../../.env.test
 
 # Launch the server in the background.
-nohup pipenv run serve >server.out &
+echo "Flask serve port = "$FLASK_SERVE_PORT
+FLASK_SERVE_PORT=$FLASK_SERVE_PORT nohup pipenv run serve >server.out &
 echo $! >server.pid
 
 # Start the Arango database in the background with a clean data directory.

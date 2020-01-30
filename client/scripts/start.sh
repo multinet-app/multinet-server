@@ -15,7 +15,7 @@ realpath() {
 FILE_PATH=$(dirname $(realpath "$0"))
 source $FILE_PATH/../../.env.test
 
-nohup yarn serve --port 58080 >server.out &
+FLASK_SERVE_PORT=$FLASK_SERVE_PORT nohup yarn serve --port 58080 >server.out &
 echo $! >server.pid
 
 # Loop until the client is up.

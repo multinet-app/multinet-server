@@ -100,4 +100,4 @@ def upload(workspace: str, table: str) -> Any:
 
     # Insert the data into the collection.
     results = coll.insert_many(rows)
-    return dict(count=len(results))
+    return {"count": len(results)}

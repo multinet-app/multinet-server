@@ -38,7 +38,7 @@ def get_workspace(workspace: str) -> Any:
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
 @use_kwargs({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
-def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
+def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
     """Retrieve the tables of a single workspace."""
     tables = db.workspace_tables(workspace, type)
     return util.stream(tables)

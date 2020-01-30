@@ -1,50 +1,55 @@
 """Multinet uploader for CSV files."""
 import csv
+import re
 from flasgger import swag_from
 from io import StringIO
-import re
+from dataclasses import dataclass
 
-from .. import db, util
-from ..errors import ValidationFailed
-from ..util import decode_data
+from multinet import db, util
+from multinet.errors import ValidationFailed
+from multinet.util import decode_data
+from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
 from flask import Blueprint, request
 from flask import current_app as app
 
 # Import types
-from typing import Set, MutableMapping, Sequence, Any
+from typing import Set, MutableMapping, Sequence, Any, List
 
 
 bp = Blueprint("csv", __name__)
 bp.before_request(util.require_db)
 
 
+@dataclass
+class InvalidRow(ValidationFailure):
+    """Invalid syntax in a CSV file."""
+
+    row: int
+    fields: List[str]
+
+
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
-    data_errors = []
+    data_errors: List[ValidationFailure] = []
 
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:
         # Node Table, check for key uniqueness
         keys = [row["_key"] for row in rows]
         unique_keys: Set[str] = set()
-        duplicates = set()
         for key in keys:
             if key in unique_keys:
-                duplicates.add(key)
+                data_errors.append(DuplicateKey(key=key))
             else:
                 unique_keys.add(key)
 
-        if len(duplicates) > 0:
-            data_errors.append({"error": "duplicate", "detail": list(duplicates)})
     elif "_from" in fieldnames and "_to" in fieldnames:
         # Edge Table, check that each cell has the correct format
         valid_cell = re.compile("[^/]+/[^/]+")
 
-        detail = []
-
         for i, row in enumerate(rows):
-            fields = []
+            fields: List[str] = []
             if not valid_cell.match(row["_from"]):
                 fields.append("_from")
             if not valid_cell.match(row["_to"]):
@@ -52,13 +57,11 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
 
             if fields:
                 # i+2 -> +1 for index offset, +1 due to header row
-                detail.append({"fields": fields, "row": i + 2})
+                data_errors.append(InvalidRow(fields=fields, row=i + 2))
 
-        if detail:
-            data_errors.append({"error": "syntax", "detail": detail})
     else:
         # Unsupported Table, error since we don't know what's coming in
-        data_errors.append({"error": "unsupported"})
+        data_errors.append(UnsupportedTable())
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

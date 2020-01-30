@@ -1,7 +1,8 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
+from typing import Tuple, Any, Union, List, Sequence
+from typing_extensions import TypedDict
 
-from typing import Tuple, Any, Union, List
-from mypy_extensions import TypedDict
+from multinet.validation import ValidationFailure
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]
@@ -146,9 +147,9 @@ class InvalidName(ServerError):
 class ValidationFailed(ServerError):
     """Exception for reporting validation errors."""
 
-    def __init__(self, errors: List[Any]):
+    def __init__(self, errors: Sequence[ValidationFailure]):
         """Initialize the exception."""
-        self.errors = errors
+        self.errors = [error.asdict() for error in errors]
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""

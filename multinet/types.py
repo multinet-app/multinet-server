@@ -2,7 +2,6 @@
 from typing import Dict, Set
 from typing_extensions import Literal, TypedDict
 
-
 EdgeDirection = Literal["all", "incoming", "outgoing"]
 TableType = Literal["all", "node", "edge"]
 

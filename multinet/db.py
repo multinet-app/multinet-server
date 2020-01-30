@@ -7,7 +7,7 @@ from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
 from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 
 from multinet.errors import (

@@ -1,14 +1,20 @@
 """Flask factory for Multinet app."""
+import os
+import sentry_sdk
 from flask import Flask
 from flask.logging import default_handler
 from flask_cors import CORS
 from flasgger import Swagger
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
 from multinet import api
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
+
+SENTRY_DSN = os.getenv("SENTRY_DSN", default="")
+sentry_sdk.init(dsn=SENTRY_DSN, integrations=[FlaskIntegration()])
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:

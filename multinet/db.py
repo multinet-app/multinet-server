@@ -2,11 +2,12 @@
 import os
 
 from arango import ArangoClient
+from arango.graph import Graph
 from arango.database import StandardDatabase, StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Callable, Any, Optional, Sequence, List, Set, Generator, Tuple
+from typing import Any, Sequence, List, Set, Generator, Tuple
 from mypy_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 
@@ -87,7 +88,7 @@ def get_workspace_db(name: str) -> StandardDatabase:
     return db(name)
 
 
-def get_graph_collection(workspace: str, graph: str) -> StandardCollection:
+def get_graph_collection(workspace: str, graph: str) -> Graph:
     """Return the Arango collection associated with a graph, if it exists."""
     space = get_workspace_db(workspace)
     if not space.has_graph(graph):
@@ -237,9 +238,9 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
         COLLECT WITH COUNT INTO count
         RETURN count
     """
-    count = aql_query(workspace, count_query)
+    count: int = next(aql_query(workspace, count_query))
 
-    return {"count": list(count)[0], "nodes": list(nodes)}
+    return {"count": count, "nodes": list(nodes)}
 
 
 def table_fields(workspace: str, table: str) -> List[str]:
@@ -261,7 +262,7 @@ def delete_table(workspace: str, table: str) -> str:
     return table
 
 
-def aql_query(workspace: str, query: str) -> Generator[dict, None, None]:
+def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
     aql = db(workspace).aql
 
@@ -307,13 +308,13 @@ def delete_graph(workspace: str, graph: str) -> str:
     return graph
 
 
-def graph_node_tables(workspace: str, graph: str) -> List[StandardCollection]:
+def graph_node_tables(workspace: str, graph: str) -> List[str]:
     """Return the node tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     return g.vertex_collections()
 
 
-def graph_edge_table(workspace: str, graph: str) -> Optional[StandardCollection]:
+def graph_edge_table(workspace: str, graph: str) -> StandardCollection:
     """Return the edge tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     edge_collections = g.edge_definitions()

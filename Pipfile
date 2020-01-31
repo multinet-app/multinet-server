@@ -14,6 +14,7 @@ flask = "==1.1.1"
 flask-cors = "==3.0.8"
 flasgger = "*"
 typing-extensions = "*"
+uwsgi = "*"
 
 [dev-packages]
 black = "==19.3b0"
@@ -30,7 +31,6 @@ recommonmark = "==0.5.0"
 pre-commit = "==1.18.2"
 flake8-mypy = "*"
 pep8-naming = "*"
-uwsgi = "*"
 
 [requires]
 python_version = "3.7"

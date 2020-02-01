@@ -13,8 +13,8 @@ from multinet import api
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
 
-SENTRY_DSN = os.getenv("SENTRY_DSN", default="")
-sentry_sdk.init(dsn=SENTRY_DSN, integrations=[FlaskIntegration()])
+sentry_dsn = os.getenv("SENTRY_DSN", default="")
+sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:

@@ -12,7 +12,7 @@ from multinet.db import (
 )
 from multinet.errors import NotFound
 
-from flask import Blueprint, make_response
+from flask import Blueprint, Response
 
 # Import types
 from typing import Any
@@ -39,15 +39,20 @@ def download(workspace: str, table: str) -> Any:
     table_rows = workspace_table_rows(workspace, table, 0, limit)
     fields = workspace_table_keys(workspace, table, filter_keys=True)
 
-    io = StringIO()
-    writer = csv.DictWriter(io, fieldnames=fields)
+    def csv_row_generator():
+        header_line = StringIO()
+        writer = csv.DictWriter(header_line, fieldnames=fields)
+        writer.writeheader()
+        yield header_line.getvalue()
 
-    writer.writeheader()
-    for row in generate_filtered_docs(table_rows):
-        writer.writerow(row)
+        for csv_row in generate_filtered_docs(table_rows):
+            line = StringIO()
+            writer = csv.DictWriter(line, fieldnames=fields)
+            writer.writerow(csv_row)
+            yield line.getvalue()
 
-    output = make_response(io.getvalue())
-    output.headers["Content-Disposition"] = f"attachment; filename={table}.csv"
-    output.headers["Content-type"] = "text/csv"
+    response = Response(csv_row_generator(), mimetype="text/csv")
+    response.headers["Content-Disposition"] = f"attachment; filename={table}.csv"
+    response.headers["Content-type"] = "text/csv"
 
-    return output
+    return response

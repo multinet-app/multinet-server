@@ -3,8 +3,13 @@ import csv
 from flasgger import swag_from
 from io import StringIO
 
-from multinet.util import require_db, filter_unwanted_keys, generate_filtered_docs
-from multinet.db import get_workspace_db, workspace_table
+from multinet.util import require_db, generate_filtered_docs
+from multinet.db import (
+    get_workspace_db,
+    workspace_table_row_count,
+    workspace_table_rows,
+    workspace_table_keys,
+)
 from multinet.errors import NotFound
 
 from flask import Blueprint, make_response
@@ -30,9 +35,9 @@ def download(workspace: str, table: str) -> Any:
     if not space.has_collection(table):
         raise NotFound("table", table)
 
-    limit = workspace_table(workspace, table, 0, 0)["count"]
-    table_rows = workspace_table(workspace, table, 0, limit)["rows"]
-    fields = filter_unwanted_keys(table_rows[0]).keys()
+    limit = workspace_table_row_count(workspace, table)
+    table_rows = workspace_table_rows(workspace, table, 0, limit)
+    fields = workspace_table_keys(workspace, table, filter_keys=True)
 
     io = StringIO()
     writer = csv.DictWriter(io, fieldnames=fields)

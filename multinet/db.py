@@ -7,7 +7,7 @@ from arango.database import StandardDatabase, StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Any, Sequence, List, Set, Generator, Tuple
+from typing import Any, Sequence, List, Set, Generator, Tuple, Dict
 from mypy_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 
@@ -36,6 +36,7 @@ Arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
 )
+RESTRICTED_KEYS = {"_rev", "_id"}
 
 
 def db(name: str) -> StandardDatabase:
@@ -154,20 +155,55 @@ def workspace_table(workspace: str, table: str, offset: int, limit: int) -> dict
 
     query = f"""
     FOR d in {table}
-      LIMIT {offset}, {limit}
-      RETURN d
+        LIMIT {offset}, {limit}
+        RETURN d
     """
 
+    count = workspace_table_row_count(workspace, table)
+    rows = aql_query(workspace, query)
+
+    return {"count": count, "rows": list(rows)}
+
+
+def workspace_table_rows(
+    workspace: str, table: str, offset: int, limit: int
+) -> Generator[Dict, None, None]:
+    """Stream the rows of a table in CSV form."""
+
+    query = f"""
+    FOR d in {table}
+        LIMIT {offset}, {limit}
+        RETURN d
+    """
+
+    return aql_query(workspace, query)
+
+
+def workspace_table_row_count(workspace: str, table: str) -> int:
+    """Return the number of rows in a table."""
     count_query = f"""
     FOR d in {table}
         COLLECT WITH COUNT INTO count
         return count
     """
+    return next(aql_query(workspace, count_query))
 
-    count = aql_query(workspace, count_query)
-    rows = aql_query(workspace, query)
 
-    return {"count": list(count)[0], "rows": list(rows)}
+def workspace_table_keys(
+    workspace: str, table: str, filter_keys: bool = False
+) -> List[str]:
+    """Get the keys of a table in a workspace."""
+
+    query = f"""
+    FOR d in {table}
+        LIMIT 0, 1
+        RETURN ATTRIBUTES(d)
+    """
+    cursor = next(aql_query(workspace, query))
+
+    if filter_keys:
+        return [k for k in cursor if k not in RESTRICTED_KEYS]
+    return list(aql_query(workspace, query))
 
 
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:

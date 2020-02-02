@@ -22,15 +22,14 @@ def analyze_nested_json(
     `data` - the text of a nested_json file
     `(nodes, edges)` - a node and edge table describing the tree.
     """
-    id = itertools.count(100)
+    ident = itertools.count(100)
     data = json.loads(raw_data)
 
     def keyed(rec: dict) -> dict:
         if "_key" in rec:
             return rec
 
-        # keyed = dict(rec)
-        rec["_key"] = str(next(id))
+        rec["_key"] = str(next(ident))
 
         return rec
 
@@ -115,6 +114,8 @@ def upload(workspace: str, table: str) -> Any:
     int_nodetable.insert_many(nodes[0])
     leaf_nodetable.insert_many(nodes[1])
 
-    return dict(
-        edgecount=len(edges), int_nodecount=len(nodes[0]), leaf_nodecount=len(nodes[1])
-    )
+    return {
+        "edgecount": len(edges),
+        "int_nodecount": len(nodes[0]),
+        "leaf_nodecount": len(nodes[1]),
+    }

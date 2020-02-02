@@ -9,7 +9,7 @@ def main():
 
     with open(sys.argv[1]) as nodes:
         reader = csv.DictReader(nodes)
-        ids = set(n["_key"] for n in reader)
+        ids = {n["_key"] for n in reader}
 
     reader = csv.DictReader(sys.stdin)
     writer = csv.DictWriter(sys.stdout, reader.fieldnames)

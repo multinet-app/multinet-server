@@ -66,10 +66,10 @@ def download(workspace: str, graph: str) -> Any:
             links.append(edge)
 
     response = make_response(
-        dict(
-            nodes=list(generate_filtered_docs(nodes)),
-            links=list(generate_filtered_docs(links)),
-        )
+        {
+            "nodes": list(generate_filtered_docs(nodes)),
+            "links": list(generate_filtered_docs(links)),
+        }
     )
     response.headers["Content-Disposition"] = f"attachment; filename={graph}.json"
     response.headers["Content-type"] = "application/json"

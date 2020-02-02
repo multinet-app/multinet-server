@@ -58,7 +58,7 @@ def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
         data_errors.append(InconsistentLinkKeys())
 
     # Check for duplicated nodes
-    ids = set(row["id"] for row in data["nodes"])
+    ids = {row["id"] for row in data["nodes"]}
     if len(data["nodes"]) != len(ids):
         data_errors.append(NodeDuplicates())
 
@@ -113,4 +113,4 @@ def upload(workspace: str, table: str) -> Any:
     nodes_coll.insert_many(nodes)
     links_coll.insert_many(links)
 
-    return dict(nodecount=len(nodes), edgecount=len(links))
+    return {"nodecount": len(nodes), "edgecount": len(links)}

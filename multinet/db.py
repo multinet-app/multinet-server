@@ -317,7 +317,7 @@ def graph_node_tables(workspace: str, graph: str) -> List[str]:
     return g.vertex_collections()
 
 
-def graph_edge_table(workspace: str, graph: str) -> StandardCollection:
+def graph_edge_table(workspace: str, graph: str) -> str:
     """Return the edge tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     edge_collections = g.edge_definitions()

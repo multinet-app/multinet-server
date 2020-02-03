@@ -1,5 +1,3 @@
-# flake8: noqa
-
 from typing import Dict, List, Any
 
 from arango.collection import StandardCollection  # type: ignore

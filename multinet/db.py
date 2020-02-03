@@ -34,7 +34,7 @@ GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 
-Arango = ArangoClient(
+arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
 )
@@ -42,7 +42,7 @@ Arango = ArangoClient(
 
 def db(name: str) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
-    return Arango.db(
+    return arango.db(
         name, username="root", password=os.environ.get("ARANGO_PASSWORD", "letmein")
     )
 

@@ -1,6 +1,6 @@
 from typing import Dict, List, Any
 
-from arango.collection import StandardCollection  # type: ignore
+from arango.collection import StandardCollection
 from arango.graph import Graph
 from arango.aql import AQL  # type: ignore
 

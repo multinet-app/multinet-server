@@ -3,7 +3,9 @@ import os
 
 from arango import ArangoClient
 from arango.graph import Graph
-from arango.database import StandardDatabase, StandardCollection
+from arango.database import StandardDatabase
+from arango.collection import StandardCollection
+
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 

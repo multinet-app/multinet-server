@@ -12,6 +12,7 @@ from requests.exceptions import ConnectionError
 from typing import Any, Sequence, List, Set, Generator, Tuple
 from mypy_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
+from multinet.errors import InternalServerError
 
 from multinet.errors import (
     BadQueryArgument,
@@ -321,7 +322,10 @@ def graph_edge_table(workspace: str, graph: str) -> StandardCollection:
     g = get_graph_collection(workspace, graph)
     edge_collections = g.edge_definitions()
 
-    return None if not edge_collections else edge_collections[0]["edge_collection"]
+    if not edge_collections:
+        raise InternalServerError
+
+    return edge_collections[0]["edge_collection"]
 
 
 def node_edges(

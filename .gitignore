@@ -52,8 +52,8 @@ ENV/
 .DS_Store
 
 # Arango test materials.
-arango/
-arango-apps/
+/arango/
+/arango-apps/
 server.out
 server.pid
 

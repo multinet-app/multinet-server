@@ -4,6 +4,7 @@ import itertools
 import json
 
 from multinet import db, util
+from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request
 
@@ -85,7 +86,11 @@ def upload(workspace: str, table: str) -> Any:
     """
     # Set up the parameters.
     data = request.data.decode("utf8")
+
     space = db.db(workspace)
+    if space.has_graph(table):
+        raise AlreadyExists("graph", table)
+
     edgetable_name = f"{table}_edges"
     int_nodetable_name = f"{table}_internal_nodes"
     leaf_nodetable_name = f"{table}_leaf_nodes"
@@ -113,6 +118,16 @@ def upload(workspace: str, table: str) -> Any:
     edgetable.insert_many(edges)
     int_nodetable.insert_many(nodes[0])
     leaf_nodetable.insert_many(nodes[1])
+
+    # Create graph
+    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
+    db.create_graph(
+        workspace,
+        table,
+        edgetable_name,
+        edge_table_info["from_tables"],
+        edge_table_info["to_tables"],
+    )
 
     return {
         "edgecount": len(edges),

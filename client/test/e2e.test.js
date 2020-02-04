@@ -13,6 +13,16 @@ function browser(width, height) {
   });
 }
 
+// Sets up the browser with some default settings
+async function setup() {
+  const b = await browser(width, height);
+  const p = await b.newPage();
+  await p.setViewport({ width, height });
+  await p.goto('http://127.0.0.1:58080/');
+  await p.setDefaultTimeout(30000); // Default timeout of 30 seconds
+  return [b, p];
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -87,10 +97,7 @@ async function elements_empty(element_type, p) {
 // Start of tests
 test('e2e - Check that actions that should work, do work', async (t) => {
   // Arrange: Set up the page
-  const b = await browser(width, height);
-  const p = await b.newPage();
-  await p.setViewport({ width, height });
-  await p.goto('http://127.0.0.1:58080/');
+  const [b, p] = await setup();
 
   // Act: Test creating a workspace
   await create_workspace(p, 'puppeteer');
@@ -104,8 +111,8 @@ test('e2e - Check that actions that should work, do work', async (t) => {
 
   t.ok(exists, 'The new workspace has no tables.');
 
-  exists = await elements_empty('Graphs', p, undefined);
-  t.ok(exists, 'The new workspace has no graphs.');
+  exists = await elements_empty('Networks', p, undefined);
+  t.ok(exists, 'The new workspace has no networks.');
 
   // Cleanup
   await b.close();
@@ -114,10 +121,7 @@ test('e2e - Check that actions that should work, do work', async (t) => {
 
 test('e2e - Check that actions that shouldn\'t work, don\'t work', async (t) => {
   // Arrange: Set up the page
-  const b = await browser(width, height);
-  const p = await b.newPage();
-  await p.setViewport({ width, height });
-  await p.goto('http://127.0.0.1:58080/');
+  const [b, p] = await setup();
 
   // Act: Test creating invalid workspaces
   await create_workspace(p, '123');

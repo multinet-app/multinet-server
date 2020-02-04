@@ -3,7 +3,7 @@ import json
 import os
 
 from flask import Response
-from typing import Sequence, Any, Generator, Dict, Set
+from typing import Sequence, Any, Generator, Dict, Set, Iterable
 
 from multinet import db
 from multinet.types import EdgeTableProperties
@@ -61,7 +61,7 @@ def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTablePrope
     }
 
 
-def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
+def generate(iterator: Iterable[Any]) -> Generator[str, None, None]:
     """Return a generator that yields an iterator's contents into a JSON list."""
     yield "["
 
@@ -73,7 +73,7 @@ def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
     yield "]"
 
 
-def stream(iterator: Sequence[Any]) -> Response:
+def stream(iterator: Iterable[Any]) -> Response:
     """Convert an iterator to a Flask response."""
     return Response(generate(iterator), mimetype="application/json")
 

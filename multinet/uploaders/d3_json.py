@@ -65,13 +65,13 @@ def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
     return data_errors
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/d3_json.yaml")
-def upload(workspace: str, table: str) -> Any:
-    """Store a d3 json-encoded graph into the database as a node and edge table.
+def upload(workspace: str, graph: str) -> Any:
+    """Store a d3 json-encoded graph into the database, with node and edge tables.
 
     `workspace` - the target workspace
-    `table` - the target table
+    `graph` - the target graph
     `data` - the json data, passed in the request body. The json data should contain
     nodes: [] and links: []
     """
@@ -85,11 +85,11 @@ def upload(workspace: str, table: str) -> Any:
         raise ValidationFailed(errors)
 
     space = db.db(workspace)
-    if space.has_graph(table):
-        raise AlreadyExists("graph", table)
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
 
-    node_table_name = f"{table}_nodes"
-    edge_table_name = f"{table}_links"
+    node_table_name = f"{graph}_nodes"
+    edge_table_name = f"{graph}_links"
 
     # Change column names from the d3 format to the arango format
     nodes = data["nodes"]
@@ -123,7 +123,7 @@ def upload(workspace: str, table: str) -> Any:
 
     db.create_graph(
         workspace,
-        table,
+        graph,
         edge_table_name,
         properties["from_tables"],
         properties["to_tables"],

@@ -61,14 +61,14 @@ def validate_newick(tree: List[newick.Node]) -> None:
         raise ValidationFailed(data_errors)
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/newick.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, graph: str) -> Any:
     """
     Store a newick tree into the database in coordinated node and edge tables.
 
     `workspace` - the target workspace.
-    `table` - the target table.
+    `graph` - the target graph.
     `data` - the newick data, passed in the request body.
     """
     app.logger.info("newick tree")
@@ -80,11 +80,11 @@ def upload(workspace: str, table: str) -> Any:
     validate_newick(tree)
 
     space = db.db(workspace)
-    if space.has_graph(table):
-        raise AlreadyExists("graph", table)
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
 
-    edgetable_name = "%s_edges" % table
-    nodetable_name = "%s_nodes" % table
+    edgetable_name = "%s_edges" % graph
+    nodetable_name = "%s_nodes" % graph
 
     if space.has_collection(edgetable_name):
         edgetable = space.collection(edgetable_name)
@@ -124,7 +124,7 @@ def upload(workspace: str, table: str) -> Any:
     edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
     db.create_graph(
         workspace,
-        table,
+        graph,
         edgetable_name,
         edge_table_info["from_tables"],
         edge_table_info["to_tables"],

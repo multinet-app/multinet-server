@@ -84,6 +84,9 @@ def upload(workspace: str, table: str) -> Any:
     if len(errors) > 0:
         raise ValidationFailed(errors)
 
+    node_table_name = f"{table}_nodes"
+    edge_table_name = f"{table}_links"
+
     # Change column names from the d3 format to the arango format
     nodes = data["nodes"]
     for node in nodes:
@@ -92,25 +95,36 @@ def upload(workspace: str, table: str) -> Any:
 
     links = data["links"]
     for link in links:
-        link["_from"] = f"{table}_nodes/{link['source']}"
-        link["_to"] = f"{table}_nodes/{link['target']}"
+        link["_from"] = f"{node_table_name}/{link['source']}"
+        link["_to"] = f"{node_table_name}/{link['target']}"
         del link["source"]
         del link["target"]
 
     # Create or retrieve the workspace
     space = db.db(workspace)
-    if space.has_collection(f"{table}_nodes"):
-        nodes_coll = space.collection(f"{table}_nodes")
+    if space.has_collection(node_table_name):
+        nodes_coll = space.collection(node_table_name)
     else:
-        nodes_coll = space.create_collection(f"{table}_nodes", edge=False)
+        nodes_coll = space.create_collection(node_table_name, edge=False)
 
-    if space.has_collection(f"{table}_links"):
-        links_coll = space.collection(f"{table}_links")
+    if space.has_collection(edge_table_name):
+        links_coll = space.collection(edge_table_name)
     else:
-        links_coll = space.create_collection(f"{table}_links", edge=True)
+        links_coll = space.create_collection(edge_table_name, edge=True)
 
     # Insert data
     nodes_coll.insert_many(nodes)
     links_coll.insert_many(links)
+
+    properties = util.get_edge_table_properties(workspace, edge_table_name)
+
+    # TODO: Raise AlreadyExists error if this returns false
+    db.create_graph(
+        workspace,
+        table,
+        edge_table_name,
+        properties["from_tables"],
+        properties["to_tables"],
+    )
 
     return {"nodecount": len(nodes), "edgecount": len(links)}

@@ -15,6 +15,7 @@ flask-cors = "==3.0.8"
 flasgger = "*"
 typing-extensions = "*"
 uwsgi = "*"
+sentry-sdk = {extras = ["flask"],version = "==0.14.1"}
 
 [dev-packages]
 black = "==19.3b0"
@@ -35,6 +36,7 @@ pytest-cov = "==2.7.1"
 pytest-xdist = "==1.29.0"
 recommonmark = "==0.5.0"
 pre-commit = "==1.18.2"
+
 
 [requires]
 python_version = "3.7"

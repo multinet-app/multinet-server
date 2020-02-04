@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from collections import OrderedDict
 
 from multinet import db, util
-from multinet.errors import ValidationFailed
+from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure
 
@@ -84,6 +84,10 @@ def upload(workspace: str, table: str) -> Any:
     if len(errors) > 0:
         raise ValidationFailed(errors)
 
+    space = db.db(workspace)
+    if space.has_graph(table):
+        raise AlreadyExists("graph", table)
+
     node_table_name = f"{table}_nodes"
     edge_table_name = f"{table}_links"
 
@@ -101,7 +105,6 @@ def upload(workspace: str, table: str) -> Any:
         del link["target"]
 
     # Create or retrieve the workspace
-    space = db.db(workspace)
     if space.has_collection(node_table_name):
         nodes_coll = space.collection(node_table_name)
     else:
@@ -118,7 +121,6 @@ def upload(workspace: str, table: str) -> Any:
 
     properties = util.get_edge_table_properties(workspace, edge_table_name)
 
-    # TODO: Raise AlreadyExists error if this returns false
     db.create_graph(
         workspace,
         table,

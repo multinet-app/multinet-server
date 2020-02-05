@@ -49,7 +49,9 @@ def get_edge_tables(workspace: str) -> List[str]:
 
 def get_table_rows(workspace: str, table: str) -> List:
     """Return the rows of a table."""
-    resp = requests.get(f"{root_api_endpoint()}/workspaces/{workspace}/tables/{table}")
+    resp = requests.get(
+        f"{root_api_endpoint()}/workspaces/{workspace}/tables/{table}/rows"
+    )
 
     if resp.ok:
         rows = json.loads(resp.text)
@@ -83,13 +85,11 @@ def create_workspace(workspace: str) -> bool:
     return False
 
 
-def create_graph(
-    workspace: str, graph_name: str, node_tables: List[str], edge_table: str
-) -> bool:
+def create_graph(workspace: str, graph_name: str, edge_table: str) -> bool:
     """Create a graph."""
     resp = requests.post(
         f"{root_api_endpoint()}/workspaces/{workspace}/graphs/{graph_name}",
-        params={"node_tables": node_tables, "edge_table": edge_table},
+        params={"edge_table": edge_table},
     )
 
     if resp.ok:
@@ -216,13 +216,8 @@ def populate(address: str):
                 for row in rows
             ]
 
-            associated_node_tables = set()
+            create_graph(workspace, workspace, edge_table)
 
-            for row in rows:
-                associated_node_tables.add(row["_from"].split("/")[0])
-                associated_node_tables.add(row["_to"].split("/")[0])
-
-            create_graph(workspace, workspace, list(associated_node_tables), edge_table)
 
     log_indent -= log_tabstop
     script_complete_string = "Data population complete."

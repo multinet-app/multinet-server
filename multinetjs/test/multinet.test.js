@@ -4,9 +4,9 @@ import process from 'process';
 
 import { multinetApi } from '../dist';
 
-const membersText = fs.readFileSync('../test/data/members.csv', 'utf8');
-const clubsText = fs.readFileSync('../test/data/clubs.csv', 'utf8');
-const membershipText = fs.readFileSync('../test/data/membership.csv', 'utf8');
+const membersText = fs.readFileSync('../data/boston/members.csv', 'utf8');
+const clubsText = fs.readFileSync('../data/boston/clubs.csv', 'utf8');
+const membershipText = fs.readFileSync('../data/boston/membership.csv', 'utf8');
 
 function failMessage(call, exc) {
   return `${call} failed: ${exc.status} ${exc.statusText}`;

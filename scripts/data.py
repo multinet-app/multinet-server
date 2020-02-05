@@ -218,8 +218,8 @@ def populate(address: str):
 
             create_graph(workspace, workspace, edge_table)
 
+        log_indent -= log_tabstop
 
-    log_indent -= log_tabstop
     script_complete_string = "Data population complete."
     log("-" * len(script_complete_string), indent=log_indent)
     log(script_complete_string, indent=log_indent, success=True)

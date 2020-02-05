@@ -37,8 +37,8 @@ export type TableUploadType = 'csv';
 export type GraphUploadType = 'nested_json' | 'newick' | 'd3_json';
 export type UploadType = TableUploadType | GraphUploadType;
 
-export function validUploadType(ext: string): ext is UploadType {
-  return ['csv', 'nested_json', 'newick', 'd3_json'].includes(ext);
+export function validUploadType(type: string): type is UploadType {
+  return ['csv', 'nested_json', 'newick', 'd3_json'].includes(type);
 }
 
 export type Direction = 'all' | 'incoming' | 'outgoing';

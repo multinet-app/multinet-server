@@ -57,7 +57,7 @@ export type EdgesOptionsSpec = OffsetLimitSpec & {
 };
 
 export interface FileUploadOptionsSpec {
-  type: TableUploadType | GraphUploadType;
+  type: UploadType;
   data: string | File;
 }
 

@@ -117,7 +117,7 @@ def upload(workspace: str, graph: str) -> Any:
 
     # Insert data
     nodes_coll.insert_many(nodes)
-    links_coll.insert_many(links)
+    links_coll.insert_many(links, sync=True)
 
     properties = util.get_edge_table_properties(workspace, edge_table_name)
 

@@ -1,4 +1,3 @@
-# flake8: noqa
 from typing import Dict, List
 from arango.collection import EdgeCollection, VertexCollection  # type: ignore
 

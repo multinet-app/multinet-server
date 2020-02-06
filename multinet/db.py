@@ -3,13 +3,16 @@ import os
 
 from arango import ArangoClient
 from arango.graph import Graph
-from arango.database import StandardDatabase, StandardCollection
+from arango.database import StandardDatabase
+from arango.collection import StandardCollection
+
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
 from typing import Any, Sequence, List, Set, Generator, Tuple, Dict
-from mypy_extensions import TypedDict
+from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
+from multinet.errors import InternalServerError
 
 from multinet.errors import (
     BadQueryArgument,
@@ -32,7 +35,7 @@ GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 
-Arango = ArangoClient(
+arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
 )
@@ -41,7 +44,7 @@ RESTRICTED_KEYS = {"_rev", "_id"}
 
 def db(name: str) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
-    return Arango.db(
+    return arango.db(
         name, username="root", password=os.environ.get("ARANGO_PASSWORD", "letmein")
     )
 
@@ -350,12 +353,15 @@ def graph_node_tables(workspace: str, graph: str) -> List[str]:
     return g.vertex_collections()
 
 
-def graph_edge_table(workspace: str, graph: str) -> StandardCollection:
+def graph_edge_table(workspace: str, graph: str) -> str:
     """Return the edge tables associated with a graph."""
     g = get_graph_collection(workspace, graph)
     edge_collections = g.edge_definitions()
 
-    return None if not edge_collections else edge_collections[0]["edge_collection"]
+    if not edge_collections:
+        raise InternalServerError
+
+    return edge_collections[0]["edge_collection"]
 
 
 def node_edges(

@@ -25,6 +25,14 @@ class ServerError(Exception):
         raise NotImplementedError
 
 
+class InternalServerError(ServerError):
+    """General exception for internal server errors."""
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 level error."""
+        return ("", "500 Internal Server Error")
+
+
 class NotFound(ServerError):
     """Base exception for 404 errors of various types."""
 

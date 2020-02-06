@@ -4,7 +4,7 @@ import uuid
 import newick
 
 from multinet import db, util
-from multinet.errors import ValidationFailed
+from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey
 
@@ -59,18 +59,16 @@ def validate_newick(tree: List[newick.Node]) -> None:
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)
-    else:
-        return
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/newick.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, graph: str) -> Any:
     """
     Store a newick tree into the database in coordinated node and edge tables.
 
     `workspace` - the target workspace.
-    `table` - the target table.
+    `graph` - the target graph.
     `data` - the newick data, passed in the request body.
     """
     app.logger.info("newick tree")
@@ -82,14 +80,19 @@ def upload(workspace: str, table: str) -> Any:
     validate_newick(tree)
 
     space = db.db(workspace)
-    edgetable_name = "%s_edges" % table
-    nodetable_name = "%s_nodes" % table
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
+
+    edgetable_name = f"{graph}_edges"
+    nodetable_name = f"{graph}_nodes"
+
     if space.has_collection(edgetable_name):
         edgetable = space.collection(edgetable_name)
     else:
         # Note that edge=True must be set or the _from and _to keys
         # will be ignored below.
         edgetable = space.create_collection(edgetable_name, edge=True)
+
     if space.has_collection(nodetable_name):
         nodetable = space.collection(nodetable_name)
     else:
@@ -118,5 +121,13 @@ def upload(workspace: str, table: str) -> Any:
             edgecount += 1
 
     read_tree(None, tree[0])
+    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
+    db.create_graph(
+        workspace,
+        graph,
+        edgetable_name,
+        edge_table_info["from_tables"],
+        edge_table_info["to_tables"],
+    )
 
     return {"edgecount": edgecount, "nodecount": nodecount}

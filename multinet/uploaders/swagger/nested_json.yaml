@@ -1,4 +1,4 @@
-Upload a nested JSON file to a collection of tables
+Upload a nested JSON file, creating a graph and associated tables
 ---
 consumes:
   - text/plain

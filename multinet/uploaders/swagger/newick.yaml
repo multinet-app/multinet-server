@@ -1,4 +1,4 @@
-Upload a Newick file to a collection of tables
+Upload a Newick file, creating a graph and associated tables
 ---
 consumes:
   - text/plain

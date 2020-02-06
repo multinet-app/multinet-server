@@ -83,8 +83,8 @@ def upload(workspace: str, graph: str) -> Any:
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 
-    edgetable_name = "%s_edges" % graph
-    nodetable_name = "%s_nodes" % graph
+    edgetable_name = f"{graph}_edges"
+    nodetable_name = f"{graph}_nodes"
 
     if space.has_collection(edgetable_name):
         edgetable = space.collection(edgetable_name)

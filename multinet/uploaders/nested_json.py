@@ -4,6 +4,7 @@ import itertools
 import json
 
 from multinet import db, util
+from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request
 
@@ -73,22 +74,26 @@ def analyze_nested_json(
     return (nodes, edges)
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/nested_json.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, graph: str) -> Any:
     """
     Store a nested_json tree into the database in coordinated node and edge tables.
 
     `workspace` - the target workspace.
-    `table` - the target table.
+    `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
     # Set up the parameters.
     data = request.data.decode("utf8")
+
     space = db.db(workspace)
-    edgetable_name = f"{table}_edges"
-    int_nodetable_name = f"{table}_internal_nodes"
-    leaf_nodetable_name = f"{table}_leaf_nodes"
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
+
+    edgetable_name = f"{graph}_edges"
+    int_nodetable_name = f"{graph}_internal_nodes"
+    leaf_nodetable_name = f"{graph}_leaf_nodes"
 
     # Set up the database targets.
     if space.has_collection(edgetable_name):
@@ -113,6 +118,16 @@ def upload(workspace: str, table: str) -> Any:
     edgetable.insert_many(edges)
     int_nodetable.insert_many(nodes[0])
     leaf_nodetable.insert_many(nodes[1])
+
+    # Create graph
+    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
+    db.create_graph(
+        workspace,
+        graph,
+        edgetable_name,
+        edge_table_info["from_tables"],
+        edge_table_info["to_tables"],
+    )
 
     return {
         "edgecount": len(edges),

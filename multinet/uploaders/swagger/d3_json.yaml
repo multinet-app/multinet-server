@@ -1,4 +1,4 @@
-Upload a D3 JSON graph file to a collection of tables
+Upload a D3 JSON file, creating a graph and associated tables
 ---
 consumes:
   - text/plain
@@ -31,7 +31,7 @@ parameters:
 
 responses:
   200:
-    description: D3 data uploaded to tables
+    description: D3 data uploaded to tables and graph created
     schema:
       type: object
       properties:

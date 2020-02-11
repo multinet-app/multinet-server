@@ -20,6 +20,9 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
 
+      - run: chrome --version
+      - run: chromium --version
+
       # Copy Env File
       - run: cp .env.default .env
 

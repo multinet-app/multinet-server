@@ -16,7 +16,7 @@ test('multinet test', async (t) => {
   t.ok(multinetApi, 'multinetApi() was imported successfully');
   t.equal(typeof multinetApi, 'function', 'multinetApi() is a function');
 
-  const api = multinetApi('http://localhost:50000/api');
+  const api = multinetApi('http://localhost:5000/api');
   t.ok(api, 'multinetApi() gave us an API object');
 
   try {

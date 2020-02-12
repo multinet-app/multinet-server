@@ -110,30 +110,42 @@ export default Vue.extend ({
     return {
       collabs: [
         {
-          logo: require('../assets/utah_logo.png'),
+          logo: require('../assets/logo/utah_logo.png'),
         },
         {
-          logo: require('../assets/Kitware_Logo.png'),
+          logo: require('../assets/logo/Kitware_Logo.png'),
         },
         {
-          logo: require('../assets/vdl_logo.png'),
+          logo: require('../assets/logo/vdl_logo.png'),
         },
         {
-          logo: require('../assets/nsf_logo.png'),
+          logo: require('../assets/logo/nsf_logo.png'),
         },
       ],
       samples: [
         {
           title: 'Paul Revere - Node Link Diagram',
-          image: require('../assets/boston.jpg'),
+          image: require('../assets/placard/boston.jpg'),
           text: 'Explore the Paul Revere dataset using an interactive and beautiful node-link diagram. Discover the figures coordinating a pivotal event in history!',
           href: '/nodelink/?workspace=boston&graph=boston',
         },
         {
           title: 'Les Miserables - Adjacency Matrix',
-          image: require('../assets/miserables.jpg'),
+          image: require('../assets/placard/miserables.jpg'),
           text: 'Explore the Les Miserables dataset using an interactive adjacency matrix. See the factions and relationships for yourself!',
           href: '/adjmatrix/?workspace=miserables&graph=miserables',
+        },
+        {
+          title: 'Les Miserables - Node Link Diagram',
+          image: require('../assets/placard/miserables2.jpg'),
+          text: 'The characters of Les Miserables, laid out in a colorful and interactive node link diagram.',
+          href: '/nodelink/?workspace=miserables&graph=miserables',
+        },
+        {
+          title: 'Paul Revere - Adjacency Matrix',
+          image: require('../assets/placard/boston2.jpg'),
+          text: 'See the relationships between Paul Revere and his contemporaries through an adjacency matrix layout.',
+          href: '/adjmatrix/?workspace=boston&graph=boston',
         },
       ],
     };

@@ -76,7 +76,7 @@ def download(workspace: str, graph: str) -> Any:
 
     loaded_graph = space.graph(graph)
 
-    def d3_json_generator():
+    def d3_json_generator() -> Generator[str, None, None]:
         yield """{"nodes":["""
         yield from node_generator(loaded_graph)
         yield """],"links":["""

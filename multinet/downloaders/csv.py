@@ -15,7 +15,7 @@ from multinet.errors import NotFound
 from flask import Blueprint, Response
 
 # Import types
-from typing import Any
+from typing import Any, Generator
 
 
 bp = Blueprint("download_csv", __name__)
@@ -39,7 +39,7 @@ def download(workspace: str, table: str) -> Any:
     table_rows = workspace_table_rows(workspace, table, 0, limit)
     fields = workspace_table_keys(workspace, table, filter_keys=True)
 
-    def csv_row_generator():
+    def csv_row_generator() -> Generator[str, None, None]:
         header_line = StringIO()
         writer = csv.DictWriter(header_line, fieldnames=fields)
         writer.writeheader()

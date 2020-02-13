@@ -17,12 +17,17 @@
         </v-flex>
         <v-flex xs6 class="pl-2" v-if="fileTypeSelector">
           <v-select
+            v-if="types.length"
             id="file-type"
             filled
             label="File type"
-            v-if="typeList.length"
+            persistent-hint
+            :hint="selectedType ? selectedType.hint : null"
             v-model="selectedType"
-            :items="typeList"
+            :items="types"
+            item-text="displayName"
+            item-value="displayName"
+            return-object
           />
         </v-flex>
       </v-layout>
@@ -31,7 +36,7 @@
           <v-text-field
             id="table-name"
             filled
-            v-model="newTable"
+            v-model="fileName"
             :label="namePlaceholder"
             :error-messages="tableCreationError"
           />
@@ -55,7 +60,7 @@ import { UploadType, validUploadType } from 'multinet';
 import Vue, { PropType } from 'vue';
 
 import api from '@/api';
-import { FileTypeTable } from '@/types';
+import { FileType } from '@/types';
 
 
 export default Vue.extend({
@@ -87,7 +92,7 @@ export default Vue.extend({
       required: true,
     },
     types: {
-      type: Object as PropType<FileTypeTable>,
+      type: Array as PropType<FileType[]>,
       required: true,
     },
   },
@@ -96,43 +101,61 @@ export default Vue.extend({
     return {
       tableCreationError: null as string | null,
       fileUploadError: null as string | null,
-      selectedType: null as string | null,
+      fileName: null as string | null,
+      selectedType: null as FileType | null,
       file: null as File | null,
-      newTable: '',
     };
   },
 
   computed: {
-    typeList(): string[] {
-      return Object.keys(this.types);
-    },
     createDisabled(): boolean {
-      return !this.file || !this.selectedType || !this.newTable || !!this.fileUploadError;
+      return (
+        !this.file ||
+        !this.fileName ||
+        !this.selectedType ||
+        !!this.fileUploadError
+      );
     },
   },
 
   methods: {
     handleFileInput(file: File) {
       this.file = file;
-      const fileType = this.fileType(file);
 
-      if (fileType) {
-        this.selectedType = fileType;
+      if (!file) {
+        this.selectedType = null;
+        this.fileUploadError = null;
+        return;
+      }
+
+      const fileInfo = this.fileInfo(file);
+      if (fileInfo !== null) {
+        const [fileName, selectedType] = fileInfo;
+        this.fileName = this.fileName || fileName;
+        this.selectedType = selectedType;
         this.fileUploadError = null;
       } else {
         this.fileUploadError = 'Invalid file type';
+        this.selectedType = null;
       }
     },
 
     async createTable() {
-      try {
-        if (this.file === null) {
-          throw new Error('this.file must not be null');
-        }
+      const {
+        file,
+        workspace,
+        fileName,
+        selectedType,
+      } = this;
 
-        await api.uploadTable(this.workspace, this.newTable, {
-          type: this.selectedType as UploadType,
-          data: this.file,
+      if (file === null || fileName === null) {
+        throw new Error('Valid file must be selected.');
+      }
+
+      try {
+        await api.uploadTable(workspace, fileName, {
+          type: selectedType!.queryCall as UploadType,
+          data: file,
         });
 
         this.tableCreationError = null;
@@ -142,17 +165,17 @@ export default Vue.extend({
       }
     },
 
-    fileType(file: File): string | null {
+    fileInfo(file: File): [string, FileType] | null {
       if (!file) {
         return null;
       }
 
-      const fileName = file.name.split('.');
-      const extension = fileName[fileName.length - 1];
+      const [fileName, ...extensions] = file.name.split('.');
+      const extension = extensions[extensions.length - 1];
 
-      for (const type in this.types) {
-        if (this.types[type].extension.includes(extension) && validUploadType(type)) {
-          return type;
+      for (const type of this.types) {
+        if (type.extension.includes(extension) && validUploadType(type.queryCall)) {
+          return [fileName, type];
         }
       }
       return null;

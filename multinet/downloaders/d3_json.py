@@ -1,13 +1,14 @@
 """Multinet downloader for nested JSON files."""
 import re
+import json
 
 from flasgger import swag_from
 
-from multinet.util import require_db, generate_filtered_docs
+from multinet.util import require_db
 from multinet.db import get_workspace_db
 from multinet.errors import GraphNotFound
 
-from flask import Blueprint, make_response
+from flask import Blueprint, Response
 
 # Import types
 from typing import Any
@@ -25,52 +26,60 @@ def download(workspace: str, graph: str) -> Any:
     `graph` - the target graph
     """
 
-    nodes = []
-    links = []
-
+    table_nodes_pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
     space = get_workspace_db(workspace)
     if not space.has_graph(graph):
         raise GraphNotFound(workspace, graph)
 
     loaded_graph = space.graph(graph)
 
-    node_tables = loaded_graph.vertex_collections()
-    for node_table in node_tables:
-        table_nodes = loaded_graph.vertex_collection(node_table).all()
+    def node_generator():
+        node_tables = loaded_graph.vertex_collections()
+        for node_table in node_tables:
+            table_nodes = loaded_graph.vertex_collection(node_table).all()
 
-        for node in table_nodes:
-            node["id"] = node["_key"]
-            del node["_key"]
-            nodes.append(node)
+            comma = ""
+            for node in table_nodes:
+                node["id"] = node["_key"]
+                del node["_key"]
 
-    pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
-    edge_tables = [edef["edge_collection"] for edef in loaded_graph.edge_definitions()]
-    for edge_table in edge_tables:
-        edges = loaded_graph.edge_collection(edge_table).all()
+                yield f"{comma}{json.dumps(node)}"
+                comma = comma or ","
 
-        for edge in edges:
-            source = edge["_from"]
-            target = edge["_to"]
-            source_match = pattern.search(source)
-            target_match = pattern.search(target)
+    def link_generator():
+        edge_tables = [
+            edef["edge_collection"] for edef in loaded_graph.edge_definitions()
+        ]
+        for edge_table in edge_tables:
+            edges = loaded_graph.edge_collection(edge_table).all()
 
-            if source_match and target_match:
-                source = "".join(source_match.groups())
-                target = "".join(target_match.groups())
+            comma = ""
+            for edge in edges:
+                source = edge["_from"]
+                target = edge["_to"]
+                source_match = table_nodes_pattern.search(source)
+                target_match = table_nodes_pattern.search(target)
 
-            edge["source"] = source
-            edge["target"] = target
-            del edge["_from"]
-            del edge["_to"]
+                if source_match and target_match:
+                    source = "".join(source_match.groups())
+                    target = "".join(target_match.groups())
 
-            links.append(edge)
+                edge["source"] = source
+                edge["target"] = target
+                del edge["_from"]
+                del edge["_to"]
 
-    response = make_response(
-        {
-            "nodes": list(generate_filtered_docs(nodes)),
-            "links": list(generate_filtered_docs(links)),
-        }
-    )
+                yield f"{comma}{json.dumps(edge)}"
+                comma = comma or ","
+
+    def d3_json_generator():
+        yield """{"nodes":["""
+        yield from node_generator()
+        yield """],"links":["""
+        yield from link_generator()
+        yield "]}"
+
+    response = Response(d3_json_generator(), mimetype="application/json")
     response.headers["Content-Disposition"] = f"attachment; filename={graph}.json"
     response.headers["Content-type"] = "application/json"
 

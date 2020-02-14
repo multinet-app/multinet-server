@@ -29,7 +29,7 @@ def node_generator(loaded_graph: Graph) -> Generator[str, None, None]:
             node["id"] = node["_key"]
             del node["_key"]
 
-            yield f"{comma}{json.dumps(node)}"
+            yield f"{comma}{json.dumps(node, separators=(',', ':'))}"
             comma = comma or ","
 
 
@@ -57,7 +57,7 @@ def link_generator(loaded_graph: Graph) -> Generator[str, None, None]:
             del edge["_from"]
             del edge["_to"]
 
-            yield f"{comma}{json.dumps(edge)}"
+            yield f"{comma}{json.dumps(edge, separators=(',', ':'))}"
             comma = comma or ","
 
 

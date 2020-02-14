@@ -202,11 +202,17 @@ def workspace_table_keys(
         LIMIT 0, 1
         RETURN ATTRIBUTES(d)
     """
-    cursor = next(aql_query(workspace, query))
-    if filter_keys:
-        return [k for k in cursor if k not in restricted_keys]
+    cur = aql_query(workspace, query)
 
-    return list(aql_query(workspace, query))
+    try:
+        keys = next(cur)
+    except StopIteration:
+        return []
+
+    if filter_keys:
+        return [k for k in keys if k not in restricted_keys]
+
+    return list(cur)
 
 
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:

@@ -39,7 +39,7 @@ arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
 )
-RESTRICTED_KEYS = {"_rev", "_id"}
+restricted_keys = {"_rev", "_id"}
 
 
 def db(name: str) -> StandardDatabase:
@@ -205,7 +205,7 @@ def workspace_table_keys(
     cursor = next(aql_query(workspace, query))
 
     if filter_keys:
-        return [k for k in cursor if k not in RESTRICTED_KEYS]
+        return [k for k in cursor if k not in restricted_keys]
     return list(aql_query(workspace, query))
 
 

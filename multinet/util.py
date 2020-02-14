@@ -14,7 +14,7 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test
 
 def filter_unwanted_keys(row: Dict) -> Dict:
     """Remove any unwanted keys from a document."""
-    return {k: v for k, v in row.items() if k not in db.RESTRICTED_KEYS}
+    return {k: v for k, v in row.items() if k not in db.restricted_keys}
 
 
 def generate_filtered_docs(rows: Iterable[Dict]) -> Generator[Dict, None, None]:

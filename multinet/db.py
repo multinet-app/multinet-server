@@ -203,9 +203,9 @@ def workspace_table_keys(
         RETURN ATTRIBUTES(d)
     """
     cursor = next(aql_query(workspace, query))
-
     if filter_keys:
         return [k for k in cursor if k not in restricted_keys]
+
     return list(aql_query(workspace, query))
 
 

@@ -35,6 +35,9 @@ def node_generator(loaded_graph: Graph) -> Generator[str, None, None]:
 
 def link_generator(loaded_graph: Graph) -> Generator[str, None, None]:
     """Generate the JSON list of links."""
+
+    # Checks for node tables that have a `_nodes` suffix.
+    # If matched, removes this suffix.
     table_nodes_pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
     edge_tables = [edef["edge_collection"] for edef in loaded_graph.edge_definitions()]
 

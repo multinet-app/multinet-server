@@ -4,41 +4,45 @@
       <v-layout wrap>
         <v-flex class="pr-2">
           <v-file-input
-            id="file-selector"
+            @change="handleFileInput"
             clearable
-            filled
+            dense
+            :error-messages="fileUploadError"
+            id="file-selector"
             :label="fileInputPlaceholder"
+            outlined
             prepend-icon=""
             prepend-inner-icon="attach_file"
             single-line
-            @change="handleFileInput"
-            :error-messages="fileUploadError"
           />
         </v-flex>
         <v-flex xs6 class="pl-2" v-if="fileTypeSelector">
           <v-select
-            v-if="types.length"
-            id="file-type"
-            filled
-            label="File type"
-            persistent-hint
+            class="file-type"
+            dense
             :hint="selectedType ? selectedType.hint : null"
-            v-model="selectedType"
+            id="file-type"
             :items="types"
             item-text="displayName"
             item-value="displayName"
+            label="File type"
+            outlined
+            persistent-hint
             return-object
+            v-if="types.length"
+            v-model="selectedType"
           />
         </v-flex>
       </v-layout>
       <v-layout wrap>
         <v-flex>
           <v-text-field
-            id="table-name"
-            filled
-            v-model="fileName"
-            :label="namePlaceholder"
+            dense
             :error-messages="tableCreationError"
+            id="table-name"
+            :label="namePlaceholder"
+            outlined
+            v-model="fileName"
           />
         </v-flex>
       </v-layout>
@@ -183,6 +187,14 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style>
+/* These styles make it so that the text-field details for file type
+   don't nudge the network name field down if it goes to multiple lines. */
+.file-type .v-text-field__details {
+  min-height: 36px;
+}
+</style>
 
 <style scoped>
 .new-button {

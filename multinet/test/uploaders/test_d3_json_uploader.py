@@ -1,6 +1,5 @@
 """Tests functions in the CSV Uploader Flask Blueprint."""
 import json
-import os
 from collections import OrderedDict
 
 from multinet.util import data_path
@@ -10,8 +9,6 @@ from multinet.uploaders.d3_json import (
     InvalidLinkKeys,
     NodeDuplicates,
 )
-
-TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 def test_validate_d3_json():

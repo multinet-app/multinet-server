@@ -1,14 +1,13 @@
 """Tests functions in the CSV Uploader Flask Blueprint."""
 import csv
-from io import StringIO
 import os
 import pytest
+from io import StringIO
 
+from multinet.util import TEST_DATA_DIR
 from multinet.errors import ValidationFailed, DecodeFailed
 from multinet.uploaders.csv import validate_csv, decode_data, InvalidRow
 from multinet.validation import DuplicateKey
-
-TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 def test_validate_csv():

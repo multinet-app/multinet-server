@@ -2,6 +2,7 @@
 import json
 import os
 
+from pathlib import Path
 from flask import Response
 from typing import Sequence, Any, Generator, Dict, Set, Iterable
 
@@ -9,7 +10,9 @@ from multinet import db
 from multinet.types import EdgeTableProperties
 from multinet.errors import DatabaseNotLive, DecodeFailed
 
-TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
+TEST_DATA_DIR = (
+    Path(os.path.abspath(os.path.join(os.path.dirname(__file__)))) / "test" / "data"
+)
 
 
 def filter_unwanted_keys(row: Dict) -> Dict:
@@ -96,6 +99,4 @@ def decode_data(data: bytes) -> str:
 
 def data_path(file_name: str) -> str:
     """Load data from the test directory."""
-    file_path = os.path.join(TEST_DATA_DIR, file_name)
-    print(file_path)
-    return file_path
+    return str(TEST_DATA_DIR / file_name)

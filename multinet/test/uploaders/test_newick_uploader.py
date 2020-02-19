@@ -1,13 +1,12 @@
 """Tests functions in the Neick Uploader Flask Blueprint."""
-import newick
 import os
+import newick
 import pytest
 
+from multinet.util import TEST_DATA_DIR
 from multinet.errors import ValidationFailed, DecodeFailed
 from multinet.validation import DuplicateKey
 from multinet.uploaders.newick import validate_newick, decode_data
-
-TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 def test_validate_newick():

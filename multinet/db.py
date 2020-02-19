@@ -212,7 +212,7 @@ def workspace_table_keys(
     if filter_keys:
         return [k for k in keys if k not in restricted_keys]
 
-    return list(cur)
+    return keys
 
 
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:

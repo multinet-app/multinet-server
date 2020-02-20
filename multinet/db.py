@@ -1,7 +1,6 @@
 """Low-level database operations."""
 import os
 
-from functools import lru_cache
 from arango import ArangoClient
 from arango.graph import Graph
 from arango.database import StandardDatabase
@@ -81,7 +80,6 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
-@lru_cache(maxsize=512)
 def workspace_mapping(name: str) -> Union[Dict, None]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
@@ -123,6 +121,20 @@ def create_workspace(name: str) -> None:
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
+
+
+def rename_workspace(old_name: str, new_name: str) -> None:
+    """Rename a workspace."""
+    doc = workspace_mapping(old_name)
+    if not doc:
+        raise WorkspaceNotFound(old_name)
+
+    if workspace_exists(new_name):
+        raise AlreadyExists("Workspace", new_name)
+
+    doc["name"] = new_name
+    coll = workspace_mapping_collection()
+    coll.update(doc)
 
 
 def delete_workspace(name: str) -> None:

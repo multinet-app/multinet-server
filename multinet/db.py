@@ -13,6 +13,7 @@ from typing import Any, Sequence, List, Set, Generator, Tuple
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 from multinet.errors import InternalServerError
+from multinet.util import generate_arango_workspace_name
 
 from multinet.errors import (
     BadQueryArgument,
@@ -20,7 +21,6 @@ from multinet.errors import (
     TableNotFound,
     GraphNotFound,
     NodeNotFound,
-    InvalidName,
     AlreadyExists,
     GraphCreationError,
 )
@@ -35,6 +35,7 @@ GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 
+workspace_mapping_collection = "workspace_mapping"
 arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
@@ -57,23 +58,47 @@ def check_db() -> bool:
         return False
 
 
+def get_workspace_mapping_collection() -> StandardCollection:
+    """Return the collection used for mapping external to internal workspace names."""
+    sysdb = db("_system")
+
+    if not sysdb.has_collection(workspace_mapping_collection):
+        sysdb.create_collection(workspace_mapping_collection)
+
+    return sysdb.collection(workspace_mapping_collection)
+
+
 def create_workspace(name: str) -> None:
     """Create a new workspace named `name`."""
     sysdb = db("_system")
-    if not sysdb.has_database(name):
-        try:
-            sysdb.create_database(name)
-        except DatabaseCreateError:
-            raise InvalidName(name)
-    else:
+    coll = get_workspace_mapping_collection()
+    cur = coll.find({"name": name}, limit=1)
+
+    if len(list(cur)):
         raise AlreadyExists("Workspace", name)
+    else:
+        new_doc = {"name": name, "internal": generate_arango_workspace_name()}
+        coll.insert(new_doc)
+
+        # Could only happen if there's a name collisison
+        try:
+            sysdb.create_database(new_doc["internal"])
+        except DatabaseCreateError:
+            raise InternalServerError()
 
 
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
     sysdb = db("_system")
-    if sysdb.has_database(name):
-        sysdb.delete_database(name)
+    coll = get_workspace_mapping_collection()
+    docs = list(coll.find({"name": name}, limit=1))
+
+    if not len(docs):
+        raise WorkspaceNotFound(name)
+
+    doc = docs[0]
+    sysdb.delete_database(doc["internal"])
+    coll.delete(doc["_id"])
 
 
 def get_workspace(name: str) -> WorkspaceSpec:

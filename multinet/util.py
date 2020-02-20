@@ -1,7 +1,10 @@
 """Utility functions."""
-import json
 import os
+import json
+import random
 
+from uuid import uuid1
+from string import ascii_lowercase
 from flask import Response
 from typing import Sequence, Any, Generator, Dict, Set, Iterable
 
@@ -99,3 +102,8 @@ def data_path(file_name: str) -> str:
     file_path = os.path.join(TEST_DATA_DIR, file_name)
     print(file_path)
     return file_path
+
+
+def generate_arango_workspace_name():
+    """Generate a string that can be used as an ArangoDB workspace name."""
+    return f"{random.choice(ascii_lowercase)}-{uuid1()}"

@@ -57,6 +57,19 @@ def check_db() -> bool:
         return False
 
 
+def register_legacy_workspaces() -> None:
+    """Add legacy workspaces to the workspace mapping."""
+    sysdb = db("_system")
+    coll = workspace_mapping_collection()
+
+    databases = {name for name in sysdb.databases() if name != "_system"}
+    registered = {doc["internal"] for doc in workspace_mapping_collection().all()}
+
+    unregistered = databases - registered
+    for workspace in unregistered:
+        coll.insert({"name": workspace, "internal": workspace})
+
+
 def workspace_mapping_collection() -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
     sysdb = db("_system")
@@ -125,10 +138,6 @@ def delete_workspace(name: str) -> None:
 
 def get_workspace(name: str) -> WorkspaceSpec:
     """Return a single workspace, if it exists."""
-    # sysdb = db("_system")
-    # if not sysdb.has_database(name):
-    #     raise WorkspaceNotFound(name)
-
     if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
@@ -164,8 +173,8 @@ def get_table_collection(workspace: str, table: str) -> StandardCollection:
 
 def get_workspaces() -> Generator[str, None, None]:
     """Return a list of all workspace names."""
-    sysdb = db("_system")
-    return (workspace for workspace in sysdb.databases() if workspace != "_system")
+    coll = workspace_mapping_collection()
+    return (doc["name"] for doc in coll.all())
 
 
 def workspace_tables(

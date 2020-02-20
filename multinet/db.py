@@ -301,7 +301,7 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
 
 def table_fields(workspace: str, table: str) -> List[str]:
     """Return a list of column names for `query.table` in `query.workspace`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_collection(table) and space.collection(table).count() > 0:
         sample = space.collection(table).random()
         return list(sample.keys())
@@ -311,7 +311,7 @@ def table_fields(workspace: str, table: str) -> List[str]:
 
 def delete_table(workspace: str, table: str) -> str:
     """Delete a table."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_collection(table):
         space.delete_collection(table)
 
@@ -320,7 +320,7 @@ def delete_table(workspace: str, table: str) -> str:
 
 def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
-    aql = db(workspace).aql
+    aql = get_workspace_db(workspace).aql
 
     cursor = aql.execute(query)
     return cursor
@@ -334,7 +334,7 @@ def create_graph(
     to_vertex_collections: Set[str],
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_graph(graph):
         return False
 
@@ -357,7 +357,7 @@ def create_graph(
 
 def delete_graph(workspace: str, graph: str) -> str:
     """Delete graph `graph` from workspace `workspace`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_graph(graph):
         space.delete_graph(graph)
 

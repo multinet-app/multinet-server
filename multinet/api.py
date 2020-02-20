@@ -146,7 +146,7 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     if not edge_table:
         raise RequiredParamsMissing(["edge_table"])
 
-    loaded_workspace = db.db(workspace)
+    loaded_workspace = db.get_workspace_db(workspace)
     if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 

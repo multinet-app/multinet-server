@@ -39,7 +39,7 @@ def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTablePrope
     to_tables: A set containing the tables referenced in the _to column.
     """
 
-    loaded_workspace = db.db(workspace)
+    loaded_workspace = db.get_workspace_db(workspace)
     edges = loaded_workspace.collection(edge_table).all()
 
     tables_to_keys: Dict[str, Set[str]] = {}

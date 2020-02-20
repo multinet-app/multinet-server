@@ -84,7 +84,7 @@ def upload(workspace: str, graph: str) -> Any:
     if len(errors) > 0:
         raise ValidationFailed(errors)
 
-    space = db.db(workspace)
+    space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 

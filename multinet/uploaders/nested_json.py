@@ -87,7 +87,7 @@ def upload(workspace: str, graph: str) -> Any:
     # Set up the parameters.
     data = request.data.decode("utf8")
 
-    space = db.db(workspace)
+    space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 

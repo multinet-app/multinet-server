@@ -90,7 +90,7 @@ def upload(workspace: str, table: str) -> Any:
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.
-    space = db.db(workspace)
+    space = db.get_workspace_db(workspace)
     if space.has_collection(table):
         coll = space.collection(table)
     else:

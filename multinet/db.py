@@ -9,7 +9,7 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Any, Sequence, List, Set, Generator, Tuple
+from typing import Any, Sequence, List, Dict, Set, Generator, Tuple, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 from multinet.errors import InternalServerError
@@ -35,7 +35,6 @@ GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 
-workspace_mapping_collection = "workspace_mapping"
 arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
@@ -58,53 +57,79 @@ def check_db() -> bool:
         return False
 
 
-def get_workspace_mapping_collection() -> StandardCollection:
+def workspace_mapping_collection() -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
     sysdb = db("_system")
 
-    if not sysdb.has_collection(workspace_mapping_collection):
-        sysdb.create_collection(workspace_mapping_collection)
+    if not sysdb.has_collection("workspace_mapping"):
+        sysdb.create_collection("workspace_mapping")
 
-    return sysdb.collection(workspace_mapping_collection)
+    return sysdb.collection("workspace_mapping")
+
+
+def workspace_mapping(name: str) -> Union[Dict, None]:
+    """
+    Get the document containing the workspace mapping for :name: (if it exists).
+
+    Returns the document if found, otherwise returns None.
+    """
+    coll = workspace_mapping_collection()
+    docs = list(coll.find({"name": name}, limit=1))
+
+    if docs:
+        return docs[0]
+
+    return None
+
+
+def workspace_exists(name: str):
+    """Convinience wrapper for checking if a workspace exists."""
+    return bool(workspace_mapping(name))
+
+
+def workspace_exists_internal(name: str) -> bool:
+    """Return True if a workspace with the internal name :name: exists."""
+    sysdb = db("_system")
+    return sysdb.has_database(name)
 
 
 def create_workspace(name: str) -> None:
     """Create a new workspace named `name`."""
-    sysdb = db("_system")
-    coll = get_workspace_mapping_collection()
-    cur = coll.find({"name": name}, limit=1)
 
-    if len(list(cur)):
+    if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
-    else:
-        new_doc = {"name": name, "internal": generate_arango_workspace_name()}
-        coll.insert(new_doc)
 
+    coll = workspace_mapping_collection()
+    new_doc = {"name": name, "internal": generate_arango_workspace_name()}
+    coll.insert(new_doc)
+
+    try:
+        db("_system").create_database(new_doc["internal"])
+    except DatabaseCreateError:
         # Could only happen if there's a name collisison
-        try:
-            sysdb.create_database(new_doc["internal"])
-        except DatabaseCreateError:
-            raise InternalServerError()
+        raise InternalServerError()
 
 
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
-    sysdb = db("_system")
-    coll = get_workspace_mapping_collection()
-    docs = list(coll.find({"name": name}, limit=1))
-
-    if not len(docs):
+    doc = workspace_mapping(name)
+    if not doc:
         raise WorkspaceNotFound(name)
 
-    doc = docs[0]
+    sysdb = db("_system")
+    coll = workspace_mapping_collection()
+
     sysdb.delete_database(doc["internal"])
     coll.delete(doc["_id"])
 
 
 def get_workspace(name: str) -> WorkspaceSpec:
     """Return a single workspace, if it exists."""
-    sysdb = db("_system")
-    if not sysdb.has_database(name):
+    # sysdb = db("_system")
+    # if not sysdb.has_database(name):
+    #     raise WorkspaceNotFound(name)
+
+    if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
     return {"name": name, "owner": "", "readers": [], "writers": []}
@@ -112,8 +137,11 @@ def get_workspace(name: str) -> WorkspaceSpec:
 
 def get_workspace_db(name: str) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
-    get_workspace(name)
-    return db(name)
+    doc = workspace_mapping(name)
+    if not doc:
+        raise WorkspaceNotFound(name)
+
+    return db(doc["internal"])
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:

@@ -41,6 +41,17 @@ class StandardCollection(Collection):
         sync: Optional[Any] = ...,
         silent: bool = ...,
     ): ...
+    def update(
+        self,
+        document: Dict,
+        check_rev: bool = ...,
+        merge: bool = ...,
+        keep_none: bool = ...,
+        return_new: bool = ...,
+        return_old: bool = ...,
+        sync: Optional[Any] = ...,
+        silent: bool = ...,
+    ): ...
 
 class VertexCollection(Collection): ...
 class EdgeCollection(Collection): ...

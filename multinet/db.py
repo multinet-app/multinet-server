@@ -1,6 +1,7 @@
 """Low-level database operations."""
 import os
 
+from functools import lru_cache
 from arango import ArangoClient
 from arango.graph import Graph
 from arango.database import StandardDatabase
@@ -80,6 +81,7 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
+@lru_cache(maxsize=512)
 def workspace_mapping(name: str) -> Union[Dict, None]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).

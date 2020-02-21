@@ -20,11 +20,12 @@ bp.before_request(require_db)
 
 def node_generator(loaded_graph: Graph) -> Generator[str, None, None]:
     """Generate the JSON list of nodes."""
+
+    comma = ""
     node_tables = loaded_graph.vertex_collections()
     for node_table in node_tables:
         table_nodes = loaded_graph.vertex_collection(node_table).all()
 
-        comma = ""
         for node in table_nodes:
             node["id"] = node["_key"]
             del node["_key"]
@@ -41,10 +42,10 @@ def link_generator(loaded_graph: Graph) -> Generator[str, None, None]:
     table_nodes_pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
     edge_tables = [edef["edge_collection"] for edef in loaded_graph.edge_definitions()]
 
+    comma = ""
     for edge_table in edge_tables:
         edges = loaded_graph.edge_collection(edge_table).all()
 
-        comma = ""
         for edge in edges:
             source = edge["_from"]
             target = edge["_to"]

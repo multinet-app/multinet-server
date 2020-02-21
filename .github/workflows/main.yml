@@ -30,7 +30,7 @@ jobs:
         id: multinet-cache
         with:
           path: /home/runner/work/multinet/multinet/.venv/
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-0
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-1
 
       - name: Install pipenv packages
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy

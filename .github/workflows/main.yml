@@ -29,17 +29,16 @@ jobs:
       - uses: actions/cache@v1
         id: multinet-cache
         with:
-          path: /home/runner/work/multinet/multinet/.venv/lib/python3.7/site-packages
+          path: /home/runner/work/multinet/multinet/.venv/
           key: ${{ runner.os }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-0
 
       - name: Install pipenv packages
-        if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy
 
-      - run: pipenv run lint
-      - run: pipenv run format
-      - run: pipenv run typecheck
-      - run: pipenv run test
+      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run lint
+      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run format
+      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run typecheck
+      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run test
 
       # Build and test Multinet client app.
       - uses: actions/setup-node@v1
@@ -77,3 +76,4 @@ jobs:
       - run: cd multinetjs && yarn build
       - run: cd multinetjs && yarn lint
       - run: cd multinetjs && yarn test
+

@@ -35,10 +35,10 @@ jobs:
       - name: Install pipenv packages
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy
 
-      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run lint
-      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run format
-      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run typecheck
-      - run: PIPENV_VENV_IN_PROJECT=1 pipenv run test
+      - run: pipenv run lint
+      - run: pipenv run format
+      - run: pipenv run typecheck
+      - run: pipenv run test
 
       # Build and test Multinet client app.
       - uses: actions/setup-node@v1

@@ -76,4 +76,3 @@ jobs:
       - run: cd multinetjs && yarn build
       - run: cd multinetjs && yarn lint
       - run: cd multinetjs && yarn test
-

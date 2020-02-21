@@ -40,7 +40,7 @@ jobs:
         id: client-cache
         with:
           path: /home/runner/work/multinet/multinet/client/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-0
+          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-client-cache
 
       - name: Install yarn packages
         if: steps.client-cache.outputs.cache-hit != 'true'
@@ -58,7 +58,7 @@ jobs:
         id: multinetjs-cache
         with:
           path: /home/runner/work/multinet/multinet/multinetjs/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/multinetjs/yarn.lock') }}-0
+          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/multinetjs/yarn.lock') }}-multinetjs-cache
 
       - name: Install yarn packages
         if: steps.multinetjs-cache.outputs.cache-hit != 'true'

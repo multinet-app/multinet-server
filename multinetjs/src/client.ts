@@ -21,6 +21,10 @@ export class Client {
     });
   }
 
+  public raw_get(path: string, params: {} = {}): Promise<any> {
+      return this.axios.get(path, { params });
+  }
+
   public post(path: string, params: {} = {}, headers: {} = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       this.axios.post(path, params, { headers, })

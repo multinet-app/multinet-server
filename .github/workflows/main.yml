@@ -35,7 +35,17 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
-      - run: cd client && yarn install
+
+      - uses: actions/cache@v1
+        id: yarn-cache
+        with:
+          path: /home/runner/work/multinet/multinet/client/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-0
+
+      - name: Install yarn packages
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: cd client && yarn install
+
       - run: cd client && yarn lint
       - run: cd client && yarn lint:test
       - run: pipenv run test-server-up
@@ -44,7 +54,17 @@ jobs:
       - run: cd client && yarn build
 
       # Build and test Multinet client library.
-      - run: cd multinetjs && yarn install
+      - uses: actions/cache@v1
+        id: yarn-cache
+        with:
+          path: /home/runner/work/multinet/multinet/multinetjs/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-0
+
+      - name: Install yarn packages
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
+        run: cd multinetjs && yarn install
+
       - run: cd multinetjs && yarn build
       - run: cd multinetjs && yarn lint
       - run: cd multinetjs && yarn test
+

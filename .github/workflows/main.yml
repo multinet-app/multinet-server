@@ -32,7 +32,7 @@ jobs:
           path: /home/runner/work/multinet/multinet/.venv/lib/python3.7/site-packages
           key: ${{ runner.os }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-0
 
-      - name: Install yarn packages
+      - name: Install pipenv packages
         if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy
 

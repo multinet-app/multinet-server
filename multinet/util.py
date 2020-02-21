@@ -3,7 +3,7 @@ import json
 import os
 
 from flask import Response
-from typing import Sequence, Any, Generator, Dict, Set, Iterable
+from typing import Any, Generator, Dict, Set, Iterable
 
 from multinet import db
 from multinet.types import EdgeTableProperties
@@ -14,11 +14,10 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test
 
 def filter_unwanted_keys(row: Dict) -> Dict:
     """Remove any unwanted keys from a document."""
-    unwanted = {"_rev", "_id"}
-    return {k: v for k, v in row.items() if k not in unwanted}
+    return {k: v for k, v in row.items() if k not in db.restricted_keys}
 
 
-def generate_filtered_docs(rows: Sequence[Dict]) -> Generator[Dict, None, None]:
+def generate_filtered_docs(rows: Iterable[Dict]) -> Generator[Dict, None, None]:
     """Filter unwanted keys from all documents with a generator."""
 
     for row in rows:

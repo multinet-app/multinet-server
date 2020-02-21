@@ -27,13 +27,13 @@ jobs:
       - run: pip install pipenv
 
       - uses: actions/cache@v1
-        id: client-cache
+        id: multinet-cache
         with:
           path: /home/runner/work/multinet/multinet/.venv/lib/python3.7/site-packages
           key: ${{ runner.os }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-0
 
       - name: Install yarn packages
-        if: steps.client-cache.outputs.cache-hit != 'true'
+        if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy
 
       - run: pipenv run lint

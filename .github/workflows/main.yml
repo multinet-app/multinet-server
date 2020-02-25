@@ -30,7 +30,7 @@ jobs:
         id: multinet-cache
         with:
           path: /home/runner/work/multinet/multinet/.venv/
-          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-pipenv-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache
+          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache
 
       - name: Install pipenv packages
         run: PIPENV_VENV_IN_PROJECT=1 pipenv install --dev --deploy
@@ -49,7 +49,7 @@ jobs:
         id: client-cache
         with:
           path: /home/runner/work/multinet/multinet/client/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-client-cache
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-client-cache
 
       - name: Install yarn packages
         if: steps.client-cache.outputs.cache-hit != 'true'
@@ -67,7 +67,7 @@ jobs:
         id: multinetjs-cache
         with:
           path: /home/runner/work/multinet/multinet/multinetjs/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('/home/runner/work/multinet/multinet/multinetjs/yarn.lock') }}-multinetjs-cache
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/multinetjs/yarn.lock') }}-multinetjs-cache
 
       - name: Install yarn packages
         if: steps.multinetjs-cache.outputs.cache-hit != 'true'

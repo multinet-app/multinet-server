@@ -29,12 +29,8 @@ jobs:
       - uses: actions/cache@v1
         id: multinet-cache
         with:
-          path: /home/runner/work/multinet/.venvs/
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-0
-
-      - name: Set venv directory
-        if: steps.multinet-cache.outputs.cache-hit != 'true'
-        run: export WORKON_HOME=/home/runner/work/multinet/.venvs/
+          path: /home/runner/.local/share/virtualenvs/
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-1
       
       - name: Install pipenv packages
         run: pipenv install --dev --deploy

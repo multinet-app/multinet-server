@@ -30,7 +30,7 @@ jobs:
         id: multinet-cache
         with:
           path: /home/runner/work/multinet/.venvs/
-          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-0
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-0
 
       - name: Set venv directory
         if: steps.multinet-cache.outputs.cache-hit != 'true'
@@ -80,3 +80,4 @@ jobs:
       - run: cd multinetjs && yarn build
       - run: cd multinetjs && yarn lint
       - run: cd multinetjs && yarn test
+

@@ -33,6 +33,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-0
 
       - name: Set venv directory
+        if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: export WORKON_HOME=/home/runner/work/multinet/.venvs/
       
       - name: Install pipenv packages

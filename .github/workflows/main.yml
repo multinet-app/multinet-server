@@ -29,11 +29,11 @@ jobs:
       - uses: actions/cache@v1
         id: multinet-cache
         with:
-          path: /home/runner/work/multinet/.venv/
-          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache
+          path: /home/runner/work/multinet/.venvs/
+          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-0
 
       - name: Install pipenv packages
-        run: WORKON_HOME=/home/runner/work/multinet/ pipenv install --dev --deploy
+        run: WORKON_HOME=/home/runner/work/multinet/.venvs/ pipenv install --dev --deploy
 
       - run: pipenv run lint
       - run: pipenv run format

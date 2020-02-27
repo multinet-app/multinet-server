@@ -33,6 +33,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-1
       
       - name: Install pipenv packages
+        if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: pipenv install --dev --deploy
 
       - run: pipenv run lint

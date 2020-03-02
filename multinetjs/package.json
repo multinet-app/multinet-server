@@ -1,6 +1,6 @@
 {
   "name": "multinet",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Multinet client library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,8 +27,7 @@
     "test:server:down": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-down",
     "test:server:clean": "cd .. && PIPENV_DONT_LOAD_ENV=1 pipenv run test-server-clean",
     "test:server:restart": "yarn test:server:down; yarn test:server:clean && yarn test:server:up",
-    "test:cmd": "tape -r esm test/**/*.test.js | tap-spec",
-    "test": "yarn test:server:restart && yarn test:cmd; code=$?; yarn test:server:down; if [ ${code} = 0 ]; then true; else false; fi"
+    "test": "tape -r esm test/**/*.test.js | tap-spec"
   },
   "author": "Kitware, Inc.",
   "license": "Apache-2.0",

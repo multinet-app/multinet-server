@@ -25,17 +25,25 @@ class ServerError(Exception):
         raise NotImplementedError
 
 
+class InternalServerError(ServerError):
+    """General exception for internal server errors."""
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 level error."""
+        return ("", "500 Internal Server Error")
+
+
 class NotFound(ServerError):
     """Base exception for 404 errors of various types."""
 
-    def __init__(self, type: str, item: str):
+    def __init__(self, item_type: str, item: str):
         """
         Initialize the instance with the type and identity of the missing item.
 
-        `type` - the kind of item that is not found
+        `item_type` - the kind of item that is not found
         `item` - the name of the not found item
         """
-        self.type = type
+        self.type = item_type
         self.item = item
 
     def flask_response(self) -> FlaskTuple:
@@ -98,9 +106,9 @@ class BadQueryArgument(ServerError):
 class AlreadyExists(ServerError):
     """Exception for attempting to create a resource that already exists."""
 
-    def __init__(self, type: str, item: str):
+    def __init__(self, item_type: str, item: str):
         """Initialize the exception."""
-        self.type = type
+        self.type = item_type
         self.item = item
 
     def flask_response(self) -> FlaskTuple:

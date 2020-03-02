@@ -34,7 +34,13 @@ export interface EdgesSpec {
 
 export type TableType = 'all' | 'node' | 'edge';
 
-export type UploadType = 'csv' | 'nested_json' | 'newick' | 'd3_json';
+export type TableUploadType = 'csv';
+export type GraphUploadType = 'nested_json' | 'newick' | 'd3_json';
+export type UploadType = TableUploadType | GraphUploadType;
+
+export function validUploadType(type: string): type is UploadType {
+  return ['csv', 'nested_json', 'newick', 'd3_json'].includes(type);
+}
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 
@@ -51,7 +57,7 @@ export type EdgesOptionsSpec = OffsetLimitSpec & {
   direction?: Direction;
 };
 
-export interface UploadTableOptionsSpec {
+export interface FileUploadOptionsSpec {
   type: UploadType;
   data: string | File;
 }
@@ -132,7 +138,7 @@ class MultinetAPI {
     return this.client.delete(`/workspaces/${workspace}`);
   }
 
-  public async uploadTable(workspace: string, table: string, options: UploadTableOptionsSpec): Promise<Array<{}>> {
+  public async uploadTable(workspace: string, table: string, options: FileUploadOptionsSpec): Promise<Array<{}>> {
     let text;
     if (typeof options.data === 'string') {
       text = options.data;

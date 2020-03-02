@@ -4,9 +4,9 @@ import process from 'process';
 
 import { multinetApi } from '../dist';
 
-const membersText = fs.readFileSync('../test/data/members.csv', 'utf8');
-const clubsText = fs.readFileSync('../test/data/clubs.csv', 'utf8');
-const membershipText = fs.readFileSync('../test/data/membership.csv', 'utf8');
+const membersText = fs.readFileSync('../data/boston/members.csv', 'utf8');
+const clubsText = fs.readFileSync('../data/boston/clubs.csv', 'utf8');
+const membershipText = fs.readFileSync('../data/boston/membership.csv', 'utf8');
 
 function failMessage(call, exc) {
   return `${call} failed: ${exc.status} ${exc.statusText}`;
@@ -16,7 +16,7 @@ test('multinet test', async (t) => {
   t.ok(multinetApi, 'multinetApi() was imported successfully');
   t.equal(typeof multinetApi, 'function', 'multinetApi() is a function');
 
-  const api = multinetApi('http://localhost:50000/api');
+  const api = multinetApi('http://localhost:5000/api');
   t.ok(api, 'multinetApi() gave us an API object');
 
   try {

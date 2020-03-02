@@ -3,7 +3,7 @@ import json
 import os
 
 from flask import Response
-from typing import Sequence, Any, Generator, Dict, Set
+from typing import Any, Generator, Dict, Set, Iterable
 
 from multinet import db
 from multinet.types import EdgeTableProperties
@@ -14,11 +14,10 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test
 
 def filter_unwanted_keys(row: Dict) -> Dict:
     """Remove any unwanted keys from a document."""
-    unwanted = {"_rev", "_id"}
-    return {k: v for k, v in row.items() if k not in unwanted}
+    return {k: v for k, v in row.items() if k not in db.restricted_keys}
 
 
-def generate_filtered_docs(rows: Sequence[Dict]) -> Generator[Dict, None, None]:
+def generate_filtered_docs(rows: Iterable[Dict]) -> Generator[Dict, None, None]:
     """Filter unwanted keys from all documents with a generator."""
 
     for row in rows:
@@ -54,10 +53,14 @@ def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTablePrope
             else:
                 tables_to_keys[table] = {key}
 
-    return dict(table_keys=tables_to_keys, from_tables=from_tables, to_tables=to_tables)
+    return {
+        "table_keys": tables_to_keys,
+        "from_tables": from_tables,
+        "to_tables": to_tables,
+    }
 
 
-def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
+def generate(iterator: Iterable[Any]) -> Generator[str, None, None]:
     """Return a generator that yields an iterator's contents into a JSON list."""
     yield "["
 
@@ -69,7 +72,7 @@ def generate(iterator: Sequence[Any]) -> Generator[str, None, None]:
     yield "]"
 
 
-def stream(iterator: Sequence[Any]) -> Response:
+def stream(iterator: Iterable[Any]) -> Response:
     """Convert an iterator to a Flask response."""
     return Response(generate(iterator), mimetype="application/json")
 
@@ -80,10 +83,10 @@ def require_db() -> None:
         raise DatabaseNotLive()
 
 
-def decode_data(input: bytes) -> str:
+def decode_data(data: bytes) -> str:
     """Decode the request data assuming utf8 encoding."""
     try:
-        body = input.decode("utf8")
+        body = data.decode("utf8")
     except UnicodeDecodeError as e:
         raise DecodeFailed(str(e))
 

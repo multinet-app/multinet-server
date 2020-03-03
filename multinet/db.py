@@ -156,14 +156,8 @@ def workspace_table(workspace: str, table: str, offset: int, limit: int) -> dict
     """Return a specific table named `name` in workspace `workspace`."""
     get_table_collection(workspace, table)
 
-    query = f"""
-    FOR d in {table}
-        LIMIT {offset}, {limit}
-        RETURN d
-    """
-
     count = workspace_table_row_count(workspace, table)
-    rows = aql_query(workspace, query)
+    rows = workspace_table_rows(workspace, table, offset, limit)
 
     return {"count": count, "rows": list(rows)}
 
@@ -185,9 +179,7 @@ def workspace_table_rows(
 def workspace_table_row_count(workspace: str, table: str) -> int:
     """Return the number of rows in a table."""
     count_query = f"""
-    FOR d in {table}
-        COLLECT WITH COUNT INTO count
-        return count
+    RETURN LENGTH({table})
     """
     return next(aql_query(workspace, count_query))
 

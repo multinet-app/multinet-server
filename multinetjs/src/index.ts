@@ -163,6 +163,10 @@ class MultinetAPI {
   public deleteGraph(workspace: string, graph: string): Promise<string> {
     return this.client.delete(`/workspaces/${workspace}/graphs/${graph}`);
   }
+
+  public aql(workspace: string, query: string): Promise<any[]> {
+    return this.client.post(`/workspaces/${workspace}/aql`, query, {'Content-Type': 'text/plain'});
+  }
 }
 
 export function multinetApi(baseURL: string): MultinetAPI {

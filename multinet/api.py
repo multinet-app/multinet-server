@@ -4,11 +4,12 @@ from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional, List, Dict, Set
-from .types import EdgeDirection, TableType
+from typing import Any, Optional, List
+from multinet.types import EdgeDirection, TableType
+from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
-from . import db, util
-from .errors import (
+from multinet import db, util
+from multinet.errors import (
     ValidationFailed,
     BadQueryArgument,
     MalformedRequestBody,
@@ -37,7 +38,7 @@ def get_workspace(workspace: str) -> Any:
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
 @use_kwargs({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
-def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
+def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
     """Retrieve the tables of a single workspace."""
     tables = db.workspace_tables(workspace, type)
     return util.stream(tables)
@@ -48,8 +49,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:
 @swag_from("swagger/table_rows.yaml")
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
     """Retrieve the rows and headers of a table."""
-    rows = db.workspace_table(workspace, table, offset, limit)
-    return util.stream(rows)
+    return db.workspace_table(workspace, table, offset, limit)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
@@ -138,72 +138,40 @@ def delete_workspace(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["POST"])
-@use_kwargs({"node_tables": fields.List(fields.Str()), "edge_table": fields.Str()})
+@use_kwargs({"edge_table": fields.Str()})
 @swag_from("swagger/create_graph.yaml")
-def create_graph(
-    workspace: str,
-    graph: str,
-    node_tables: Optional[List[str]] = None,
-    edge_table: Optional[str] = None,
-) -> Any:
+def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -> Any:
     """Create a graph."""
 
-    if not node_tables or not edge_table:
-        body = request.data.decode("utf8")
-        raise MalformedRequestBody(body)
-
-    missing = [
-        arg[0]
-        for arg in [("node_tables", node_tables), ("edge_table", edge_table)]
-        if arg[1] is None
-    ]
-    if missing:
-        raise RequiredParamsMissing(missing)
+    if not edge_table:
+        raise RequiredParamsMissing(["edge_table"])
 
     loaded_workspace = db.db(workspace)
     if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 
-    existing_tables = set([x["name"] for x in loaded_workspace.collections()])
-    edges = loaded_workspace.collection(edge_table).all()
+    # Get reference tables with respective referenced keys,
+    # tables in the _from column and tables in the _to column
+    edge_table_properties = util.get_edge_table_properties(workspace, edge_table)
+    referenced_tables = edge_table_properties["table_keys"]
+    from_tables = edge_table_properties["from_tables"]
+    to_tables = edge_table_properties["to_tables"]
 
-    # Iterate through each edge and check for undefined tables
-    errors = []
-    valid_tables: Dict[str, Set[str]] = dict()
-    invalid_tables = set()
-    for edge in edges:
-        nodes = (edge["_from"].split("/"), edge["_to"].split("/"))
+    errors: List[ValidationFailure] = []
+    for table, keys in referenced_tables.items():
+        if not loaded_workspace.has_collection(table):
+            errors.append(UndefinedTable(table=table))
+        else:
+            table_keys = set(loaded_workspace.collection(table).keys())
+            undefined = keys - table_keys
 
-        for (table, key) in nodes:
-            if table not in existing_tables:
-                invalid_tables.add(table)
-            elif table in valid_tables:
-                valid_tables[table].add(key)
-            else:
-                valid_tables[table] = {key}
+            if undefined:
+                errors.append(UndefinedKeys(table=table, keys=list(undefined)))
 
-    if invalid_tables:
-        for table in invalid_tables:
-            errors.append(f"Reference to undefined table: {table}")
-
-    # Iterate through each node table and check for nonexistent keys
-    for table in valid_tables:
-        existing_keys = set(
-            [x["_key"] for x in loaded_workspace.collection(table).all()]
-        )
-        nonexistent_keys = valid_tables[table] - existing_keys
-
-        if len(nonexistent_keys) > 0:
-            errors.append(
-                f"Nonexistent keys {', '.join(nonexistent_keys)} "
-                f"referenced in table: {table}"
-            )
-
-    # TODO: Update this with the proper JSON schema
     if errors:
         raise ValidationFailed(errors)
 
-    db.create_graph(workspace, graph, node_tables, edge_table)
+    db.create_graph(workspace, graph, edge_table, from_tables, to_tables)
     return graph
 
 

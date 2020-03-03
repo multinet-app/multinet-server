@@ -1,7 +1,8 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
+from typing import Tuple, Any, Union, List, Sequence
+from typing_extensions import TypedDict
 
-from typing import Tuple, Any, Union, List
-from mypy_extensions import TypedDict
+from multinet.validation import ValidationFailure
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]
@@ -24,17 +25,25 @@ class ServerError(Exception):
         raise NotImplementedError
 
 
+class InternalServerError(ServerError):
+    """General exception for internal server errors."""
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 level error."""
+        return ("", "500 Internal Server Error")
+
+
 class NotFound(ServerError):
     """Base exception for 404 errors of various types."""
 
-    def __init__(self, type: str, item: str):
+    def __init__(self, item_type: str, item: str):
         """
         Initialize the instance with the type and identity of the missing item.
 
-        `type` - the kind of item that is not found
+        `item_type` - the kind of item that is not found
         `item` - the name of the not found item
         """
-        self.type = type
+        self.type = item_type
         self.item = item
 
     def flask_response(self) -> FlaskTuple:
@@ -97,9 +106,9 @@ class BadQueryArgument(ServerError):
 class AlreadyExists(ServerError):
     """Exception for attempting to create a resource that already exists."""
 
-    def __init__(self, type: str, item: str):
+    def __init__(self, item_type: str, item: str):
         """Initialize the exception."""
-        self.type = type
+        self.type = item_type
         self.item = item
 
     def flask_response(self) -> FlaskTuple:
@@ -146,9 +155,9 @@ class InvalidName(ServerError):
 class ValidationFailed(ServerError):
     """Exception for reporting validation errors."""
 
-    def __init__(self, errors: List[Any]):
+    def __init__(self, errors: Sequence[ValidationFailure]):
         """Initialize the exception."""
-        self.errors = errors
+        self.errors = [error.asdict() for error in errors]
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
@@ -173,3 +182,15 @@ class DecodeFailed(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.error, "400 Decode Failed")
+
+
+class GraphCreationError(ServerError):
+    """Exception for errors when creating a graph in Arango."""
+
+    def __init__(self, message: str):
+        """Initialize error message."""
+        self.message = message
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 error."""
+        return (self.message, "500 Graph Creation Failed")

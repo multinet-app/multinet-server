@@ -10,9 +10,14 @@ responses:
   200:
     description: A list of records from the requested table
     schema:
-      type: array
-      items:
-        $ref: "#/definitions/node_data"
+      type: object
+      properties:
+        count:
+          type: integer
+        rows:
+          type: array
+          items:
+            $ref: "#/definitions/node_data"
 
   404:
     description: Specified workspace or table could not be found

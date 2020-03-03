@@ -15,6 +15,11 @@ export interface NodesSpec {
   nodes: TableRow[];
 }
 
+export interface RowsSpec {
+  count: number;
+  rows: TableRow[];
+}
+
 export interface Edge {
   edge: string;
   from: string;
@@ -28,7 +33,13 @@ export interface EdgesSpec {
 
 export type TableType = 'all' | 'node' | 'edge';
 
-export type UploadType = 'csv' | 'nested_json' | 'newick' | 'd3_json';
+export type TableUploadType = 'csv';
+export type GraphUploadType = 'nested_json' | 'newick' | 'd3_json';
+export type UploadType = TableUploadType | GraphUploadType;
+
+export function validUploadType(type: string): type is UploadType {
+  return ['csv', 'nested_json', 'newick', 'd3_json'].includes(type);
+}
 
 export type Direction = 'all' | 'incoming' | 'outgoing';
 
@@ -45,13 +56,12 @@ export type EdgesOptionsSpec = OffsetLimitSpec & {
   direction?: Direction;
 };
 
-export interface UploadTableOptionsSpec {
+export interface FileUploadOptionsSpec {
   type: UploadType;
   data: string | File;
 }
 
 export interface CreateGraphOptionsSpec {
-  nodeTables: string[];
   edgeTable: string;
 }
 
@@ -95,7 +105,7 @@ class MultinetAPI {
     return this.client.get(`workspaces/${workspace}/tables`, options);
   }
 
-  public table(workspace: string, table: string, options: OffsetLimitSpec = {}): Promise<Array<{}>> {
+  public table(workspace: string, table: string, options: OffsetLimitSpec = {}): Promise<RowsSpec> {
     return this.client.get(`workspaces/${workspace}/tables/${table}`, options);
   }
 
@@ -127,7 +137,7 @@ class MultinetAPI {
     return this.client.delete(`/workspaces/${workspace}`);
   }
 
-  public async uploadTable(workspace: string, table: string, options: UploadTableOptionsSpec): Promise<Array<{}>> {
+  public async uploadTable(workspace: string, table: string, options: FileUploadOptionsSpec): Promise<Array<{}>> {
     let text;
     if (typeof options.data === 'string') {
       text = options.data;
@@ -146,7 +156,6 @@ class MultinetAPI {
 
   public createGraph(workspace: string, graph: string, options: CreateGraphOptionsSpec): Promise<string> {
     return this.client.post(`/workspaces/${workspace}/graphs/${graph}`, {
-      node_tables: options.nodeTables,
       edge_table: options.edgeTable,
     });
   }

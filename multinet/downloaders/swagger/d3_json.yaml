@@ -1,0 +1,19 @@
+Download a graph in D3 JSON format
+---
+consumes:
+  - text/plain
+
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/graph"
+
+
+responses:
+  200:
+    description: D3 data uploaded to tables
+
+  404:
+    description: Graph not found
+
+tags:
+  - graph

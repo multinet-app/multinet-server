@@ -3,72 +3,72 @@ from flasgger import swag_from
 import uuid
 import newick
 
-from .. import db, util
-from ..errors import ValidationFailed
-from ..util import decode_data
+from multinet import db, util
+from multinet.errors import ValidationFailed, AlreadyExists
+from multinet.util import decode_data
+from multinet.validation import ValidationFailure, DuplicateKey
 
+from dataclasses import dataclass
 from flask import Blueprint, request
 from flask import current_app as app
 
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Set, Tuple
 
 bp = Blueprint("newick", __name__)
 bp.before_request(util.require_db)
 
 
+@dataclass
+class DuplicateEdge(ValidationFailure):
+    """The edge which is duplicated."""
+
+    _from: str
+    _to: str
+    length: int
+
+
 def validate_newick(tree: List[newick.Node]) -> None:
     """Validate newick tree."""
-    data_errors: List[Dict[str, Any]] = []
-    unique_keys: List[str] = []
-    duplicate_keys: List[str] = []
-    unique_edges: List[dict] = []
-    duplicate_edges: List[dict] = []
+    data_errors: List[ValidationFailure] = []
+    unique_keys: Set[str] = set()
+    unique_edges: Set[Tuple[str, str, float]] = set()
 
     def read_tree(parent: Optional[str], node: newick.Node) -> None:
         key = node.name or uuid.uuid4().hex
 
-        if key not in unique_keys:
-            unique_keys.append(key)
-        elif key not in duplicate_keys:
-            duplicate_keys.append(key)
+        if key in unique_keys:
+            data_errors.append(DuplicateKey(key=key))
+        else:
+            unique_keys.add(key)
 
         for desc in node.descendants:
             read_tree(key, desc)
 
         if parent:
-            edge = {
-                "_from": "table/%s" % (parent),
-                "_to": "table/%s" % (key),
-                "length": node.length,
-            }
-
-            if edge not in unique_edges:
-                unique_edges.append(edge)
-            elif edge not in duplicate_edges:
-                duplicate_edges.append(edge)
+            unique = (parent, key, node.length)
+            if unique in unique_edges:
+                data_errors.append(
+                    DuplicateEdge(
+                        _from=f"table/{parent}", _to=f"table/{key}", length=node.length
+                    )
+                )
+            else:
+                unique_edges.add(unique)
 
     read_tree(None, tree[0])
 
-    if len(duplicate_keys) > 0:
-        data_errors.append({"error": "duplicate", "detail": duplicate_keys})
-
-    if len(duplicate_edges) > 0:
-        data_errors.append({"error": "duplicate", "detail": duplicate_edges})
-
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)
-    else:
-        return
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/newick.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, graph: str) -> Any:
     """
     Store a newick tree into the database in coordinated node and edge tables.
 
     `workspace` - the target workspace.
-    `table` - the target table.
+    `graph` - the target graph.
     `data` - the newick data, passed in the request body.
     """
     app.logger.info("newick tree")
@@ -80,14 +80,19 @@ def upload(workspace: str, table: str) -> Any:
     validate_newick(tree)
 
     space = db.db(workspace)
-    edgetable_name = "%s_edges" % table
-    nodetable_name = "%s_nodes" % table
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
+
+    edgetable_name = f"{graph}_edges"
+    nodetable_name = f"{graph}_nodes"
+
     if space.has_collection(edgetable_name):
         edgetable = space.collection(edgetable_name)
     else:
         # Note that edge=True must be set or the _from and _to keys
         # will be ignored below.
         edgetable = space.create_collection(edgetable_name, edge=True)
+
     if space.has_collection(nodetable_name):
         nodetable = space.collection(nodetable_name)
     else:
@@ -116,5 +121,13 @@ def upload(workspace: str, table: str) -> Any:
             edgecount += 1
 
     read_tree(None, tree[0])
+    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
+    db.create_graph(
+        workspace,
+        graph,
+        edgetable_name,
+        edge_table_info["from_tables"],
+        edge_table_info["to_tables"],
+    )
 
-    return dict(edgecount=edgecount, nodecount=nodecount)
+    return {"edgecount": edgecount, "nodecount": nodecount}

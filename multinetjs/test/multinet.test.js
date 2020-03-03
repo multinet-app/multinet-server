@@ -4,9 +4,9 @@ import process from 'process';
 
 import { multinetApi } from '../dist';
 
-const membersText = fs.readFileSync('../test/data/members.csv', 'utf8');
-const clubsText = fs.readFileSync('../test/data/clubs.csv', 'utf8');
-const membershipText = fs.readFileSync('../test/data/membership.csv', 'utf8');
+const membersText = fs.readFileSync('../data/boston/members.csv', 'utf8');
+const clubsText = fs.readFileSync('../data/boston/clubs.csv', 'utf8');
+const membershipText = fs.readFileSync('../data/boston/membership.csv', 'utf8');
 
 function failMessage(call, exc) {
   return `${call} failed: ${exc.status} ${exc.statusText}`;
@@ -16,7 +16,7 @@ test('multinet test', async (t) => {
   t.ok(multinetApi, 'multinetApi() was imported successfully');
   t.equal(typeof multinetApi, 'function', 'multinetApi() is a function');
 
-  const api = multinetApi('http://localhost:50000/api');
+  const api = multinetApi('http://localhost:5000/api');
   t.ok(api, 'multinetApi() gave us an API object');
 
   try {
@@ -81,25 +81,26 @@ test('multinet test', async (t) => {
 
   try {
     let members = await api.table(newWorkspace, 'members');
-    t.equal(members.length, 30, 'asking for table yields 30 items');
+    t.equal(members.count, 254, 'table reports 254 items');
+    t.equal(members.rows.length, 30, 'asking for table yields 30 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 50,
     });
-    t.equal(members.length, 50, 'asking table for 50 items yields 50 items');
+    t.equal(members.rows.length, 50, 'asking table for 50 items yields 50 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 254,
     });
-    t.equal(members.length, 254, 'asking table for all items yields 254 items');
+    t.equal(members.rows.length, 254, 'asking table for all items yields 254 items');
 
     members = await api.table(newWorkspace, 'members', {
       offset: 0,
       limit: 300,
     });
-    t.equal(members.length, 254, 'asking table for more than 254 items yields 254 items');
+    t.equal(members.rows.length, 254, 'asking table for more than 254 items yields 254 items');
   } catch(e) {
     t.fail(failMessage(`api.table("${newWorkspace}", "members")`, e));
   }

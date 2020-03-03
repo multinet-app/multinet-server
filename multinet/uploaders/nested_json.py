@@ -3,7 +3,8 @@ from flasgger import swag_from
 import itertools
 import json
 
-from .. import db, util
+from multinet import db, util
+from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request
 
@@ -22,15 +23,14 @@ def analyze_nested_json(
     `data` - the text of a nested_json file
     `(nodes, edges)` - a node and edge table describing the tree.
     """
-    id = itertools.count(100)
+    ident = itertools.count(100)
     data = json.loads(raw_data)
 
     def keyed(rec: dict) -> dict:
         if "_key" in rec:
             return rec
 
-        # keyed = dict(rec)
-        rec["_key"] = str(next(id))
+        rec["_key"] = str(next(ident))
 
         return rec
 
@@ -74,22 +74,26 @@ def analyze_nested_json(
     return (nodes, edges)
 
 
-@bp.route("/<workspace>/<table>", methods=["POST"])
+@bp.route("/<workspace>/<graph>", methods=["POST"])
 @swag_from("swagger/nested_json.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, graph: str) -> Any:
     """
     Store a nested_json tree into the database in coordinated node and edge tables.
 
     `workspace` - the target workspace.
-    `table` - the target table.
+    `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
     # Set up the parameters.
     data = request.data.decode("utf8")
+
     space = db.db(workspace)
-    edgetable_name = f"{table}_edges"
-    int_nodetable_name = f"{table}_internal_nodes"
-    leaf_nodetable_name = f"{table}_leaf_nodes"
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
+
+    edgetable_name = f"{graph}_edges"
+    int_nodetable_name = f"{graph}_internal_nodes"
+    leaf_nodetable_name = f"{graph}_leaf_nodes"
 
     # Set up the database targets.
     if space.has_collection(edgetable_name):
@@ -115,6 +119,18 @@ def upload(workspace: str, table: str) -> Any:
     int_nodetable.insert_many(nodes[0])
     leaf_nodetable.insert_many(nodes[1])
 
-    return dict(
-        edgecount=len(edges), int_nodecount=len(nodes[0]), leaf_nodecount=len(nodes[1])
+    # Create graph
+    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
+    db.create_graph(
+        workspace,
+        graph,
+        edgetable_name,
+        edge_table_info["from_tables"],
+        edge_table_info["to_tables"],
     )
+
+    return {
+        "edgecount": len(edges),
+        "int_nodecount": len(nodes[0]),
+        "leaf_nodecount": len(nodes[1]),
+    }

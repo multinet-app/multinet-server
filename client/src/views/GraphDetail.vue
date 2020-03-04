@@ -1,58 +1,143 @@
 <template>
   <v-container
     class="graph-container"
+    fill-height
     fluid
+    pa-0
   >
-    <v-content>
-      <v-app-bar app>
-        <v-toolbar-title
-          class="ws-detail-title"
-        >
-          <v-icon
-            class="ml-4 mr-5"
-            color="grey lighten-1"
-          >library_books</v-icon>
-
-          <span class="breadcrumbs">
-            <router-link
-              :to="{
-                name: 'workspaceDetail',
-                params: { workspace }
-              }"
-            >{{workspace}}</router-link>
-            <v-icon class="mx-4" color="grey lighten-2">chevron_right</v-icon>
-            <v-icon class="mr-3" color="grey lighten-1">timeline</v-icon>
-            {{graph}}
-          </span>
-
-        </v-toolbar-title>
-
-        <v-spacer />
-
-        <v-btn icon>
-          <v-icon>more_vert</v-icon>
-        </v-btn>
-      </v-app-bar>
-      <v-container
-        fluid
-        id="graph-details"
+    <v-app-bar
+      app
+      clipped-right
+    >
+      <v-toolbar-title
+        class="ws-detail-title"
       >
-        <v-layout row>
-          <v-flex pa-4>
-            <v-card height="100%">
-              <v-card-title class="pb-0">
-                Node Types
-              </v-card-title>
+        <v-icon
+          class="ml-4 mr-5"
+          color="grey lighten-1"
+        >library_books</v-icon>
+
+        <span class="breadcrumbs">
+          <router-link
+            :to="{
+              name: 'workspaceDetail',
+              params: { workspace }
+            }"
+          >{{workspace}}</router-link>
+          <v-icon class="mx-4" color="grey lighten-2">chevron_right</v-icon>
+          <v-icon class="mr-3" color="grey lighten-1">timeline</v-icon>
+          {{graph}}
+        </span>
+
+      </v-toolbar-title>
+
+      <v-spacer />
+
+      <v-btn icon>
+        <v-icon>more_vert</v-icon>
+      </v-btn>
+    </v-app-bar>
+    <v-content class="fill-height">
+      <v-container
+        align-stretch
+        d-flex
+        fill-height
+        flex-column
+        fluid
+        pa-0
+      >
+        <div :class="graphVisClasses">
+          <v-list>
+            <v-list-item>
+              <v-list-item-title>
+                Nodes: {{totalNodes}}
+              </v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-title>
+                Edges: {{totalEdges}}
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+          <v-navigation-drawer
+            absolute
+            right
+            permanent
+          >
+            <v-list subheader>
+              <v-subheader>
+                More ways to visualize
+              </v-subheader>
+              <v-divider />
+              <div class="grey lighten-4 pa-3">
+                <v-select
+                  :items="visItems"
+                  v-model="selectedVis"
+                  background-color="white"
+                  dense
+                  hide-details
+                  label="Visualization"
+                  menu-props="auto"
+                  outlined
+                />
+              </div>
+              <v-divider />
+              <v-list-item
+                class="pl-2"
+                :key="app.name"
+                :href="`${app.url}/?workspace=${workspace}&graph=${graph}`"
+                v-for="app in apps"
+                target="_blank"
+              >
+                <v-list-item-avatar class="mr-3">
+                  <v-icon color="blue lighten-3">exit_to_app</v-icon>
+                </v-list-item-avatar>
+                <v-list-item-title>
+                  {{app.name}}
+                </v-list-item-title>
+                <v-list-item-icon>
+                  <v-icon color="blue lighten-3">chevron_right</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+            </v-list>
+          </v-navigation-drawer>
+        </div>
+        <div :class="nodeColsClasses">
+          <div class="node-types flex-grow-1">
+            <v-card
+              flat
+              height="100%"
+              tile
+            >
+              <v-toolbar
+                color="blue darken-1"
+                dark
+                dense
+                flat
+              >
+                <v-toolbar-title>
+                  Node Types
+                </v-toolbar-title>
+              </v-toolbar>
               <v-card-text class="pa-0">
-                <v-list>
+                <v-list
+                  class="node-type-list pa-0"
+                  color="transparent"
+                  dense
+                >
                   <v-list-item
                     class="pl-2"
                     :key="table.name"
                     :to="`/workspaces/${workspace}/table/${table}`"
                     v-for="table in nodeTypes"
                   >
-                    <v-list-item-avatar class="mr-3">
-                      <v-icon color="grey lighten-1">scatter_plot</v-icon>
+                    <v-list-item-avatar class="my-0">
+                      <v-icon
+                        color="grey lighten-1"
+                        size="18"
+                      >
+                        scatter_plot
+                      </v-icon>
                     </v-list-item-avatar>
                     <v-list-item-title>
                       {{table}}
@@ -64,22 +149,43 @@
                 </v-list>
               </v-card-text>
             </v-card>
-          </v-flex>
-          <v-flex pa-4>
-            <v-card height="100%">
-              <v-card-title class="pb-0">
-                Edge Types
-              </v-card-title>
+          </div>
+          <div class="edge-types flex-grow-1">
+            <v-card
+              color="grey lighten-5"
+              flat
+              height="100%"
+              tile
+            >
+              <v-toolbar
+                color="blue darken-2"
+                dark
+                dense
+                flat
+              >
+                <v-toolbar-title>
+                  Edge Types
+                </v-toolbar-title>
+              </v-toolbar>
               <v-card-text class="pa-0">
-                <v-list>
+                <v-list
+                  class="edge-type-list pa-0"
+                  color="transparent"
+                  dense
+                >
                   <v-list-item
                     class="pl-2"
                     :key="table.name"
                     :to="`/workspaces/${workspace}/table/${table}`"
                     v-for="table in edgeTypes"
                   >
-                    <v-list-item-avatar class="mr-3">
-                      <v-icon color="grey lighten-1">device_hub</v-icon>
+                    <v-list-item-avatar class="my-0">
+                      <v-icon
+                        color="grey lighten-1"
+                        size="18"
+                      >
+                        device_hub
+                      </v-icon>
                     </v-list-item-avatar>
                     <v-list-item-title>
                       {{table}}
@@ -91,98 +197,98 @@
                 </v-list>
               </v-card-text>
             </v-card>
-          </v-flex>
-          <v-flex pa-4>
+          </div>
+          <div class="nodes-list flex-grow-1">
             <v-card
-              color="blue darken-2"
-              dark
+              flat
               height="100%"
+              tile
             >
-              <v-card-title class="pb-0">
-                Apps to visualize this data
-              </v-card-title>
-              <v-card-text class="pa-0">
-                <v-list color="blue darken-2">
-                  <v-list-item
-                    class="pl-2"
-                    :key="app.name"
-                    :href="`${app.url}/?workspace=${workspace}&graph=${graph}`"
-                    v-for="app in apps"
-                    target="_blank"
+              <v-toolbar
+                color="blue darken-1"
+                dark
+                dense
+                flat
+              >
+                <v-toolbar-title>
+                  Nodes
+                </v-toolbar-title>
+                <v-spacer />
+                <div class="pagination">
+                  <v-btn
+                    class="mx-1"
+                    icon
+                    small
+                    :disabled="!prev"
+                    v-on:click="firstPage()"
                   >
-                    <v-list-item-avatar class="mr-3">
-                      <v-icon color="blue lighten-3">exit_to_app</v-icon>
-                    </v-list-item-avatar>
+                    <v-icon>skip_previous</v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="mx-1"
+                    icon
+                    small
+                    :disabled="!prev"
+                    v-on:click="turnPage(false)"
+                  >
+                    <v-icon>chevron_left</v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="mx-1"
+                    icon
+                    small
+                    :disabled="!next"
+                    v-on:click="turnPage(true)"
+                  >
+                    <v-icon>chevron_right</v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="mx-1"
+                    icon
+                    small
+                    :disabled="!next"
+                    v-on:click="lastPage()"
+                  >
+                    <v-icon>skip_next</v-icon>
+                  </v-btn>
+                </div>
+              </v-toolbar>
+              <v-card-text class="pa-0">
+                <v-list
+                  class="node-list pa-0"
+                  color="transparent"
+                  dense
+                >
+                  <v-list-item
+                    v-for="node in nodes"
+                    :key="node"
+                    :to="`/workspaces/${workspace}/graph/${graph}/node/${node}`"
+                  >
                     <v-list-item-title>
-                      {{app.name}}
+                      {{node}}
                     </v-list-item-title>
-                    <v-list-item-icon>
-                      <v-icon color="blue lighten-3">chevron_right</v-icon>
-                    </v-list-item-icon>
                   </v-list-item>
                 </v-list>
               </v-card-text>
             </v-card>
-          </v-flex>
-        </v-layout>
-      </v-container>
-      <v-container
-        id="node-details"
-        fluid
-        pb-4
-        pt-0
-        py-4
-      >
-        <v-card height="100%">
-          <v-card-title style="display: flex; justify-content: space-between;">
-            Nodes
-            <div class="pagination">
-              <v-btn
-                icon
-                :disabled="!prev"
-                v-on:click="firstPage()"
-              >
-                <v-icon>skip_previous</v-icon>
-              </v-btn>
-              <v-btn
-                icon
-                :disabled="!prev"
-                v-on:click="turnPage(false)"
-              >
-                <v-icon>chevron_left</v-icon>
-              </v-btn>
-              <v-btn
-                icon
-                :disabled="!next"
-                v-on:click="turnPage(true)"
-              >
-                <v-icon>chevron_right</v-icon>
-              </v-btn>
-              <v-btn
-                icon
-                :disabled="!next"
-                v-on:click="lastPage()"
-              >
-                <v-icon>skip_next</v-icon>
-              </v-btn>
-            </div>
-          </v-card-title>
-          <v-card-text>
-            <v-list
-              class="node-list"
-              color="transparent"
-              dense
+          </div>
+          <v-btn
+            class="tray-action"
+            color="blue darken-2"
+            dark
+            depressed
+            fab
+            small
+            @click="toggle"
+          >
+            <v-icon
+              dark
+              size="18"
             >
-              <v-list-item
-                v-for="node in nodes"
-                :key="node"
-                :to="`/workspaces/${workspace}/graph/${graph}/node/${node}`"
-              >
-                {{node}}
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
+              {{ drawerIcon }}
+            </v-icon>
+          </v-btn>
+        </div>
       </v-container>
     </v-content>
   </v-container>
@@ -202,21 +308,26 @@ export default Vue.extend({
   },
   props: ['workspace', 'graph', 'apps'],
   data() {
+    const visItems = ['Network Overview'];
     return {
       nodeTypes: [] as string[],
       edgeTypes: [] as string[],
       nodes: [] as string[],
       offset: 0,
       limit: 10,
-      total: 0,
+      totalNodes: 0,
+      totalEdges: 0,
+      visItems: [...visItems],
+      selectedVis: visItems[0],
+      panelOpen: true,
     };
   },
   computed: {
     highestOffset(): number {
       return (
-        this.total % this.limit
-          ? Math.floor(this.total / this.limit)
-          : this.total / this.limit - 1
+        this.totalNodes % this.limit
+          ? Math.floor(this.totalNodes / this.limit)
+          : this.totalNodes / this.limit - 1
       ) * this.limit;
     },
     next(): boolean {
@@ -225,8 +336,28 @@ export default Vue.extend({
     prev(): boolean {
       return 0 !== this.offset;
     },
+    nodeColsClasses(): string {
+      const {
+        panelOpen,
+      } = this;
+
+      return `d-flex flex-row node-cols${panelOpen ? '' : ' node-cols-closed'}`;
+    },
+    graphVisClasses(): string {
+      const {
+        panelOpen,
+      } = this;
+
+      return `graph-vis${panelOpen ? '' : ' graph-vis-closed'}`;
+    },
+    drawerIcon(): string {
+      return this.panelOpen ? 'expand_more' : 'expand_less';
+    },
   },
   methods: {
+    toggle() {
+      this.panelOpen = !this.panelOpen;
+    },
     async update() {
       const graph = await api.graph(this.workspace, this.graph);
       const nodes = await api.nodes(this.workspace, this.graph, {
@@ -234,10 +365,17 @@ export default Vue.extend({
         limit: this.limit,
       });
 
+      const edgeQuery = `
+        FOR table in [${graph.edgeTable}]
+          RETURN LENGTH(table)
+      `;
+      const edges = await api.aql(this.workspace, edgeQuery);
+
       this.nodeTypes = graph.nodeTables;
       this.edgeTypes = [graph.edgeTable];
       this.nodes = nodes.nodes.map((d) => d._id);
-      this.total = nodes.count;
+      this.totalNodes = nodes.count;
+      this.totalEdges = edges.reduce((acc, val) => acc + val, 0);
     },
     turnPage(forward: number) {
       this.offset += forward ? this.limit : -this.limit;
@@ -274,6 +412,53 @@ ul {
   padding: 10px;
   list-style-type: none;
   text-align: left;
+}
+
+.graph-vis {
+  height: calc(100vh - 314px);
+  position: relative;
+  z-index: 1;
+}
+
+.graph-vis-closed {
+  height: calc(100vh - 75px);
+}
+
+.node-cols {
+  height: 250px;
+  position: relative;
+  z-index: 2;
+}
+
+.node-cols > div {
+  height: 100%;
+}
+
+.node-cols-closed {
+  height: 11px;
+}
+
+.node-cols-closed > * {
+  overflow: hidden;
+}
+
+.node-type-list,
+.edge-type-list,
+.node-list {
+  overflow-y: auto;
+  max-height: 202px;
+}
+
+.tray-action {
+  height: 22px;
+  position: absolute;
+  right: calc(50% + 13px);
+  top: -11px;
+  width: 22px;
+}
+
+.tray-action i {
+  margin-top: -1px;
 }
 
 .ws-detail-title {

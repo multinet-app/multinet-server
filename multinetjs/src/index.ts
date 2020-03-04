@@ -168,10 +168,13 @@ class MultinetAPI {
     return this.client.delete(`/workspaces/${workspace}/graphs/${graph}`);
   }
 
+  public aql(workspace: string, query: string): Promise<any[]> {
+    return this.client.post(`/workspaces/${workspace}/aql`, query, {'Content-Type': 'text/plain'});
+  }
+
   public async downloadGraph(workspace: string, graph: string): Promise<any> {
     return await this.client.raw_get(`/workspaces/${workspace}/graphs/${graph}/download`);
   }
-
 }
 
 export function multinetApi(baseURL: string): MultinetAPI {

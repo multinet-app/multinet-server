@@ -30,7 +30,7 @@ jobs:
         id: multinet-cache
         with:
           path: /home/runner/.local/share/virtualenvs/
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-1
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet-server/multinet-server/Pipfile.lock') }}-pipenv-cache-1
 
       - name: Install pipenv packages
         if: steps.multinet-cache.outputs.cache-hit != 'true'

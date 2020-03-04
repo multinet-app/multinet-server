@@ -150,6 +150,10 @@ class MultinetAPI {
     });
   }
 
+  public async downloadTable(workspace: string, table: string): Promise<any> {
+    return await this.client.raw_get(`/workspaces/${workspace}/tables/${table}/download`);
+  }
+
   public deleteTable(workspace: string, table: string): Promise<string> {
     return this.client.delete(`/workspaces/${workspace}/tables/${table}`);
   }
@@ -166,6 +170,10 @@ class MultinetAPI {
 
   public aql(workspace: string, query: string): Promise<any[]> {
     return this.client.post(`/workspaces/${workspace}/aql`, query, {'Content-Type': 'text/plain'});
+  }
+
+  public async downloadGraph(workspace: string, graph: string): Promise<any> {
+    return await this.client.raw_get(`/workspaces/${workspace}/graphs/${graph}/download`);
   }
 }
 

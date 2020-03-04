@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+echo "Hellooooo"
+
+pipenv lock --requirements | tail -n +3 >requirements.txt
+
+rm Pipfile Pipfile.lock

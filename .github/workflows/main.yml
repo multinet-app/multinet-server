@@ -31,7 +31,7 @@ jobs:
         with:
           path: /home/runner/.local/share/virtualenvs/
           key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/Pipfile.lock') }}-pipenv-cache-1
-      
+
       - name: Install pipenv packages
         if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: pipenv install --dev --deploy
@@ -40,40 +40,3 @@ jobs:
       - run: pipenv run format
       - run: pipenv run typecheck
       - run: pipenv run test
-
-      # Build and test Multinet client app.
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
-
-      - uses: actions/cache@v1
-        id: client-cache
-        with:
-          path: /home/runner/work/multinet/multinet/client/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/client/yarn.lock') }}-client-cache
-
-      - name: Install yarn packages
-        if: steps.client-cache.outputs.cache-hit != 'true'
-        run: cd client && yarn install
-
-      - run: cd client && yarn lint
-      - run: cd client && yarn lint:test
-      - run: pipenv run test-server-up
-      - run: cd client && yarn test:client:up
-      - run: cd client && yarn test
-      - run: cd client && yarn build
-
-      # Build and test Multinet client library.
-      - uses: actions/cache@v1
-        id: multinetjs-cache
-        with:
-          path: /home/runner/work/multinet/multinet/multinetjs/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet/multinet/multinetjs/yarn.lock') }}-multinetjs-cache
-
-      - name: Install yarn packages
-        if: steps.multinetjs-cache.outputs.cache-hit != 'true'
-        run: cd multinetjs && yarn install
-
-      - run: cd multinetjs && yarn build
-      - run: cd multinetjs && yarn lint
-      - run: cd multinetjs && yarn test

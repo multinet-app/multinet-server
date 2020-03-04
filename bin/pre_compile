@@ -2,6 +2,8 @@
 
 echo "Hellooooo"
 
-pipenv lock --requirements | tail -n +3 >requirements.txt
+ls /usr/bin/pipenv
 
-rm Pipfile Pipfile.lock
+/usr/bin/pipenv lock --requirements | tail -n +3 >requirements.txt
+
+rm -f Pipfile Pipfile.lock

@@ -5,7 +5,8 @@ from setuptools import setup, find_packages
 with open("README.md") as readme_file:
     readme = readme_file.read()
 
-requirements = []
+with open("requirements.txt") as reqs:
+    requirements = [line.strip() for line in reqs.readlines()]
 
 setup(
     author="MultiNet Team",

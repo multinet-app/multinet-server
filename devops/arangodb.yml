@@ -1,0 +1,46 @@
+---
+- hosts: all
+  remote_user: ubuntu
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    arangodb_password: "letmein"
+
+  tasks:
+    # https://www.arangodb.com/download-major/ubuntu/
+    - name: Add arangodb release key
+      apt_key:
+        url: https://download.arangodb.com/arangodb35/DEBIAN/Release.key
+        state: present
+      become: true
+
+    - name: Create arangodb list file
+      shell: echo 'deb https://download.arangodb.com/arangodb35/DEBIAN/ /' | sudo tee /etc/apt/sources.list.d/arangodb.list
+      become: true
+
+    - name: Install arangodb dependency
+      apt:
+        name: apt-transport-https
+        update_cache: true
+      become: true
+
+    - name: Install arangodb
+      apt:
+        name: arangodb3=3.5.2-1
+      become: true
+
+    - name: Stop arangodb service
+      systemd:
+        name: arangodb3
+        state: stopped
+      become: true
+
+    - name: Overwrite the default arangodb password
+      shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_password }} arango-secure-installation
+      become: true
+
+    - name: Start arangodb service
+      systemd:
+        name: arangodb3
+        state: restarted
+      become: true

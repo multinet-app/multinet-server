@@ -39,6 +39,13 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_password }} arango-secure-installation
       become: true
 
+    - name: Enable arangodb to listen on all interfaces
+      lineinfile:
+        path: /etc/arangodb3/arangod.conf
+        regexp: '^endpoint ='
+        line: "endpoint = tcp://0.0.0.0:8529"
+      become: true
+
     - name: Start arangodb service
       systemd:
         name: arangodb3

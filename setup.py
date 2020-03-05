@@ -5,8 +5,6 @@ from setuptools import setup, find_packages
 with open("README.md") as readme_file:
     readme = readme_file.read()
 
-requirements = []
-
 setup(
     author="MultiNet Team",
     author_email="multinet@multinet.app",
@@ -21,8 +19,21 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    description="Multinet API / web application",
-    install_requires=requirements,
+    description="Multinet API",
+    install_requires=[
+        "python-arango",
+        "newick",
+        "uuid",
+        "requests",
+        "webargs",
+        "flask",
+        "flask-cors",
+        "flasgger",
+        "typing-extensions",
+        "uwsgi",
+        "sentry-sdk[flask]",
+        "gunicorn",
+    ],
     license="Apache Software License 2.0",
     long_description=readme,
     long_description_content_type="text/markdown",

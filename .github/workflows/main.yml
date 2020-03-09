@@ -26,6 +26,12 @@ jobs:
       # Build and test Multinet server.
       - run: pip install pipenv
 
+      - name: Generate new requirements.txt from Pipfile
+        run: pipenv lock --requirements > generated-requirements.txt
+
+      - name: Check generated requirements against existing requirements
+        run: diff requirements.txt generated-requirements.txt
+
       - uses: actions/cache@v1
         id: multinet-cache
         with:

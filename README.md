@@ -16,4 +16,4 @@ To get the server up and running in dev mode:
 
 For further details, including how to set up the ArangoDB server and the
 Multinet client and visualization applications, please see the [full
-documentation](https://multinet-app.readthedocs.io/en/latest/).
+documentation](https://multinet-app.readthedocs.io).

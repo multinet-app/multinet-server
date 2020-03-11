@@ -33,7 +33,7 @@ class StandardCollection(Collection):
     ) -> List[Union[Dict, ArangoError]]: ...
     def delete(
         self,
-        document: Dict,
+        document: Union[Dict, str],
         rev: Optional[str] = ...,
         check_rev: bool = ...,
         ignore_missing: bool = ...,
@@ -43,7 +43,7 @@ class StandardCollection(Collection):
     ) -> Union[Dict, bool]: ...
     def update(
         self,
-        document: Dict,
+        document: Union[Dict, str],
         check_rev: bool = ...,
         merge: bool = ...,
         keep_none: bool = ...,

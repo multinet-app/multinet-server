@@ -81,7 +81,7 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
-def workspace_mapping(name: str) -> Union[Dict, None]:
+def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
 

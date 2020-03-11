@@ -137,7 +137,7 @@ def delete_workspace(workspace: str) -> Any:
     return workspace
 
 
-@bp.route("/workspaces/<workspace>", methods=["PUT"])
+@bp.route("/workspaces/<workspace>/name", methods=["PUT"])
 @use_kwargs({"name": fields.Str()})
 @swag_from("swagger/rename_workspace.yaml")
 def rename_workspace(workspace: str, name: str) -> Any:

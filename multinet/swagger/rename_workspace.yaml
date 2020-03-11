@@ -16,5 +16,16 @@ responses:
       type: string
       example: workspace3
 
+  404:
+    description: Workspace not found
+    schema:
+      type: string
+      example: workspace3
+
+  409:
+    description: Workspace already exists
+    schema:
+      type: string
+      example: workspace3
 tags:
   - workspace

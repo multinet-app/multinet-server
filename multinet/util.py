@@ -103,6 +103,6 @@ def data_path(file_name: str) -> str:
     return file_path
 
 
-def generate_arango_workspace_name():
+def generate_arango_workspace_name() -> str:
     """Generate a string that can be used as an ArangoDB workspace name."""
     return f"{random.choice(ascii_lowercase)}-{uuid1()}"

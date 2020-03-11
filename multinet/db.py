@@ -96,7 +96,7 @@ def workspace_mapping(name: str) -> Union[Dict, None]:
     return None
 
 
-def workspace_exists(name: str):
+def workspace_exists(name: str) -> bool:
     """Convinience wrapper for checking if a workspace exists."""
     return bool(workspace_mapping(name))
 

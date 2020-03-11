@@ -25,26 +25,24 @@ jobs:
 
       # Build and test Multinet server.
       - run: pip install pipenv
-      - run: pipenv install --dev --deploy
+
+      - name: Generate new requirements.txt from Pipfile
+        run: pipenv lock --requirements > generated-requirements.txt
+
+      - name: Check generated requirements against existing requirements
+        run: diff requirements.txt generated-requirements.txt
+
+      - uses: actions/cache@v1
+        id: multinet-cache
+        with:
+          path: /home/runner/.local/share/virtualenvs/
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet-server/multinet-server/Pipfile.lock') }}-pipenv-cache-2
+
+      - name: Install pipenv packages
+        if: steps.multinet-cache.outputs.cache-hit != 'true'
+        run: pipenv install --dev --deploy
+
       - run: pipenv run lint
       - run: pipenv run format
       - run: pipenv run typecheck
       - run: pipenv run test
-
-      # Build and test Multinet client app.
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
-      - run: cd client && yarn install
-      - run: cd client && yarn lint
-      - run: cd client && yarn lint:test
-      - run: pipenv run test-server-up
-      - run: cd client && yarn test:client:up
-      - run: cd client && yarn test
-      - run: cd client && yarn build
-
-      # Build and test Multinet client library.
-      - run: cd multinetjs && yarn install
-      - run: cd multinetjs && yarn build
-      - run: cd multinetjs && yarn lint
-      - run: cd multinetjs && yarn test

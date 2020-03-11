@@ -3,14 +3,19 @@ import csv
 from flasgger import swag_from
 from io import StringIO
 
-from multinet.util import require_db, filter_unwanted_keys, generate_filtered_docs
-from multinet.db import get_workspace_db, workspace_table
+from multinet.util import require_db, generate_filtered_docs
+from multinet.db import (
+    get_workspace_db,
+    workspace_table_row_count,
+    workspace_table_rows,
+    workspace_table_keys,
+)
 from multinet.errors import NotFound
 
-from flask import Blueprint, make_response
+from flask import Blueprint, Response
 
 # Import types
-from typing import Any
+from typing import Any, Generator
 
 
 bp = Blueprint("download_csv", __name__)
@@ -30,19 +35,24 @@ def download(workspace: str, table: str) -> Any:
     if not space.has_collection(table):
         raise NotFound("table", table)
 
-    limit = workspace_table(workspace, table, 0, 0)["count"]
-    table_rows = workspace_table(workspace, table, 0, limit)["rows"]
-    fields = filter_unwanted_keys(table_rows[0]).keys()
+    limit = workspace_table_row_count(workspace, table)
+    table_rows = workspace_table_rows(workspace, table, 0, limit)
+    fields = workspace_table_keys(workspace, table, filter_keys=True)
 
-    io = StringIO()
-    writer = csv.DictWriter(io, fieldnames=fields)
+    def csv_row_generator() -> Generator[str, None, None]:
+        header_line = StringIO()
+        writer = csv.DictWriter(header_line, fieldnames=fields)
+        writer.writeheader()
+        yield header_line.getvalue()
 
-    writer.writeheader()
-    for row in generate_filtered_docs(table_rows):
-        writer.writerow(row)
+        for csv_row in generate_filtered_docs(table_rows):
+            line = StringIO()
+            writer = csv.DictWriter(line, fieldnames=fields)
+            writer.writerow(csv_row)
+            yield line.getvalue()
 
-    output = make_response(io.getvalue())
-    output.headers["Content-Disposition"] = f"attachment; filename={table}.csv"
-    output.headers["Content-type"] = "text/csv"
+    response = Response(csv_row_generator(), mimetype="text/csv")
+    response.headers["Content-Disposition"] = f"attachment; filename={table}.csv"
+    response.headers["Content-type"] = "text/csv"
 
-    return output
+    return response

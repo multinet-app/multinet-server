@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# This script is to prevent Heroku from using Pipenv to prepare this app for
+# deployment (since it doesn't work quite correctly on Heroku).
+
+rm -f Pipfile Pipfile.lock

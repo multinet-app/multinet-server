@@ -9,6 +9,7 @@ class Collection:
     ) -> bool: ...
     def keys(self) -> Cursor: ...
     def all(self, skip: Optional[Any] = ..., limit: Optional[Any] = ...) -> Cursor: ...
+    def find(self, filters: Dict, skip: int = None, limit: int = None) -> Cursor: ...
     def random(self) -> Dict: ...
 
 class StandardCollection(Collection):
@@ -30,6 +31,27 @@ class StandardCollection(Collection):
         overwrite: bool = ...,
         return_old: bool = ...,
     ) -> List[Union[Dict, ArangoError]]: ...
+    def delete(
+        self,
+        document: Union[Dict, str],
+        rev: Optional[str] = ...,
+        check_rev: bool = ...,
+        ignore_missing: bool = ...,
+        return_old: bool = ...,
+        sync: Optional[Any] = ...,
+        silent: bool = ...,
+    ) -> Union[Dict, bool]: ...
+    def update(
+        self,
+        document: Union[Dict, str],
+        check_rev: bool = ...,
+        merge: bool = ...,
+        keep_none: bool = ...,
+        return_new: bool = ...,
+        return_old: bool = ...,
+        sync: Optional[Any] = ...,
+        silent: bool = ...,
+    ) -> Union[Dict, bool]: ...
 
 class VertexCollection(Collection): ...
 class EdgeCollection(Collection): ...

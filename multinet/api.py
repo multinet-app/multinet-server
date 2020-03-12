@@ -137,6 +137,15 @@ def delete_workspace(workspace: str) -> Any:
     return workspace
 
 
+@bp.route("/workspaces/<workspace>/name", methods=["PUT"])
+@use_kwargs({"name": fields.Str()})
+@swag_from("swagger/rename_workspace.yaml")
+def rename_workspace(workspace: str, name: str) -> Any:
+    """Delete a workspace."""
+    db.rename_workspace(workspace, name)
+    return name
+
+
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["POST"])
 @use_kwargs({"edge_table": fields.Str()})
 @swag_from("swagger/create_graph.yaml")
@@ -146,7 +155,7 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
     if not edge_table:
         raise RequiredParamsMissing(["edge_table"])
 
-    loaded_workspace = db.db(workspace)
+    loaded_workspace = db.get_workspace_db(workspace)
     if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 

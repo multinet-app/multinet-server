@@ -79,7 +79,7 @@ def upload(workspace: str, graph: str) -> Any:
 
     validate_newick(tree)
 
-    space = db.db(workspace)
+    space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 

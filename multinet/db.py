@@ -9,10 +9,11 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Any, Sequence, List, Set, Generator, Tuple, Dict
+from typing import Any, Sequence, List, Dict, Set, Generator, Tuple, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 from multinet.errors import InternalServerError
+from multinet.util import generate_arango_workspace_name
 
 from multinet.errors import (
     BadQueryArgument,
@@ -20,7 +21,6 @@ from multinet.errors import (
     TableNotFound,
     GraphNotFound,
     NodeNotFound,
-    InvalidName,
     AlreadyExists,
     GraphCreationError,
 )
@@ -58,29 +58,102 @@ def check_db() -> bool:
         return False
 
 
+def register_legacy_workspaces() -> None:
+    """Add legacy workspaces to the workspace mapping."""
+    sysdb = db("_system")
+    coll = workspace_mapping_collection()
+
+    databases = {name for name in sysdb.databases() if name != "_system"}
+    registered = {doc["internal"] for doc in workspace_mapping_collection().all()}
+
+    unregistered = databases - registered
+    for workspace in unregistered:
+        coll.insert({"name": workspace, "internal": workspace})
+
+
+def workspace_mapping_collection() -> StandardCollection:
+    """Return the collection used for mapping external to internal workspace names."""
+    sysdb = db("_system")
+
+    if not sysdb.has_collection("workspace_mapping"):
+        sysdb.create_collection("workspace_mapping")
+
+    return sysdb.collection("workspace_mapping")
+
+
+def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
+    """
+    Get the document containing the workspace mapping for :name: (if it exists).
+
+    Returns the document if found, otherwise returns None.
+    """
+    coll = workspace_mapping_collection()
+    docs = list(coll.find({"name": name}, limit=1))
+
+    if docs:
+        return docs[0]
+
+    return None
+
+
+def workspace_exists(name: str) -> bool:
+    """Convinience wrapper for checking if a workspace exists."""
+    return bool(workspace_mapping(name))
+
+
+def workspace_exists_internal(name: str) -> bool:
+    """Return True if a workspace with the internal name :name: exists."""
+    sysdb = db("_system")
+    return sysdb.has_database(name)
+
+
 def create_workspace(name: str) -> None:
     """Create a new workspace named `name`."""
-    sysdb = db("_system")
-    if not sysdb.has_database(name):
-        try:
-            sysdb.create_database(name)
-        except DatabaseCreateError:
-            raise InvalidName(name)
-    else:
+
+    if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
+
+    coll = workspace_mapping_collection()
+    new_doc = {"name": name, "internal": generate_arango_workspace_name()}
+    coll.insert(new_doc)
+
+    try:
+        db("_system").create_database(new_doc["internal"])
+    except DatabaseCreateError:
+        # Could only happen if there's a name collisison
+        raise InternalServerError()
+
+
+def rename_workspace(old_name: str, new_name: str) -> None:
+    """Rename a workspace."""
+    doc = workspace_mapping(old_name)
+    if not doc:
+        raise WorkspaceNotFound(old_name)
+
+    if workspace_exists(new_name):
+        raise AlreadyExists("Workspace", new_name)
+
+    doc["name"] = new_name
+    coll = workspace_mapping_collection()
+    coll.update(doc)
 
 
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
+    doc = workspace_mapping(name)
+    if not doc:
+        raise WorkspaceNotFound(name)
+
     sysdb = db("_system")
-    if sysdb.has_database(name):
-        sysdb.delete_database(name)
+    coll = workspace_mapping_collection()
+
+    sysdb.delete_database(doc["internal"])
+    coll.delete(doc["_id"])
 
 
 def get_workspace(name: str) -> WorkspaceSpec:
     """Return a single workspace, if it exists."""
-    sysdb = db("_system")
-    if not sysdb.has_database(name):
+    if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
     return {"name": name, "owner": "", "readers": [], "writers": []}
@@ -88,8 +161,11 @@ def get_workspace(name: str) -> WorkspaceSpec:
 
 def get_workspace_db(name: str) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
-    get_workspace(name)
-    return db(name)
+    doc = workspace_mapping(name)
+    if not doc:
+        raise WorkspaceNotFound(name)
+
+    return db(doc["internal"])
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:
@@ -112,8 +188,8 @@ def get_table_collection(workspace: str, table: str) -> StandardCollection:
 
 def get_workspaces() -> Generator[str, None, None]:
     """Return a list of all workspace names."""
-    sysdb = db("_system")
-    return (workspace for workspace in sysdb.databases() if workspace != "_system")
+    coll = workspace_mapping_collection()
+    return (doc["name"] for doc in coll.all())
 
 
 def workspace_tables(
@@ -282,7 +358,7 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
 
 def table_fields(workspace: str, table: str) -> List[str]:
     """Return a list of column names for `query.table` in `query.workspace`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_collection(table) and space.collection(table).count() > 0:
         sample = space.collection(table).random()
         return list(sample.keys())
@@ -292,7 +368,7 @@ def table_fields(workspace: str, table: str) -> List[str]:
 
 def delete_table(workspace: str, table: str) -> str:
     """Delete a table."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_collection(table):
         space.delete_collection(table)
 
@@ -301,7 +377,7 @@ def delete_table(workspace: str, table: str) -> str:
 
 def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
-    aql = db(workspace).aql
+    aql = get_workspace_db(workspace).aql
 
     cursor = aql.execute(query)
     return cursor
@@ -315,7 +391,7 @@ def create_graph(
     to_vertex_collections: Set[str],
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_graph(graph):
         return False
 
@@ -338,7 +414,7 @@ def create_graph(
 
 def delete_graph(workspace: str, graph: str) -> str:
     """Delete graph `graph` from workspace `workspace`."""
-    space = db(workspace)
+    space = get_workspace_db(workspace)
     if space.has_graph(graph):
         space.delete_graph(graph)
 

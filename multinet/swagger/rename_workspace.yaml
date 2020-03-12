@@ -1,0 +1,31 @@
+Rename a workspace
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - name: name
+    in: query
+    description: The new name of the workspace
+    required: true
+    schema:
+      type: string
+      example: Renamed Workspace
+responses:
+  200:
+    description: Workspace successfully renamed
+    schema:
+      type: string
+      example: workspace3
+
+  404:
+    description: Workspace not found
+    schema:
+      type: string
+      example: workspace3
+
+  409:
+    description: Workspace already exists
+    schema:
+      type: string
+      example: workspace3
+tags:
+  - workspace

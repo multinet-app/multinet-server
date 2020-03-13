@@ -31,11 +31,9 @@ flake8-eradicate = "==0.2.4"
 flake8-mutable = "==1.2.0"
 flake8-mypy = "==17.8.0"
 pep8-naming = "==0.9.1"
-sphinx = "==2.3.1"
 pytest = "==5.1.0"
 pytest-cov = "==2.7.1"
 pytest-xdist = "==1.29.0"
-recommonmark = "==0.5.0"
 pre-commit = "==1.18.2"
 
 [requires]
@@ -46,8 +44,6 @@ allow_prereleases = true
 
 [scripts]
 serve = "flask run -p ${FLASK_SERVE_PORT}"
-build-docs = "make html -C docs"
-serve-docs = "python -m http.server ${DOC_SERVE_PORT} -d docs/_build/html"
 test-server-up = "sh ./scripts/server/start.sh"
 test-server-down = "sh ./scripts/server/stop.sh"
 test-server-clean = "sh ./scripts/server/clean.sh"

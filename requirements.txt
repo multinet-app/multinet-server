@@ -4,7 +4,7 @@ attrs==19.3.0
 blinker==1.4
 certifi==2019.11.28
 chardet==3.0.4
-click==7.0
+click==7.1.1
 flasgger==0.9.4
 flask-cors==3.0.8
 flask==1.1.1

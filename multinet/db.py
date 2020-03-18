@@ -283,6 +283,30 @@ def workspace_table_keys(
     return keys
 
 
+# start recommender part
+def workspace_table_no_limit(workspace: str, table: str) -> dict:
+    """Return a specific table named `name` in workspace `workspace`."""
+    get_table_collection(workspace, table)
+
+    query = f"""
+    FOR d in {table}
+      RETURN d
+    """
+
+    count_query = f"""
+    FOR d in {table}
+        COLLECT WITH COUNT INTO count
+        return count
+    """
+
+    count = aql_query(workspace, count_query)
+    rows = aql_query(workspace, query)
+
+    return list(rows)
+
+# end recommender part
+
+
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:
     """Return the data associated with a particular node in a graph."""
     space = get_workspace_db(workspace)

@@ -10,6 +10,8 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
 from multinet import api
+# Recommender
+from multinet import summary_statistics
 from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
@@ -29,6 +31,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
 
     # Register blueprints.
     app.register_blueprint(api.bp, url_prefix="/api")
+    # Recommender
+    app.register_blueprint(summary_statistics.bp, url_prefix="/summary_statistics")
     app.register_blueprint(uploaders.csv.bp, url_prefix="/api/csv")
     app.register_blueprint(uploaders.newick.bp, url_prefix="/api/newick")
     app.register_blueprint(uploaders.nested_json.bp, url_prefix="/api/nested_json")

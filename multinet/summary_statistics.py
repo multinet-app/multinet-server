@@ -32,6 +32,7 @@ def get_stats(workspace:str, graph:str) -> Any:
 
     gs = GraphStatistics(workspace, node_table_paths = node_tables, link_table_paths = [edge_table])
     stats = {'network_size': gs.get_network_size()
+            , 'nr_edges': gs.get_network_size_edges()
             , 'nr_node_attributes': gs.get_amount_node_attributes()
             , 'nr_edge_attributes': gs.get_amount_edge_attributes()
             , 'is_homogeneous_network': gs.is_homogeneous_network()
@@ -106,6 +107,9 @@ class GraphStatistics:
         
     def get_network_size(self):
         return nx.number_of_nodes(self.graph)
+
+    def get_network_size_edges(self):
+        return nx.number_of_edges(self.graph)
     
     def get_amount_node_attributes(self):
         # this amount includes the key!

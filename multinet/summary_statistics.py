@@ -28,9 +28,10 @@ def get_stats(workspace:str, graph:str) -> Any:
     """Retrieve summary statistics of graph."""
     table_dict = db.workspace_graph(workspace, graph)
     node_tables = table_dict['nodeTables']
+    print(node_tables)
     edge_table = table_dict['edgeTable']
 
-    gs = GraphStatistics(workspace, node_table_paths = node_tables, link_table_paths = [edge_table])
+    gs = GraphStatistics(workspace, node_table_names = node_tables, link_table_names = [edge_table])
 
     stats = {'network_size_nodes': gs.get_network_size()
             , 'network_size_edges': gs.get_network_size_edges()
@@ -60,13 +61,11 @@ import networkx as nx
 
 class GraphStatistics:
     
-    def __init__(self, workspace, node_table_paths = ["data/openflights/airports.csv"], node_table_names = ["airports"], node_key = ["_key"], link_table_paths = ["data/openflights/routes.csv"], link_table_names = ["routes"], link_from = ["_from"], link_to = ["_to"]):
+    def __init__(self, workspace, node_table_names = ["airports"], node_key = ["_key"], link_table_names = ["routes"], link_from = ["_from"], link_to = ["_to"]):
         
-        self.node_table_paths = node_table_paths
         self.node_table_names = node_table_names
         self.node_key = node_key
         
-        self.link_table_paths = link_table_paths
         self.link_table_names = link_table_names
         self.link_from = link_from
         self.link_to = link_to
@@ -79,22 +78,21 @@ class GraphStatistics:
     def load_data(self):
         self.data_map = {}
 
-        for i in range(len(self.node_table_paths)):
-            #pd_table = pd.read_csv(self.node_table_paths[i])
-            rows = db.workspace_table_no_limit(self.workspace, self.node_table_paths[i])
+        for i in range(len(self.node_table_names)):
+            rows = db.workspace_table_no_limit(self.workspace, self.node_table_names[i])
             pd_table = pd.DataFrame(rows)
-            key = self.node_key[i]
-            name = self.node_table_names[i]
-            #print(pd_table)
+            # key = self.node_key[i]
+            # name = self.node_table_names[i]
+            # print(pd_table)
 
             # add tablename prefix to key
             # pd_table[key] = pd_table[key].astype(str).str.replace(name + '/', '')
             # pd_table[key] = name + '/' + pd_table[key].astype(str)
             self.data_map[self.node_table_names[i]] = pd_table
 
-        for i in range(len(self.link_table_paths)):
+        for i in range(len(self.link_table_names)):
             # link tables should have keys to nodes with the corresponding tablename as prefix
-            rows = db.workspace_table_no_limit(self.workspace, self.link_table_paths[i])
+            rows = db.workspace_table_no_limit(self.workspace, self.link_table_names[i])
             self.data_map[self.link_table_names[i]] = pd.DataFrame(rows)
             
             
@@ -123,7 +121,7 @@ class GraphStatistics:
             network_size = 'small'
         if nr_nodes > 1000:
             network_size = 'large'
-        return network_size
+        return '%s (%i)'%(network_size, nr_nodes)
 
     def get_network_size_edges(self):
         nr_edges = nx.number_of_edges(self.graph)
@@ -132,7 +130,7 @@ class GraphStatistics:
             network_size = 'small'
         if nr_edges > 1000:
             network_size = 'large'
-        return network_size
+        return '%s (%i)'%(network_size, nr_edges)
     
     def get_amount_node_attributes(self):
         # this amount includes the key!
@@ -146,7 +144,7 @@ class GraphStatistics:
         if nr_attributes >= 5:
             nr_node_atts = 'many'
 
-        return nr_node_atts
+        return '%s (%i)'%(nr_node_atts, nr_attributes)
         
     def get_amount_edge_attributes(self):
         nr_attributes = []
@@ -158,13 +156,13 @@ class GraphStatistics:
         if nr_attributes >= 3:
             nr_edge_atts = 'many'
 
-        return nr_edge_atts
+        return '%s (%i)'%(nr_edge_atts, nr_attributes)
     
     def is_homogeneous_network_nodes(self):
-        return len(self.node_table_names) <= 1
+        return '%s (%i type(s))' %(len(self.node_table_names) <= 1, len(self.node_table_names))
 
     def is_homogeneous_network_edges(self):
-        return len(self.link_table_names) <= 1
+        return '%s (%i type(s))' %(len(self.link_table_names) <= 1, len(self.link_table_names))
     
     def is_tree(self):
         return nx.is_tree(self.graph)
@@ -173,13 +171,31 @@ class GraphStatistics:
         # TODO
         return False
 
+    def is_k_partite(self):
+        is_not_partite = []
+        for i in range(len(self.link_table_names)):
+            table_name = self.link_table_names[i]
+            _from_key = self.link_from[i]
+            _to_key = self.link_to[i]
+            links = self.data_map[table_name]
+
+            _from = links['_from'].str.split('/', expand=True)[0]
+            _to = links['_to'].str.split('/', expand=True)[0]
+            same = _from == _to # from and to must not be equal; then it is k-partite
+
+            is_not_partite.append(same.any()) # if there is at least one row, which has a link to the same type, it is not k-partite
+
+        return not any(is_not_partite) # if there is at least one row, which has a link to the same type, it is not k-partite
+
     def get_type(self):
         net_type = "None"
         if self.is_tree():
             net_type = "Tree"
+        elif self.is_k_partite():
+            net_type = "K-Partite"
         elif self.is_layered():
             net_type = "Layered"
-        # K-partite?
+        
         return net_type
 
     def get_density(self):
@@ -190,7 +206,7 @@ class GraphStatistics:
         density = "sparse"
         if np.mean(degrees) > 10:
             density = "dense"
-        return density
+        return '%s (avg degree: %i)' %(density, np.mean(degrees))
     
     def get_degree_statistics(self):
         dv = self.graph.degree()

@@ -29,9 +29,17 @@ class InvalidRow(ValidationFailure):
     fields: List[str]
 
 
+@dataclass
+class MissingBody(ValidationFailure):
+    """Missing body in a CSV file."""
+
+
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
+
+    if not rows:
+        raise ValidationFailed([MissingBody()])
 
     fieldnames = rows[0].keys()
     if "_key" in fieldnames:

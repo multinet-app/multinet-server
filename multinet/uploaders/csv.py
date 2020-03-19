@@ -32,7 +32,7 @@ class InvalidRow(ValidationFailure):
 
 
 @dataclass
-class ExistingKeyField(ValidationFailure):
+class KeyFieldAlreadyExists(ValidationFailure):
     """CSV file has both existing _key field and specified key field."""
 
     key: str
@@ -55,7 +55,7 @@ def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> Non
         raise ValidationFailed(data_errors)
 
     if "_key" in fieldnames and key_field != "_key":
-        data_errors.append(ExistingKeyField(key=key_field))
+        data_errors.append(KeyFieldAlreadyExists(key=key_field))
         raise ValidationFailed(data_errors)
 
     if key_field in fieldnames:

@@ -6,7 +6,8 @@ consumes:
 parameters:
   - $ref: "#/parameters/workspace"
   - $ref: "#/parameters/table"
-  - name: data
+  -
+    name: data
     in: body
     description: Raw CSV text
     schema:
@@ -16,6 +17,13 @@ parameters:
         0,picard,captain
         1,riker,commander
         2,data,lieutenant commander
+  -
+    name: key
+    in: query
+    description: Key Field
+    schema:
+      type: string
+      example: _key
 
 responses:
   200:

@@ -12,9 +12,11 @@ from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTabl
 
 from flask import Blueprint, request
 from flask import current_app as app
+from webargs import fields as webarg_fields
+from webargs.flaskparser import use_kwargs
 
 # Import types
-from typing import Set, MutableMapping, Sequence, Any, List
+from typing import Set, MutableMapping, Sequence, Any, List, Dict, Optional
 
 
 bp = Blueprint("csv", __name__)
@@ -43,14 +45,22 @@ class KeyFieldDoesNotExist(ValidationFailure):
     key: str
 
 
-def validate_csv(rows: Sequence[MutableMapping]) -> None:
+def validate_csv(rows: Sequence[MutableMapping], key_field: str) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
-
     fieldnames = rows[0].keys()
-    if "_key" in fieldnames:
+
+    if key_field not in fieldnames:
+        data_errors.append(KeyFieldDoesNotExist(key=key_field))
+        raise ValidationFailed(data_errors)
+
+    if "_key" in fieldnames and key_field != "_key":
+        data_errors.append(ExistingKeyField(key=key_field))
+        raise ValidationFailed(data_errors)
+
+    if key_field in fieldnames:
         # Node Table, check for key uniqueness
-        keys = [row["_key"] for row in rows]
+        keys = [row[key_field] for row in rows]
         unique_keys: Set[str] = set()
         for key in keys:
             if key in unique_keys:
@@ -96,8 +106,9 @@ def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@use_kwargs({"key": webarg_fields.Str(location="query")})
 @swag_from("swagger/csv.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(workspace: str, table: str, key: Optional[str] = None) -> Any:
     """
     Store a CSV file into the database as a node or edge table.
 
@@ -111,10 +122,13 @@ def upload(workspace: str, table: str) -> Any:
     # Read the request body into CSV format
     body = decode_data(request.data)
 
-    rows = list(csv.DictReader(StringIO(body)))
+    # Type to a Dict rather than an OrderedDict
+    rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    validate_csv(rows)
+    key = key or "_key"
+    validate_csv(rows, key)
+    rows = set_table_key(rows, key)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

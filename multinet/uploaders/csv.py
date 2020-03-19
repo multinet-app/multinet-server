@@ -81,6 +81,20 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
         raise ValidationFailed(data_errors)
 
 
+def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
+    """Update the _key field in each row."""
+    if not key or key == "_key":
+        return rows
+
+    new_rows: List[Dict[str, str]] = []
+    for row in rows:
+        new_row = dict(row)
+        new_row["_key"] = new_row[key]
+        new_rows.append(new_row)
+
+    return new_rows
+
+
 @bp.route("/<workspace>/<table>", methods=["POST"])
 @swag_from("swagger/csv.yaml")
 def upload(workspace: str, table: str) -> Any:

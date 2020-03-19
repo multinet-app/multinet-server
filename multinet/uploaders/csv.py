@@ -29,6 +29,20 @@ class InvalidRow(ValidationFailure):
     fields: List[str]
 
 
+@dataclass
+class ExistingKeyField(ValidationFailure):
+    """CSV file has both existing _key field and specified key field."""
+
+    key: str
+
+
+@dataclass
+class KeyFieldDoesNotExist(ValidationFailure):
+    """The specified key field does not exist."""
+
+    key: str
+
+
 def validate_csv(rows: Sequence[MutableMapping]) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []

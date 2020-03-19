@@ -45,12 +45,12 @@ class KeyFieldDoesNotExist(ValidationFailure):
     key: str
 
 
-def validate_csv(rows: Sequence[MutableMapping], key_field: str) -> None:
+def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
     fieldnames = rows[0].keys()
 
-    if key_field not in fieldnames:
+    if key_field != "_key" and key_field not in fieldnames:
         data_errors.append(KeyFieldDoesNotExist(key=key_field))
         raise ValidationFailed(data_errors)
 

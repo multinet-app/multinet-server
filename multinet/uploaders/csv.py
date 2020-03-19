@@ -45,9 +45,17 @@ class KeyFieldDoesNotExist(ValidationFailure):
     key: str
 
 
+class MissingBody(ValidationFailure):
+    """Missing body in a CSV file."""
+
+
 def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
+
+    if not rows:
+        raise ValidationFailed([MissingBody()])
+
     fieldnames = rows[0].keys()
 
     if key_field != "_key" and key_field not in fieldnames:

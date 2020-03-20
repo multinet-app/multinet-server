@@ -24,6 +24,16 @@ parameters:
     schema:
       type: string
       example: _key
+  -
+    name: overwrite
+    in: query
+    description: Overwrites the default key field if it exists
+    enum:
+      - true
+      - false
+    schema:
+      type: boolean
+      default: false
 
 responses:
   200:

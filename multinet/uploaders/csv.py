@@ -49,7 +49,9 @@ class MissingBody(ValidationFailure):
     """Missing body in a CSV file."""
 
 
-def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> None:
+def validate_csv(
+    rows: Sequence[MutableMapping], key_field: str = "_key", overwrite: bool = False
+) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
 
@@ -62,7 +64,7 @@ def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> Non
         data_errors.append(KeyFieldDoesNotExist(key=key_field))
         raise ValidationFailed(data_errors)
 
-    if "_key" in fieldnames and key_field != "_key":
+    if "_key" in fieldnames and key_field != "_key" and not overwrite:
         data_errors.append(KeyFieldAlreadyExists(key=key_field))
         raise ValidationFailed(data_errors)
 
@@ -101,9 +103,6 @@ def validate_csv(rows: Sequence[MutableMapping], key_field: str = "_key") -> Non
 
 def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
     """Update the _key field in each row."""
-    if not key or key == "_key":
-        return rows
-
     new_rows: List[Dict[str, str]] = []
     for row in rows:
         new_row = dict(row)
@@ -114,9 +113,16 @@ def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
 
 
 @bp.route("/<workspace>/<table>", methods=["POST"])
-@use_kwargs({"key": webarg_fields.Str(location="query")})
+@use_kwargs(
+    {
+        "key": webarg_fields.Str(location="query"),
+        "overwrite": webarg_fields.Bool(location="query"),
+    }
+)
 @swag_from("swagger/csv.yaml")
-def upload(workspace: str, table: str, key: str = "_key") -> Any:
+def upload(
+    workspace: str, table: str, key: str = "_key", overwrite: bool = False
+) -> Any:
     """
     Store a CSV file into the database as a node or edge table.
 
@@ -134,8 +140,10 @@ def upload(workspace: str, table: str, key: str = "_key") -> Any:
     rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    validate_csv(rows, key)
-    rows = set_table_key(rows, key)
+    validate_csv(rows, key, overwrite)
+
+    if key != "_key" and overwrite:
+        rows = set_table_key(rows, key)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

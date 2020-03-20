@@ -51,18 +51,32 @@ def test_invalid_key_field():
     assert validation_resp[0] == correct
 
 
-def test_key_field_already_exists():
-    """Test that specifying a key when one already exists results in an error."""
+def test_key_field_already_exists_a():
+    """
+    Test that specifying a key when one already exists results in an error.
+
+    (overwrite = False)
+    """
     rows = read_csv("startrek.csv")
     key_field = "name"
 
     correct = KeyFieldAlreadyExists(key=key_field).asdict()
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field=key_field)
+        validate_csv(rows, key_field=key_field, overwrite=False)
 
     validation_resp = v_error.value.errors
     assert len(validation_resp) == 1
     assert validation_resp[0] == correct
+
+
+def test_key_field_already_exists_b():
+    """
+    Test that specifying a key when one already exists results in an error.
+
+    (overwrite = True).
+    """
+    rows = read_csv("startrek.csv")
+    validate_csv(rows, key_field="name", overwrite=True)
 
 
 def test_duplicate_keys():

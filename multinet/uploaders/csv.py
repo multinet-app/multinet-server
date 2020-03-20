@@ -116,7 +116,7 @@ def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
 @bp.route("/<workspace>/<table>", methods=["POST"])
 @use_kwargs({"key": webarg_fields.Str(location="query")})
 @swag_from("swagger/csv.yaml")
-def upload(workspace: str, table: str, key: Optional[str] = None) -> Any:
+def upload(workspace: str, table: str, key: str = "_key") -> Any:
     """
     Store a CSV file into the database as a node or edge table.
 
@@ -134,7 +134,6 @@ def upload(workspace: str, table: str, key: Optional[str] = None) -> Any:
     rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
 
     # Perform validation.
-    key = key or "_key"
     validate_csv(rows, key)
     rows = set_table_key(rows, key)
 

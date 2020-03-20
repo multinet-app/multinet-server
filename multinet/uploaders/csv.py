@@ -16,7 +16,7 @@ from webargs import fields as webarg_fields
 from webargs.flaskparser import use_kwargs
 
 # Import types
-from typing import Set, MutableMapping, Sequence, Any, List, Dict, Optional
+from typing import Set, MutableMapping, Sequence, Any, List, Dict
 
 
 bp = Blueprint("csv", __name__)

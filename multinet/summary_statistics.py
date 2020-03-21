@@ -42,6 +42,14 @@ def get_stats(workspace:str, graph:str) -> Any:
             , 'is_homogeneous_nodes': gs.is_homogeneous_network_nodes()
             , 'is_homogeneous_edges': gs.is_homogeneous_network_edges()
             }
+    cats = {'size': gs.get_size_cat()
+           , 'type': gs.get_type_cat()
+           , 'nrNodeAtts': gs.get_nr_node_atts_cat()
+           , 'nrEdgeAtts': gs.get_nr_edge_atts_cat()
+           , 'typeNodeAtts': gs.get_type_node_atts_cat()
+           , 'typeEdgeAtts': gs.get_type_edge_atts_cat()
+            
+           }
 
     # stats = {'network_size': gs.get_network_size()
     #         , 'nr_edges': gs.get_network_size_edges()
@@ -52,7 +60,7 @@ def get_stats(workspace:str, graph:str) -> Any:
     #         , 'degree_statistics': gs.get_degree_statistics()
     #         }
     
-    return stats
+    return {'stats': stats, 'cats': cats}
 
 
 import numpy as np
@@ -123,6 +131,15 @@ class GraphStatistics:
             network_size = 'large'
         return '%s (%i)'%(network_size, nr_nodes)
 
+    def get_size_cat(self):
+        nr_nodes = nx.number_of_nodes(self.graph)
+        network_size = 1
+        if nr_nodes < 100:
+            network_size = 0
+        if nr_nodes > 1000:
+            network_size = 2
+        return network_size
+
     def get_network_size_edges(self):
         nr_edges = nx.number_of_edges(self.graph)
         network_size = 'medium'
@@ -145,6 +162,20 @@ class GraphStatistics:
             nr_node_atts = 'many'
 
         return '%s (%i)'%(nr_node_atts, nr_attributes)
+
+    def get_nr_node_atts_cat(self):
+        # this amount includes the key!
+        nr_attributes = []
+        for table_name in self.node_table_names:
+            nr_attributes.append(len(self.data_map[table_name].columns))
+
+        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+
+        nr_node_atts = 0
+        if nr_attributes >= 5:
+            nr_node_atts = 1
+
+        return nr_node_atts
         
     def get_amount_edge_attributes(self):
         nr_attributes = []
@@ -157,13 +188,37 @@ class GraphStatistics:
             nr_edge_atts = 'many'
 
         return '%s (%i)'%(nr_edge_atts, nr_attributes)
+
+    def get_nr_edge_atts_cat(self):
+        nr_attributes = []
+        for table_name in self.link_table_names:
+            nr_attributes.append(len(self.data_map[table_name].columns))
+        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+
+        nr_edge_atts = 0
+        if nr_attributes >= 3:
+            nr_edge_atts = 1
+
+        return nr_edge_atts
     
     def is_homogeneous_network_nodes(self):
         return '%s (%i type(s))' %(len(self.node_table_names) <= 1, len(self.node_table_names))
+    
+    def get_type_node_atts_cat(self):
+        type_ = 0
+        if len(self.node_table_names) > 1:
+            type_ = 1
+        return type_
 
     def is_homogeneous_network_edges(self):
         return '%s (%i type(s))' %(len(self.link_table_names) <= 1, len(self.link_table_names))
     
+    def get_type_edge_atts_cat(self):
+        type_ = 0
+        if len(self.link_table_names) > 1:
+            type_ = 1
+        return type_
+
     def is_tree(self):
         return nx.is_tree(self.graph)
 
@@ -196,6 +251,24 @@ class GraphStatistics:
         elif self.is_layered():
             net_type = "Layered"
         
+        return net_type
+
+    def get_type_cat(self):
+        net_type = 0
+        if self.is_tree():
+            net_type = 3
+        elif self.is_k_partite():
+            net_type = 2
+        elif self.is_layered():
+            net_type = 2
+        else:
+            dv = self.graph.degree()
+            degrees = [degree for node, degree in dv]
+            degrees = np.array(degrees)
+
+            net_type = 0
+            if np.mean(degrees) > 10:
+                net_type = 1
         return net_type
 
     def get_density(self):

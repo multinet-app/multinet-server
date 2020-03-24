@@ -71,7 +71,7 @@ def test_key_field_already_exists_a():
 
 def test_key_field_already_exists_b():
     """
-    Test that specifying a key when one already exists results in an error.
+    Test that specifying a key when one already exists doesn't result in an error.
 
     (overwrite = True).
     """

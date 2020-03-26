@@ -5,28 +5,83 @@ import os
 import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
-from multinet.uploaders.csv import validate_csv, decode_data, InvalidRow
-from multinet.validation import DuplicateKey
+from multinet.uploaders.csv import (
+    validate_csv,
+    decode_data,
+    InvalidRow,
+    KeyFieldAlreadyExists,
+    KeyFieldDoesNotExist,
+)
+from multinet.validation import DuplicateKey, UnsupportedTable
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
-def test_validate_csv():
-    """Tests the validate_csv function."""
-    duplicate_keys_file_path = os.path.join(
-        TEST_DATA_DIR, "clubs_invalid_duplicate_keys.csv"
-    )
+def read_csv(filename: str):
+    """Read in CSV files."""
+    file_path = os.path.join(TEST_DATA_DIR, filename)
+    with open(file_path) as path_file:
+        return list(csv.DictReader(StringIO(path_file.read())))
 
-    invalid_headers_file_path = os.path.join(
-        TEST_DATA_DIR, "membership_invalid_syntax.csv"
-    )
 
-    # Test duplicate keys
-    with open(duplicate_keys_file_path) as test_file:
-        test_file = test_file.read()
+def test_missing_key_field():
+    """Test that missing key fields are handled properly."""
+    rows = read_csv("startrek_no_key_field.csv")
 
-    rows = list(csv.DictReader(StringIO(test_file)))
+    correct = UnsupportedTable().asdict()
+    with pytest.raises(ValidationFailed) as v_error:
+        validate_csv(rows)
 
+    validation_resp = v_error.value.errors
+    assert len(validation_resp) == 1
+    assert validation_resp[0] == correct
+
+
+def test_invalid_key_field():
+    """Test that specifying a missing key field results in an error."""
+    rows = read_csv("startrek.csv")
+    invalid_key = "invalid"
+
+    correct = KeyFieldDoesNotExist(key=invalid_key).asdict()
+    with pytest.raises(ValidationFailed) as v_error:
+        validate_csv(rows, key_field=invalid_key)
+
+    validation_resp = v_error.value.errors
+    assert len(validation_resp) == 1
+    assert validation_resp[0] == correct
+
+
+def test_key_field_already_exists_a():
+    """
+    Test that specifying a key when one already exists results in an error.
+
+    (overwrite = False)
+    """
+    rows = read_csv("startrek.csv")
+    key_field = "name"
+
+    correct = KeyFieldAlreadyExists(key=key_field).asdict()
+    with pytest.raises(ValidationFailed) as v_error:
+        validate_csv(rows, key_field=key_field, overwrite=False)
+
+    validation_resp = v_error.value.errors
+    assert len(validation_resp) == 1
+    assert validation_resp[0] == correct
+
+
+def test_key_field_already_exists_b():
+    """
+    Test that specifying a key when one already exists doesn't result in an error.
+
+    (overwrite = True).
+    """
+    rows = read_csv("startrek.csv")
+    validate_csv(rows, key_field="name", overwrite=True)
+
+
+def test_duplicate_keys():
+    """Test that duplicate keys are handled properly."""
+    rows = read_csv("clubs_invalid_duplicate_keys.csv")
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows)
 
@@ -34,11 +89,10 @@ def test_validate_csv():
     correct = [err.asdict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
     assert all(err in validation_resp for err in correct)
 
-    # Test invalid syntax
-    with open(invalid_headers_file_path) as test_file:
-        test_file = test_file.read()
 
-    rows = list(csv.DictReader(StringIO(test_file)))
+def test_invalid_headers():
+    """Test that invalid headers are handled properly."""
+    rows = read_csv("membership_invalid_syntax.csv")
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows)
 
@@ -53,6 +107,8 @@ def test_validate_csv():
     ]
     assert all(err in validation_resp for err in correct)
 
-    # Test unicode decode errors
+
+def test_decode_failed():
+    """Test that the DecodeFailed validation error is raised."""
     test_data = b"\xff\xfe_\x00k\x00e\x00y\x00,\x00n\x00a\x00m\x00e\x00\n"
     pytest.raises(DecodeFailed, decode_data, test_data)

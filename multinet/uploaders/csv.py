@@ -6,7 +6,7 @@ from io import StringIO
 from dataclasses import dataclass
 
 from multinet import db, util
-from multinet.errors import ValidationFailed
+from multinet.errors import AlreadyExists, ValidationFailed
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
@@ -149,7 +149,7 @@ def upload(
     # _from/_to fields.
     space = db.get_workspace_db(workspace)
     if space.has_collection(table):
-        coll = space.collection(table)
+        raise AlreadyExists("table", table)
     else:
         fieldnames = rows[0].keys()
         edges = "_from" in fieldnames and "_to" in fieldnames

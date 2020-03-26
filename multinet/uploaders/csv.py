@@ -12,9 +12,11 @@ from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTabl
 
 from flask import Blueprint, request
 from flask import current_app as app
+from webargs import fields as webarg_fields
+from webargs.flaskparser import use_kwargs
 
 # Import types
-from typing import Set, MutableMapping, Sequence, Any, List
+from typing import Set, MutableMapping, Sequence, Any, List, Dict
 
 
 bp = Blueprint("csv", __name__)
@@ -30,6 +32,19 @@ class InvalidRow(ValidationFailure):
 
 
 @dataclass
+class KeyFieldAlreadyExists(ValidationFailure):
+    """CSV file has both existing _key field and specified key field."""
+
+    key: str
+
+
+@dataclass
+class KeyFieldDoesNotExist(ValidationFailure):
+    """The specified key field does not exist."""
+
+    key: str
+
+
 class MissingBody(ValidationFailure):
     """Missing body in a CSV file."""
 
@@ -42,7 +57,9 @@ class CSVReadError(ServerError):
         return ("Could not read CSV data", "415 Unsupported Media Type")
 
 
-def validate_csv(rows: Sequence[MutableMapping]) -> None:
+def validate_csv(
+    rows: Sequence[MutableMapping], key_field: str = "_key", overwrite: bool = False
+) -> None:
     """Perform any necessary CSV validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
 
@@ -50,9 +67,18 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
         raise ValidationFailed([MissingBody()])
 
     fieldnames = rows[0].keys()
-    if "_key" in fieldnames:
+
+    if key_field != "_key" and key_field not in fieldnames:
+        data_errors.append(KeyFieldDoesNotExist(key=key_field))
+        raise ValidationFailed(data_errors)
+
+    if "_key" in fieldnames and key_field != "_key" and not overwrite:
+        data_errors.append(KeyFieldAlreadyExists(key=key_field))
+        raise ValidationFailed(data_errors)
+
+    if key_field in fieldnames:
         # Node Table, check for key uniqueness
-        keys = [row["_key"] for row in rows]
+        keys = [row[key_field] for row in rows]
         unique_keys: Set[str] = set()
         for key in keys:
             if key in unique_keys:
@@ -83,9 +109,28 @@ def validate_csv(rows: Sequence[MutableMapping]) -> None:
         raise ValidationFailed(data_errors)
 
 
+def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
+    """Update the _key field in each row."""
+    new_rows: List[Dict[str, str]] = []
+    for row in rows:
+        new_row = dict(row)
+        new_row["_key"] = new_row[key]
+        new_rows.append(new_row)
+
+    return new_rows
+
+
 @bp.route("/<workspace>/<table>", methods=["POST"])
+@use_kwargs(
+    {
+        "key": webarg_fields.Str(location="query"),
+        "overwrite": webarg_fields.Bool(location="query"),
+    }
+)
 @swag_from("swagger/csv.yaml")
-def upload(workspace: str, table: str) -> Any:
+def upload(
+    workspace: str, table: str, key: str = "_key", overwrite: bool = False
+) -> Any:
     """
     Store a CSV file into the database as a node or edge table.
 
@@ -100,12 +145,16 @@ def upload(workspace: str, table: str) -> Any:
     body = decode_data(request.data)
 
     try:
-        rows = list(csv.DictReader(StringIO(body)))
+        # Type to a Dict rather than an OrderedDict
+        rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
     except csv.Error:
         raise CSVReadError()
 
     # Perform validation.
-    validate_csv(rows)
+    validate_csv(rows, key, overwrite)
+
+    if key != "_key" and overwrite:
+        rows = set_table_key(rows, key)
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.

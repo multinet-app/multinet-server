@@ -60,7 +60,7 @@ def validate_csv(
 
     fieldnames = rows[0].keys()
 
-    if key_field != "_key" and key_field not in fieldnames:
+    if key_field not in fieldnames:
         data_errors.append(KeyFieldDoesNotExist(key=key_field))
         raise ValidationFailed(data_errors)
 
@@ -142,7 +142,12 @@ def upload(
     # Perform validation.
     validate_csv(rows, key, overwrite)
 
-    if key != "_key" and overwrite:
+    # Once we reach here, we know that the specified key field must be present,
+    # and either:
+    #   key == _key     # noqa: E800
+    #   or key != _key and the _key field is not present
+    #   or key != _key and _key is present, but overwrite = True
+    if key != "_key":
         rows = set_table_key(rows, key)
 
     # Set the collection, paying attention to whether the data contains

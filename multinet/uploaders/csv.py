@@ -60,7 +60,7 @@ def validate_csv(
 
     fieldnames = rows[0].keys()
 
-    if key_field not in fieldnames:
+    if key_field != "_key" and key_field not in fieldnames:
         data_errors.append(KeyFieldDoesNotExist(key=key_field))
         raise ValidationFailed(data_errors)
 

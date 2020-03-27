@@ -6,7 +6,7 @@ from io import StringIO
 from dataclasses import dataclass
 
 from multinet import db, util
-from multinet.errors import AlreadyExists, ValidationFailed
+from multinet.errors import AlreadyExists, FlaskTuple, ServerError, ValidationFailed
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
@@ -47,6 +47,14 @@ class KeyFieldDoesNotExist(ValidationFailure):
 
 class MissingBody(ValidationFailure):
     """Missing body in a CSV file."""
+
+
+class CSVReadError(ServerError):
+    """Exception for unprocessable CSV data."""
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 415 error for the read failure."""
+        return ("Could not read CSV data", "415 Unsupported Media Type")
 
 
 def validate_csv(
@@ -136,8 +144,11 @@ def upload(
     # Read the request body into CSV format
     body = decode_data(request.data)
 
-    # Type to a Dict rather than an OrderedDict
-    rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
+    try:
+        # Type to a Dict rather than an OrderedDict
+        rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
+    except csv.Error:
+        raise CSVReadError()
 
     # Perform validation.
     validate_csv(rows, key, overwrite)

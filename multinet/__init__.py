@@ -9,10 +9,11 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
-from multinet import api
+from multinet import api, auth
 from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
+from multinet.util import get_or_init_flask_secret_key
 
 sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
@@ -23,6 +24,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app = Flask(__name__)
     CORS(app)
     Swagger(app, template_file="swagger/template.yaml")
+
+    app.secret_key = get_or_init_flask_secret_key()
 
     # Set up logging.
     app.logger.addHandler(default_handler)
@@ -36,6 +39,9 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
 
     app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
     app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")
+
+    app.register_blueprint(auth.bp, url_prefix="/login")
+    auth.init_oauth(app)
 
     register_legacy_workspaces()
 

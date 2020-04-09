@@ -1,8 +1,9 @@
 """Utility functions."""
 import os
+import dotenv
 import json
 
-from uuid import uuid1
+from uuid import uuid1, uuid4
 from flask import Response
 from typing import Any, Generator, Dict, Set, Iterable
 
@@ -104,3 +105,19 @@ def data_path(file_name: str) -> str:
 def generate_arango_workspace_name() -> str:
     """Generate a string that can be used as an ArangoDB workspace name."""
     return f"w-{uuid1()}"
+
+
+def get_or_init_flask_secret_key():
+    """Load or create the flask secret key."""
+    env_file_path = ".env"
+    dotenv.load_dotenv(env_file_path)
+
+    secret_key = dotenv.get_key(env_file_path, "FLASK_SECRET_KEY")
+
+    if not secret_key:
+        secret_key = uuid4().hex
+        ok, _, secret_key = dotenv.set_key(
+            env_file_path, "FLASK_SECRET_KEY", secret_key
+        )
+
+    return secret_key

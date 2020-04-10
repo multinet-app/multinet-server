@@ -29,6 +29,16 @@ oauth = OAuth()
 states_to_return_urls = {}
 
 
+def ensure_external_url(url: str) -> str:
+    """Ensure a url is prefixed with a protocol (http or https)."""
+    return_url = url
+
+    if "http://" not in url and "https://" not in url:
+        return_url = f"http://{url}"
+
+    return return_url
+
+
 def google_oauth2_info():
     """Return Google's spec for their OAuth endpoints."""
     resp = requests.get("https://accounts.google.com/.well-known/openid-configuration")
@@ -95,7 +105,7 @@ def authorized(state, code):
 
     # Pop return_url using state as key
     return_url = states_to_return_urls.pop(state)
-    resp = make_response(redirect(return_url))
+    resp = make_response(redirect(ensure_external_url(return_url)))
 
     if (
         "multinet-token" not in request.cookies

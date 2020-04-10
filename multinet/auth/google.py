@@ -1,19 +1,24 @@
-"""Handling of Authorization."""
+"""Handling of Google Authorization."""
 import requests
 from os import getenv
-from flask import redirect, request
+from flask import redirect, request, make_response
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
 
 from webargs.flaskparser import use_kwargs
 from webargs import fields
 
-# from multinet.db import db
+from multinet.user import (
+    load_user_from_cookie,
+    load_user,
+    get_user_cookie,
+    register_user,
+    user_exists,
+)
 
 
 CLIENT_ID = getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
-MULTINET_CLIENT_BASE_URL = getenv("MULTINET_CLIENT_BASE_URL")
 
 GOOGLE_BASE_API = "https://www.googleapis.com/"
 GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
@@ -46,32 +51,31 @@ def init_oauth(app):
     )
 
 
-@bp.route("/")
+@bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
-def login(return_url: str):
+def login(return_url):
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
 
     # Used instead of google.authorize_redirect, so we can grab the state and url
     state_and_url = google.create_authorization_url(
-        "http://localhost:5000/login/google/authorized"
+        "http://localhost:5000/google/authorized"
     )
 
     state = state_and_url["state"]
     url = state_and_url["url"]
 
+    # Used to return user to return_url
     states_to_return_urls[state] = return_url
 
     # So the flask session knows about the state
     google.save_authorize_data(
-        request,
-        state=state,
-        redirect_uri="http://localhost:5000/login/google/authorized",
+        request, state=state, redirect_uri="http://localhost:5000/google/authorized"
     )
     return redirect(url)
 
 
-@bp.route("/google/authorized")
+@bp.route("/authorized")
 @use_kwargs({"state": fields.Str(), "code": fields.Str()})
 def authorized(state, code):
     """Where google redirects to once the user had authorized the app."""
@@ -79,36 +83,38 @@ def authorized(state, code):
 
     # This is needed so the line below knows the user token.
     # I'm not sure how to get around this,
-    # regardless we'll probably need to save this at some point.
-    # token = google.authorize_access_token()
-    # userinfo = google.get(GOOGLE_USER_INFO_URL).json()
-    # return userinfo
+    token = google.authorize_access_token()
+    userinfo = google.get(GOOGLE_USER_INFO_URL).json()
 
+    if user_exists(userinfo):
+        user = load_user(userinfo)
+    else:
+        user = register_user(userinfo, token)
+
+    cookie = get_user_cookie(user)
+
+    # Pop return_url using state as key
     return_url = states_to_return_urls.pop(state)
-    return redirect(return_url)
-    # return "200 OK"
+    resp = make_response(redirect(return_url))
+
+    if (
+        "multinet-token" not in request.cookies
+        or request.cookies["multinet-token"] != cookie
+    ):
+        resp.set_cookie("multinet-token", cookie)
+
+    return resp
 
 
 @bp.route("/info")
 def user_info():
-    google = oauth.create_client("google")
-    google.authorize_access_token()
-    userinfo = google.get(GOOGLE_USER_INFO_URL).json()
-    return userinfo
+    """Return the filtered user object."""
+    # TODO: Filter out unwanted keys from the user object
 
+    cookie = request.cookies.get("multinet-token")
+    user = load_user_from_cookie(cookie)
 
-# def user_collection():
-#     """."""
-#     sysdb = db("_system")
+    if cookie is None or user is None:
+        return "403 Forbidden"
 
-#     if not sysdb.has_collection("users"):
-#         sysdb.create_collection("users")
-
-#     return sysdb.collection("users")
-
-
-# def load_user(user_id):
-#     """."""
-#     coll = user_collection()
-#     user = coll.find({"multinet_id": user_id}, limit=1)
-#     print(list(user))
+    return user

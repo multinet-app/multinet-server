@@ -9,7 +9,8 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 
 from typing import Optional, MutableMapping, Any, Tuple, Union
 
-from multinet import api, auth
+import multinet.auth.google as google
+from multinet import api
 from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
@@ -40,8 +41,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
     app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")
 
-    app.register_blueprint(auth.bp, url_prefix="/login")
-    auth.init_oauth(app)
+    app.register_blueprint(google.bp, url_prefix="/google")
+    google.init_oauth(app)
 
     register_legacy_workspaces()
 

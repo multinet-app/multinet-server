@@ -1,7 +1,7 @@
 """Handling of Google Authorization."""
 import requests
 from os import getenv
-from flask import redirect, request, make_response
+from flask import redirect, request, make_response, url_for
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
 
@@ -23,7 +23,7 @@ CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_BASE_API = "https://www.googleapis.com/"
 GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
 
-bp = Blueprint("auth", "auth")
+bp = Blueprint("google", "google")
 oauth = OAuth()
 
 states_to_return_urls = {}
@@ -59,7 +59,7 @@ def login(return_url):
 
     # Used instead of google.authorize_redirect, so we can grab the state and url
     state_and_url = google.create_authorization_url(
-        "http://localhost:5000/google/authorized"
+        url_for("google.authorized", _external=True)
     )
 
     state = state_and_url["state"]
@@ -70,7 +70,7 @@ def login(return_url):
 
     # So the flask session knows about the state
     google.save_authorize_data(
-        request, state=state, redirect_uri="http://localhost:5000/google/authorized"
+        request, state=state, redirect_uri=url_for("google.authorized", _external=True)
     )
     return redirect(url)
 

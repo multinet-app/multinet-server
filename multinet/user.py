@@ -1,10 +1,20 @@
 """User data and functions."""
 
 from uuid import uuid4
+from arango.collection import StandardCollection
+
 from multinet.db import db
+from multinet.auth.types import GoogleUserInfo, UserInfo, User
+
+from typing import Optional, Dict
 
 
-def user_collection():
+# This essentially duplicated the UserInfo TypedDict.
+# Is this a good reason to switch to dataclasses?
+USER_FIELDS = {"email", "name", "family_name", "given_name", "picture", "sub"}
+
+
+def user_collection() -> StandardCollection:
     """Return the collection that contains user documents."""
     sysdb = db("_system")
 
@@ -14,12 +24,12 @@ def user_collection():
     return sysdb.collection("users")
 
 
-def user_exists(userinfo):
+def user_exists(userinfo: GoogleUserInfo) -> bool:
     """Return the existance of a user."""
     return load_user(userinfo) is not None
 
 
-def load_user(userinfo):
+def load_user(userinfo: UserInfo) -> Optional[User]:
     """Return a user doc if it exists, else None."""
     coll = user_collection()
     user = list(coll.find({"sub": userinfo["sub"]}, limit=1))
@@ -30,24 +40,39 @@ def load_user(userinfo):
     return user[0]
 
 
-def register_user(userinfo, token):
-    """Register a user with the given user info, and token."""
+def save_user(user: User) -> bool:
+    """Update a user using the provided user object."""
+    coll = user_collection()
+    return bool(coll.update(user))
+
+
+def register_user(userinfo: UserInfo) -> User:
+    """Register a user with the given user info."""
     coll = user_collection()
 
-    document = dict(userinfo)
-    document.update(
-        {"multinet_id": uuid4().hex, "token": token, "session": uuid4().hex}
-    )
+    # TODO: Fix mypy errors
+    document: User = {**userinfo, "multinet": {}}
+    inserted_info: Dict = coll.insert(document)  # type: ignore
 
-    # Probably handle errors here
-    coll.insert(document)
-    return document
+    return next(coll.find(inserted_info, limit=1))
 
 
-def load_user_from_cookie(cookie):
+def set_user_cookie(user: User) -> User:
+    """Update the user cookie."""
+    new_user = dict(user)
+    coll = user_collection()
+
+    new_cookie = uuid4().hex
+    new_user["multinet"]["session"] = new_cookie
+
+    inserted_info: Dict = coll.insert(new_user)  # type: ignore
+    return next(coll.find(inserted_info, limit=1))
+
+
+def load_user_from_cookie(cookie: str) -> Optional[User]:
     """Use provided cookie to load a user, return None if they dont exist."""
     coll = user_collection()
-    document = list(coll.find({"session": cookie}, limit=1))
+    document = list(coll.find({"multinet.session": cookie}, limit=1))
 
     if not len(document):
         return None
@@ -55,6 +80,15 @@ def load_user_from_cookie(cookie):
     return document[0]
 
 
-def get_user_cookie(user):
-    """Return the cookie from the user object."""
-    return user["session"]
+def get_user_cookie(user: User) -> str:
+    """Return the cookie from the user object, or create it if it doesn't exist."""
+
+    if not user["multinet"].get("session"):
+        user = set_user_cookie(user)
+
+    return user["multinet"]["session"]
+
+
+def filter_user_info(info: GoogleUserInfo) -> UserInfo:
+    """Return a subset of the User Object."""
+    return {k: v for k, v in info.items() if k in USER_FIELDS}

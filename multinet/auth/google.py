@@ -1,7 +1,11 @@
 """Handling of Google Authorization."""
 import requests
+import base64
+import json
+
 from os import getenv
-from flask import redirect, request, make_response, url_for
+from flask import Flask, redirect, request, make_response, url_for
+from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
 
@@ -11,10 +15,15 @@ from webargs import fields
 from multinet.user import (
     load_user_from_cookie,
     load_user,
+    save_user,
     get_user_cookie,
     register_user,
-    user_exists,
+    filter_user_info,
 )
+
+from multinet.auth.types import GoogleUserInfo
+
+from typing import Dict
 
 
 CLIENT_ID = getenv("GOOGLE_CLIENT_ID")
@@ -23,10 +32,25 @@ CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_BASE_API = "https://www.googleapis.com/"
 GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
 
+MULTINET_COOKIE = "multinet-token"
+
 bp = Blueprint("google", "google")
 oauth = OAuth()
 
 states_to_return_urls = {}
+
+
+def parse_id_token(token: str) -> Dict:
+    """Parse the base64 encoded id token."""
+    parts = token.split(".")
+    if len(parts) != 3:
+        # Should probably throw something here
+        pass
+
+    payload = parts[1]
+    padded = payload + ("=" * (4 - len(payload) % 4))
+    decoded = base64.b64decode(padded)
+    return json.loads(decoded)
 
 
 def ensure_external_url(url: str) -> str:
@@ -39,14 +63,14 @@ def ensure_external_url(url: str) -> str:
     return return_url
 
 
-def google_oauth2_info():
+def google_oauth2_info() -> Dict:
     """Return Google's spec for their OAuth endpoints."""
     resp = requests.get("https://accounts.google.com/.well-known/openid-configuration")
     info = resp.json()
     return info
 
 
-def init_oauth(app):
+def init_oauth(app: Flask) -> None:
     """Initialize the OAuth integration."""
     oauth.init_app(app)
     info = google_oauth2_info()
@@ -63,7 +87,7 @@ def init_oauth(app):
 
 @bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
-def login(return_url):
+def login(return_url: str) -> ResponseWrapper:
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
 
@@ -87,19 +111,21 @@ def login(return_url):
 
 @bp.route("/authorized")
 @use_kwargs({"state": fields.Str(), "code": fields.Str()})
-def authorized(state, code):
+def authorized(state: str, code: str) -> ResponseWrapper:
     """Where google redirects to once the user had authorized the app."""
     google = oauth.create_client("google")
 
-    # This is needed so the line below knows the user token.
-    # I'm not sure how to get around this,
+    # Code is automatically read from flask session
     token = google.authorize_access_token()
-    userinfo = google.get(GOOGLE_USER_INFO_URL).json()
+    rawinfo: GoogleUserInfo = parse_id_token(token["id_token"])
+    userinfo = filter_user_info(rawinfo)
 
-    if user_exists(userinfo):
-        user = load_user(userinfo)
+    user = load_user(userinfo)
+    if user is None:
+        user = register_user(userinfo)
     else:
-        user = register_user(userinfo, token)
+        new_user = {**user, **userinfo}
+        save_user(new_user)
 
     cookie = get_user_cookie(user)
 
@@ -108,23 +134,27 @@ def authorized(state, code):
     resp = make_response(redirect(ensure_external_url(return_url)))
 
     if (
-        "multinet-token" not in request.cookies
-        or request.cookies["multinet-token"] != cookie
+        MULTINET_COOKIE not in request.cookies
+        or request.cookies[MULTINET_COOKIE] != cookie
     ):
-        resp.set_cookie("multinet-token", cookie)
+        resp.set_cookie(MULTINET_COOKIE, cookie)
 
     return resp
 
 
 @bp.route("/info")
-def user_info():
+def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
     # TODO: Filter out unwanted keys from the user object
 
-    cookie = request.cookies.get("multinet-token")
+    forbidden = make_response("403 Forbidden")
+
+    cookie = request.cookies.get(MULTINET_COOKIE)
+    if cookie is None:
+        return forbidden
+
     user = load_user_from_cookie(cookie)
+    if user is None:
+        return forbidden
 
-    if cookie is None or user is None:
-        return "403 Forbidden"
-
-    return user
+    return make_response(user)

@@ -5,6 +5,7 @@ import json
 
 from uuid import uuid1, uuid4
 from flask import Response
+from pathlib import Path
 from typing import Any, Generator, Dict, Set, Iterable
 
 from multinet import db
@@ -107,9 +108,9 @@ def generate_arango_workspace_name() -> str:
     return f"w-{uuid1()}"
 
 
-def get_or_init_flask_secret_key():
+def get_or_init_flask_secret_key() -> str:
     """Load or create the flask secret key."""
-    env_file_path = ".env"
+    env_file_path = Path(".env")
     dotenv.load_dotenv(env_file_path)
 
     secret_key = dotenv.get_key(env_file_path, "FLASK_SECRET_KEY")

@@ -21,6 +21,10 @@ from multinet.errors import (
 bp = Blueprint("multinet-recommender", __name__)
 bp.before_request(util.require_db)
 
+NORMALIZING_CONSTANT_SIZE = 1820.48
+NORMALIZING_CONSTANT_NR_NODE_ATTS = 4.55
+NORMALIZING_CONSTANT_NR_EDGE_ATTS = 2.73
+NORMALIZING_CONSTANT_DENSITY = 9.1
 
 @bp.route("/workspace/<workspace>/graph/<graph>", methods=["GET"])
 # @swag_from("swagger/workspaces.yaml")
@@ -91,7 +95,7 @@ class GraphStatistics:
             pd_table = pd.DataFrame(rows)
             # key = self.node_key[i]
             # name = self.node_table_names[i]
-            # print(pd_table)
+            print(len(pd_table))
 
             # add tablename prefix to key
             # pd_table[key] = pd_table[key].astype(str).str.replace(name + '/', '')
@@ -124,30 +128,33 @@ class GraphStatistics:
         
     def get_network_size(self):
         nr_nodes = nx.number_of_nodes(self.graph)
-        network_size = 'medium'
-        if nr_nodes < 100:
-            network_size = 'small'
-        if nr_nodes > 1000:
-            network_size = 'large'
-        return '%s (%i)'%(network_size, nr_nodes)
+        network_size = 2*np.tanh(nr_nodes/NORMALIZING_CONSTANT_SIZE) # multiply by two to make indexing on client side easier
+        # network_size = 'medium'
+        # if nr_nodes < 100:
+        #     network_size = 'small'
+        # if nr_nodes > 1000:
+        #     network_size = 'large'
+        return 'value=%.4f (%i)'%(network_size, nr_nodes)
 
     def get_size_cat(self):
         nr_nodes = nx.number_of_nodes(self.graph)
-        network_size = 1
-        if nr_nodes < 100:
-            network_size = 0
-        if nr_nodes > 1000:
-            network_size = 2
+        network_size = 2*np.tanh(nr_nodes/NORMALIZING_CONSTANT_SIZE) # multiply by two to make indexing on client side easier
+        # network_size = 1
+        # if nr_nodes < 100:
+        #     network_size = 0
+        # if nr_nodes > 1000:
+        #     network_size = 2
         return network_size
 
     def get_network_size_edges(self):
         nr_edges = nx.number_of_edges(self.graph)
-        network_size = 'medium'
-        if nr_edges < 100:
-            network_size = 'small'
-        if nr_edges > 1000:
-            network_size = 'large'
-        return '%s (%i)'%(network_size, nr_edges)
+        network_size = 2*np.tanh(nr_edges/NORMALIZING_CONSTANT_SIZE) # multiply by two to make indexing on client side easier
+        # network_size = 'medium'
+        # if nr_edges < 100:
+        #     network_size = 'small'
+        # if nr_edges > 1000:
+        #     network_size = 'large'
+        return 'value=%.4f (%i)'%(network_size, nr_edges)
     
     def get_amount_node_attributes(self):
         # this amount includes the key!
@@ -155,13 +162,14 @@ class GraphStatistics:
         for table_name in self.node_table_names:
             nr_attributes.append(len(self.data_map[table_name].columns))
 
-        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+        nr_attributes = sum(nr_attributes) #max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
 
-        nr_node_atts = 'few'
-        if nr_attributes >= 5:
-            nr_node_atts = 'many'
+        nr_node_atts = np.tanh(nr_attributes/NORMALIZING_CONSTANT_NR_NODE_ATTS)
+        # nr_node_atts = 'few'
+        # if nr_attributes >= 5:
+        #     nr_node_atts = 'many'
 
-        return '%s (%i)'%(nr_node_atts, nr_attributes)
+        return 'value=%.4f (%i)'%(nr_node_atts, nr_attributes)
 
     def get_nr_node_atts_cat(self):
         # this amount includes the key!
@@ -169,11 +177,13 @@ class GraphStatistics:
         for table_name in self.node_table_names:
             nr_attributes.append(len(self.data_map[table_name].columns))
 
-        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+        nr_attributes = sum(nr_attributes) #max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
 
-        nr_node_atts = 0
-        if nr_attributes >= 5:
-            nr_node_atts = 1
+        nr_node_atts = np.tanh(nr_attributes/NORMALIZING_CONSTANT_NR_NODE_ATTS)
+
+        # nr_node_atts = 0
+        # if nr_attributes >= 5:
+        #     nr_node_atts = 1
 
         return nr_node_atts
         
@@ -181,23 +191,26 @@ class GraphStatistics:
         nr_attributes = []
         for table_name in self.link_table_names:
             nr_attributes.append(len(self.data_map[table_name].columns))
-        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+        nr_attributes = sum(nr_attributes) #max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
 
-        nr_edge_atts = 'few'
-        if nr_attributes >= 3:
-            nr_edge_atts = 'many'
+        nr_edge_atts = np.tanh(nr_attributes/NORMALIZING_CONSTANT_NR_EDGE_ATTS)
+        # nr_edge_atts = 'few'
+        # if nr_attributes >= 3:
+        #     nr_edge_atts = 'many'
 
-        return '%s (%i)'%(nr_edge_atts, nr_attributes)
+        return 'value=%.4f (%i)'%(nr_edge_atts, nr_attributes)
 
     def get_nr_edge_atts_cat(self):
         nr_attributes = []
         for table_name in self.link_table_names:
             nr_attributes.append(len(self.data_map[table_name].columns))
-        nr_attributes = max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
+        nr_attributes = sum(nr_attributes) #max(nr_attributes) # for several tables, we could take some aggregation funktion e.g. max(...)
 
-        nr_edge_atts = 0
-        if nr_attributes >= 3:
-            nr_edge_atts = 1
+        nr_edge_atts = np.tanh(nr_attributes/NORMALIZING_CONSTANT_NR_EDGE_ATTS)
+
+        # nr_edge_atts = 0
+        # if nr_attributes >= 3:
+        #     nr_edge_atts = 1
 
         return nr_edge_atts
     
@@ -222,10 +235,6 @@ class GraphStatistics:
     def is_tree(self):
         return nx.is_tree(self.graph)
 
-    def is_layered(self):
-        # TODO
-        return False
-
     def is_k_partite(self):
         is_not_partite = []
         for i in range(len(self.link_table_names)):
@@ -248,8 +257,6 @@ class GraphStatistics:
             net_type = "Tree"
         elif self.is_k_partite():
             net_type = "K-Partite"
-        elif self.is_layered():
-            net_type = "Layered"
         
         return net_type
 
@@ -259,16 +266,15 @@ class GraphStatistics:
             net_type = 3
         elif self.is_k_partite():
             net_type = 2
-        elif self.is_layered():
-            net_type = 2
         else:
             dv = self.graph.degree()
             degrees = [degree for node, degree in dv]
             degrees = np.array(degrees)
 
-            net_type = 0
-            if np.mean(degrees) > 10:
-                net_type = 1
+            net_type = np.tanh(np.mean(degrees)/NORMALIZING_CONSTANT_DENSITY)
+            # net_type = 0
+            # if np.mean(degrees) > 10:
+            #     net_type = 1
         return net_type
 
     def get_density(self):
@@ -276,10 +282,12 @@ class GraphStatistics:
         degrees = [degree for node, degree in dv]
         degrees = np.array(degrees)
 
-        density = "sparse"
-        if np.mean(degrees) > 10:
-            density = "dense"
-        return '%s (avg degree: %i)' %(density, np.mean(degrees))
+        density = np.tanh(np.mean(degrees)/NORMALIZING_CONSTANT_DENSITY)
+
+        # density = "sparse"
+        # if np.mean(degrees) > 10:
+        #     density = "dense"
+        return 'value=%.4f (avg degree: %i)' %(density, np.mean(degrees))
     
     def get_degree_statistics(self):
         dv = self.graph.degree()

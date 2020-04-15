@@ -91,3 +91,8 @@ def get_user_cookie(user: User) -> str:
 def filter_user_info(info: GoogleUserInfo) -> UserInfo:
     """Return a subset of the User Object."""
     return {k: v for k, v in info.items() if k in USER_FIELDS}
+
+
+def filter_document_meta(doc: Dict) -> User:
+    """Remove meta information from a document."""
+    return {k: v for k, v in doc.items() if k not in {"_id", "_key", "_rev"}}

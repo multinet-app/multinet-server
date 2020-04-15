@@ -47,6 +47,7 @@ class MultinetInfo(TypedDict):
     session: str
 
 
+# TODO: Should we include ArangoDB document metadata in this?
 class User(GoogleUserInfo):
     """Representation of a user document."""
 

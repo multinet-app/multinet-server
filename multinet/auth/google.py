@@ -20,6 +20,7 @@ from multinet.user import (
     set_user_cookie,
     register_user,
     filter_user_info,
+    filter_document_meta,
 )
 
 from multinet.auth.types import GoogleUserInfo, User
@@ -155,4 +156,4 @@ def user_info() -> ResponseWrapper:
         forbidden.set_cookie(MULTINET_COOKIE, expires=0)
         return forbidden
 
-    return make_response(user)
+    return filter_document_meta(user)

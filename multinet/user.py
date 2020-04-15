@@ -40,10 +40,11 @@ def load_user(userinfo: UserInfo) -> Optional[User]:
     return user[0]
 
 
-def save_user(user: User) -> bool:
+def save_user(user: User) -> User:
     """Update a user using the provided user object."""
     coll = user_collection()
-    return bool(coll.update(user))
+    inserted_info: Dict = coll.update(user)  # type: ignore
+    return next(coll.find({"_id": inserted_info["_id"]}, limit=1))
 
 
 def register_user(userinfo: UserInfo) -> User:
@@ -59,14 +60,12 @@ def register_user(userinfo: UserInfo) -> User:
 
 def set_user_cookie(user: User) -> User:
     """Update the user cookie."""
-    new_user = dict(user)
-    coll = user_collection()
+    new_user: User = dict(user)
 
     new_cookie = uuid4().hex
     new_user["multinet"]["session"] = new_cookie
 
-    inserted_info: Dict = coll.insert(new_user)  # type: ignore
-    return next(coll.find(inserted_info, limit=1))
+    return save_user(new_user)
 
 
 def load_user_from_cookie(cookie: str) -> Optional[User]:

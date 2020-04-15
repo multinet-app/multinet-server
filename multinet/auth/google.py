@@ -17,11 +17,12 @@ from multinet.user import (
     load_user,
     save_user,
     get_user_cookie,
+    set_user_cookie,
     register_user,
     filter_user_info,
 )
 
-from multinet.auth.types import GoogleUserInfo
+from multinet.auth.types import GoogleUserInfo, User
 
 from typing import Dict
 
@@ -40,7 +41,7 @@ oauth = OAuth()
 states_to_return_urls = {}
 
 
-def parse_id_token(token: str) -> Dict:
+def parse_id_token(token: str) -> GoogleUserInfo:
     """Parse the base64 encoded id token."""
     parts = token.split(".")
     if len(parts) != 3:
@@ -120,24 +121,20 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     rawinfo: GoogleUserInfo = parse_id_token(token["id_token"])
     userinfo = filter_user_info(rawinfo)
 
-    user = load_user(userinfo)
-    if user is None:
+    loaded_user = load_user(userinfo)
+    if loaded_user is None:
         user = register_user(userinfo)
     else:
-        new_user = {**user, **userinfo}
-        save_user(new_user)
+        new_user: User = {**loaded_user, **userinfo}
+        user = save_user(new_user)
 
+    user = set_user_cookie(user)
     cookie = get_user_cookie(user)
 
     # Pop return_url using state as key
     return_url = states_to_return_urls.pop(state)
     resp = make_response(redirect(ensure_external_url(return_url)))
-
-    if (
-        MULTINET_COOKIE not in request.cookies
-        or request.cookies[MULTINET_COOKIE] != cookie
-    ):
-        resp.set_cookie(MULTINET_COOKIE, cookie)
+    resp.set_cookie(MULTINET_COOKIE, cookie)
 
     return resp
 
@@ -155,6 +152,7 @@ def user_info() -> ResponseWrapper:
 
     user = load_user_from_cookie(cookie)
     if user is None:
+        forbidden.set_cookie(MULTINET_COOKIE, expires=0)
         return forbidden
 
     return make_response(user)

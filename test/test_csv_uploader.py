@@ -30,7 +30,7 @@ def test_missing_key_field():
 
     correct = UnsupportedTable().asdict()
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows)
+        validate_csv(rows, "_key", False)
 
     validation_resp = v_error.value.errors
     assert len(validation_resp) == 1
@@ -44,7 +44,7 @@ def test_invalid_key_field():
 
     correct = KeyFieldDoesNotExist(key=invalid_key).asdict()
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field=invalid_key)
+        validate_csv(rows, key_field=invalid_key, overwrite=False)
 
     validation_resp = v_error.value.errors
     assert len(validation_resp) == 1
@@ -83,7 +83,7 @@ def test_duplicate_keys():
     """Test that duplicate keys are handled properly."""
     rows = read_csv("clubs_invalid_duplicate_keys.csv")
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows)
+        validate_csv(rows, key_field="_key", overwrite=False)
 
     validation_resp = v_error.value.errors
     correct = [err.asdict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
@@ -94,7 +94,7 @@ def test_invalid_headers():
     """Test that invalid headers are handled properly."""
     rows = read_csv("membership_invalid_syntax.csv")
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows)
+        validate_csv(rows, key_field="_key", overwrite=False)
 
     validation_resp = v_error.value.errors
     correct = [

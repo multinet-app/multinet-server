@@ -15,7 +15,7 @@ from webargs import fields
 from multinet.user import (
     load_user_from_cookie,
     load_user,
-    save_user,
+    updated_user,
     get_user_cookie,
     set_user_cookie,
     register_user,
@@ -127,7 +127,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         user = register_user(userinfo)
     else:
         new_user: User = {**loaded_user, **userinfo}
-        user = save_user(new_user)
+        user = updated_user(new_user)
 
     user = set_user_cookie(user)
     cookie = get_user_cookie(user)

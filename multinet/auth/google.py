@@ -83,7 +83,7 @@ def init_oauth(app: Flask) -> None:
         access_token_url=info["token_endpoint"],
         authorize_url=info["authorization_endpoint"],
         api_base_url=GOOGLE_BASE_API,
-        client_kwargs={"scope": "profile email openid"},
+        client_kwargs={"scope": "openid profile email"},
     )
 
 

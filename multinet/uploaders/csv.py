@@ -57,19 +57,21 @@ class CSVReadError(ServerError):
         return ("Could not read CSV data", "415 Unsupported Media Type")
 
 
-def is_edge_table(rows: Sequence[MutableMapping]):
+def is_edge_table(rows: Sequence[MutableMapping]) -> bool:
     """Determine if this table should be treated as an edge table."""
     fieldnames = rows[0].keys()
     return "_from" in fieldnames and "_to" in fieldnames
 
 
-def is_node_table(rows: Sequence[MutableMapping], key_field: str, overwrite: bool):
+def is_node_table(
+    rows: Sequence[MutableMapping], key_field: str, overwrite: bool
+) -> bool:
     """Determine if this table should be treated as a node table."""
     fieldnames = rows[0].keys()
     return key_field != "_key" or "_key" in fieldnames
 
 
-def validate_edge_table(rows: Sequence[MutableMapping]):
+def validate_edge_table(rows: Sequence[MutableMapping]) -> None:
     """Validate that the given table is a valid edge table."""
     data_errors: List[ValidationFailure] = []
     valid_cell = re.compile("[^/]+/[^/]+")
@@ -91,7 +93,7 @@ def validate_edge_table(rows: Sequence[MutableMapping]):
 
 def validate_node_table(
     rows: Sequence[MutableMapping], key_field: str, overwrite: bool
-):
+) -> None:
     """Validate that the given table is a valid node table."""
     fieldnames = rows[0].keys()
     data_errors: List[ValidationFailure] = []

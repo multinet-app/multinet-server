@@ -38,6 +38,7 @@ GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
+    protocol=os.environ.get("ARANGO_PROTOCOL", "http"),
 )
 restricted_keys = {"_rev", "_id"}
 

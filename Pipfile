@@ -44,6 +44,7 @@ allow_prereleases = true
 
 [scripts]
 serve = "flask run -p ${FLASK_SERVE_PORT}"
+profile = "python profile_app.py"
 test-server-up = "sh ./scripts/server/start.sh"
 test-server-down = "sh ./scripts/server/stop.sh"
 test-server-clean = "sh ./scripts/server/clean.sh"

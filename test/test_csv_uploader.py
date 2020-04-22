@@ -30,7 +30,7 @@ def test_missing_key_field():
 
     correct = UnsupportedTable().asdict()
     with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, "_key", False)
+        validate_csv(rows, key_field="_key", overwrite=False)
 
     validation_resp = v_error.value.errors
     assert len(validation_resp) == 1

@@ -63,9 +63,7 @@ def is_edge_table(rows: Sequence[MutableMapping]) -> bool:
     return "_from" in fieldnames and "_to" in fieldnames
 
 
-def is_node_table(
-    rows: Sequence[MutableMapping], key_field: str, overwrite: bool
-) -> bool:
+def is_node_table(rows: Sequence[MutableMapping], key_field: str) -> bool:
     """Determine if this table should be treated as a node table."""
     fieldnames = rows[0].keys()
     return key_field != "_key" or "_key" in fieldnames
@@ -127,7 +125,7 @@ def validate_csv(
     if not rows:
         raise ValidationFailed([MissingBody()])
 
-    if is_node_table(rows, key_field, overwrite):
+    if is_node_table(rows, key_field):
         validate_node_table(rows, key_field, overwrite)
     elif is_edge_table(rows):
         validate_edge_table(rows)

@@ -74,6 +74,8 @@ def is_node_table(
 def validate_edge_table(rows: Sequence[MutableMapping]) -> None:
     """Validate that the given table is a valid edge table."""
     data_errors: List[ValidationFailure] = []
+
+    # Checks that a cell has the form table_name/key
     valid_cell = re.compile("[^/]+/[^/]+")
 
     for i, row in enumerate(rows):

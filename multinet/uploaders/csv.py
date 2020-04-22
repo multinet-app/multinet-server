@@ -106,7 +106,7 @@ def validate_node_table(
         data_errors.append(KeyFieldAlreadyExists(key=key_field))
         raise ValidationFailed(data_errors)
 
-    keys = [row[key_field] for row in rows]
+    keys = (row[key_field] for row in rows)
     unique_keys: Set[str] = set()
     for key in keys:
         if key in unique_keys:

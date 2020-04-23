@@ -46,8 +46,7 @@ def parse_id_token(token: str) -> GoogleUserInfo:
     """Parse the base64 encoded id token."""
     parts = token.split(".")
     if len(parts) != 3:
-        # Should probably throw something here
-        pass
+        raise RuntimeError("Received Invalid ID Token")
 
     payload = parts[1]
     padded = payload + ("=" * (4 - len(payload) % 4))

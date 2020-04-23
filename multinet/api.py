@@ -18,7 +18,6 @@ from multinet.errors import (
 )
 
 bp = Blueprint("multinet", __name__)
-bp.before_request(util.require_db)
 
 
 @bp.route("/workspaces", methods=["GET"])

@@ -32,12 +32,11 @@ def user_exists(userinfo: GoogleUserInfo) -> bool:
 def load_user(userinfo: UserInfo) -> Optional[User]:
     """Return a user doc if it exists, else None."""
     coll = user_collection()
-    user = list(coll.find({"sub": userinfo["sub"]}, limit=1))
 
-    if not user:
+    try:
+        return next(coll.find({"sub": userinfo["sub"]}, limit=1))
+    except StopIteration:
         return None
-
-    return user[0]
 
 
 def updated_user(user: User) -> User:
@@ -71,12 +70,11 @@ def set_user_cookie(user: User) -> User:
 def load_user_from_cookie(cookie: str) -> Optional[User]:
     """Use provided cookie to load a user, return None if they dont exist."""
     coll = user_collection()
-    document = list(coll.find({"multinet.session": cookie}, limit=1))
 
-    if not len(document):
+    try:
+        return next(coll.find({"multinet.session": cookie}, limit=1))
+    except StopIteration:
         return None
-
-    return document[0]
 
 
 def get_user_cookie(user: User) -> str:

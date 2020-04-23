@@ -4,7 +4,12 @@ from typing_extensions import TypedDict
 
 
 class GoogleUserInfo(TypedDict):
-    """Representation of raw User Info from a Google Account."""
+    """
+    Representation of raw User Info from a Google Account.
+
+    Mostly unused by us, but is the data type of the decoded ID Token.
+    Reference: https://developers.google.com/identity/protocols/oauth2/openid-connect#an-id-tokens-payload  # noqa
+    """
 
     family_name: str
     given_name: str

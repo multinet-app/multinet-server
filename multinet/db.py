@@ -212,7 +212,7 @@ def workspace_tables(
     space = get_workspace_db(workspace)
 
     tables = (
-        space.collection(table["name"]).properties()  # type: ignore
+        space.collection(table["name"]).properties()
         for table in space.collections()
         if not table["name"].startswith("_")
     )

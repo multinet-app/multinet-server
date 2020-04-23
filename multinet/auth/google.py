@@ -59,7 +59,7 @@ def ensure_external_url(url: str) -> str:
     """Ensure a url is prefixed with a protocol (http or https)."""
     return_url = url
 
-    if "http://" not in url and "https://" not in url:
+    if not url.startswith("http://") and not url.startswith("https://"):
         return_url = f"http://{url}"
 
     return return_url

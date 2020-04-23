@@ -73,6 +73,7 @@ def register_legacy_workspaces() -> None:
         coll.insert({"name": workspace, "internal": workspace})
 
 
+# Since this shouldn't ever change while running, this function becomes a singleton
 @lru_cache(maxsize=1)
 def workspace_mapping_collection() -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
@@ -84,6 +85,7 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
+# Caches the document that maps an external workspace name to it's internal one
 @lru_cache()
 def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
     """
@@ -167,6 +169,7 @@ def get_workspace(name: str) -> WorkspaceSpec:
     return {"name": name, "owner": "", "readers": [], "writers": []}
 
 
+# Caches the reference to the StandardDatabase instance for each workspace
 @lru_cache()
 def get_workspace_db(name: str) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""

@@ -18,8 +18,6 @@ from multinet.errors import (
 )
 
 bp = Blueprint("multinet", __name__)
-# This shaves off ~180ms.
-# bp.before_request(util.require_db)
 
 
 @bp.route("/workspaces", methods=["GET"])

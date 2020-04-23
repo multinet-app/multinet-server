@@ -208,12 +208,7 @@ def workspace_tables(
     workspace: str, table_type: TableType
 ) -> Generator[str, None, None]:
     """Return a list of all table names in the workspace named `workspace`."""
-
-    def edge_table(fields: Sequence[str]) -> bool:
-        return "_from" in fields and "_to" in fields
-
     space = get_workspace_db(workspace)
-
     tables = (
         space.collection(table["name"]).properties()
         for table in space.collections()

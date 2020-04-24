@@ -85,6 +85,8 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
+# Caches the document that maps an external workspace name to it's internal one
+@lru_cache()
 def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
@@ -100,16 +102,10 @@ def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
     return None
 
 
-# Caches the document that maps an external workspace name to it's internal one
-@lru_cache()
-def cached_workspace_mapping(name: str) -> Union[Dict[str, str], None]:
-    """Cache the call to workspace_mapping."""
-    return workspace_mapping(name)
-
-
 def workspace_exists(name: str) -> bool:
     """Convinience wrapper for checking if a workspace exists."""
-    return bool(workspace_mapping(name))
+    # Use un-cached underlying function
+    return bool(workspace_mapping.__wrapped__(name))
 
 
 def workspace_exists_internal(name: str) -> bool:
@@ -134,13 +130,13 @@ def create_workspace(name: str) -> None:
         # Could only happen if there's a name collisison
         raise InternalServerError()
 
-    cached_workspace_mapping.cache_clear()
+    workspace_mapping.cache_clear()
     get_workspace_db.cache_clear()
 
 
 def rename_workspace(old_name: str, new_name: str) -> None:
     """Rename a workspace."""
-    doc = cached_workspace_mapping(old_name)
+    doc = workspace_mapping(old_name)
     if not doc:
         raise WorkspaceNotFound(old_name)
 
@@ -153,12 +149,12 @@ def rename_workspace(old_name: str, new_name: str) -> None:
 
     # Invalidate the cache for things changed by this function
     get_workspace_db.cache_clear()
-    cached_workspace_mapping.cache_clear()
+    workspace_mapping.cache_clear()
 
 
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
-    doc = cached_workspace_mapping(name)
+    doc = workspace_mapping(name)
     if not doc:
         raise WorkspaceNotFound(name)
 
@@ -170,7 +166,7 @@ def delete_workspace(name: str) -> None:
 
     # Invalidate the cache for things changed by this function
     get_workspace_db.cache_clear()
-    cached_workspace_mapping.cache_clear()
+    workspace_mapping.cache_clear()
 
 
 def get_workspace(name: str) -> WorkspaceSpec:
@@ -185,7 +181,7 @@ def get_workspace(name: str) -> WorkspaceSpec:
 @lru_cache()
 def get_workspace_db(name: str) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
-    doc = cached_workspace_mapping(name)
+    doc = workspace_mapping(name)
     if not doc:
         raise WorkspaceNotFound(name)
 

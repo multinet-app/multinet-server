@@ -7,50 +7,121 @@ from multinet.db import (
     delete_workspace,
     rename_workspace,
     workspace_exists,
+    cached_workspace_mapping,
+    workspace_mapping,
 )
 
 
 @pytest.fixture
-def workspace():
+def generated_workspace():
+    """Create a workspace, and yield the name of the workspace."""
+
+    workspace_name = uuid4().hex
+
+    create_workspace(workspace_name)
+    return workspace_name
+
+
+@pytest.fixture
+def handled_workspace(generated_workspace):
     """
     Create a workspace, and yield the name of the workspace.
 
     On teardown, deletes the workspace.
     """
+    yield generated_workspace
+
+    delete_workspace(generated_workspace)
+    cached_workspace_mapping.cache_clear()
+
+
+# BEGIN TESTS
+
+
+def test_present_workspace(handled_workspace):
+    """Test that workspace caching works as expected on present workspaces."""
+
+    # Assert that the cached response matches the actual response
+    assert workspace_mapping(handled_workspace) == cached_workspace_mapping(
+        handled_workspace
+    )
+    cached_workspace_mapping.cache_clear()
+
+    first_resp = cached_workspace_mapping(handled_workspace)
+    second_resp = cached_workspace_mapping(handled_workspace)
+
+    # Assert that cached response is idempotent
+    assert first_resp == second_resp
+
+
+def test_absent_workspace():
+    """Test that workspace caching works as expected on absent workspaces."""
+
+    # Test that random workspace doesn't exist
+    assert workspace_mapping(uuid4().hex) is None
+    cached_workspace_mapping.cache_clear()
 
     workspace_name = uuid4().hex
+    first_resp = cached_workspace_mapping(workspace_name)
+    second_resp = cached_workspace_mapping(workspace_name)
+
+    # Test that fake workspace doesn't exist,
+    # and that calls are idempotent
+    assert first_resp is None
+    assert second_resp is None
+
+
+def test_workspace_create():
+    """Test that creating a workspace doesn't result in invalid caching."""
+    workspace_name = uuid4().hex
+
+    pre_create = cached_workspace_mapping(workspace_name)
     create_workspace(workspace_name)
-    yield workspace_name
+    post_create = cached_workspace_mapping(workspace_name)
+    post_create_exists = workspace_exists(workspace_name)
+
+    # Teardown
     delete_workspace(workspace_name)
 
+    # Asserts
+    assert pre_create is None
+    assert post_create is not None
+    assert post_create_exists
 
-def test_workspace_create(workspace):
-    """Test that creating a workspace doesn't result in invalid caching."""
-    assert workspace_exists(workspace)
 
-
-def test_workspace_delete(workspace):
+def test_workspace_delete(generated_workspace):
     """Tests that deleting a workspace doesn't result in invalid caching."""
 
-    delete_workspace(workspace)
-    exists = workspace_exists(workspace)
+    pre_delete = cached_workspace_mapping(generated_workspace)
+    delete_workspace(generated_workspace)
+    post_delete = cached_workspace_mapping(generated_workspace)
+    exists_post_delete = workspace_exists(generated_workspace)
 
-    # Restore workspace, so the fixture can clean up
-    create_workspace(workspace)
+    # Asserts
+    assert pre_delete is not None
+    assert post_delete is None
+    assert not exists_post_delete
 
-    assert not exists
 
-
-def test_workspace_rename(workspace):
+def test_workspace_rename(generated_workspace):
     """Test that renaming a workspace doesn't result in invalid caching."""
     new_workspace_name = uuid4().hex
-    rename_workspace(workspace, new_workspace_name)
+
+    pre_rename = cached_workspace_mapping(generated_workspace)
+    rename_workspace(generated_workspace, new_workspace_name)
+    post_rename_old = cached_workspace_mapping(generated_workspace)
+    post_rename_new = cached_workspace_mapping(new_workspace_name)
 
     new_exists = workspace_exists(new_workspace_name)
-    old_exists = workspace_exists(workspace)
+    old_exists = workspace_exists(generated_workspace)
 
-    # Restore workspace, so the fixture can clean up
-    rename_workspace(new_workspace_name, workspace)
+    # Teardown
+    delete_workspace(new_workspace_name)
+
+    # Asserts
+    assert pre_rename is not None
+    assert post_rename_old is None
+    assert post_rename_new is not None
 
     assert new_exists
     assert not old_exists

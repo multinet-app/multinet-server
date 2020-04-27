@@ -1,9 +1,11 @@
 """Types associated with authentication."""
 
-from typing_extensions import TypedDict
+from typing import Optional
+from dataclasses import dataclass
 
 
-class GoogleUserInfo(TypedDict):
+@dataclass
+class GoogleUserInfo:
     """
     Representation of raw User Info from a Google Account.
 
@@ -29,13 +31,15 @@ class GoogleUserInfo(TypedDict):
     # Issuer
     iss: str
 
-    aud: str
     azp: str
-    at_hash: str
+    aud: str
     hd: str
+    at_hash: str
+    nonce: str
 
 
-class UserInfo(TypedDict):
+@dataclass
+class UserInfo:
     """The filtered info that is used to create a User."""
 
     family_name: str
@@ -46,14 +50,24 @@ class UserInfo(TypedDict):
     sub: str  # Unique identifier
 
 
-class MultinetInfo(TypedDict):
+@dataclass
+class MultinetInfo:
     """Data specific to multinet."""
 
-    session: str
+    session: Optional[str] = None
 
 
-# TODO: Should we include ArangoDB document metadata in this?
-class User(GoogleUserInfo):
-    """Representation of a user document."""
+@dataclass
+class FilteredUser(UserInfo):
+    """Representation of a user document returned by the API."""
 
     multinet: MultinetInfo
+
+
+@dataclass
+class User(FilteredUser):
+    """Representation of a full user document."""
+
+    _id: str
+    _key: str
+    _rev: str

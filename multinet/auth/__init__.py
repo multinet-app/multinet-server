@@ -1,9 +1,10 @@
 """Authorization types."""
+from dataclasses import asdict
 from flask import request, make_response
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 
-from multinet.user import load_user_from_cookie, filter_document_metadata
+from multinet.user import load_user_from_cookie, filtered_user
 
 MULTINET_COOKIE = "multinet-token"
 
@@ -25,4 +26,4 @@ def user_info() -> ResponseWrapper:
         forbidden.set_cookie(MULTINET_COOKIE, expires=0)
         return forbidden
 
-    return filter_document_metadata(user)
+    return make_response(asdict(filtered_user(user)))

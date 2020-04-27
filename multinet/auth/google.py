@@ -1,4 +1,5 @@
 """Handling of Google Authorization."""
+import dataclasses
 import requests
 import base64
 import json
@@ -14,6 +15,7 @@ from webargs import fields
 
 from multinet.user import (
     load_user,
+    user_from_doc,
     updated_user,
     get_user_cookie,
     set_user_cookie,
@@ -21,7 +23,7 @@ from multinet.user import (
     filter_user_info,
 )
 from multinet.auth import MULTINET_COOKIE
-from multinet.auth.types import GoogleUserInfo, User
+from multinet.auth.types import GoogleUserInfo
 
 from typing import Dict
 
@@ -47,7 +49,9 @@ def parse_id_token(token: str) -> GoogleUserInfo:
     payload = parts[1]
     padded = payload + ("=" * (4 - len(payload) % 4))
     decoded = base64.b64decode(padded)
-    return json.loads(decoded)
+    json_decoded = json.loads(decoded)
+
+    return GoogleUserInfo(**json_decoded)
 
 
 def ensure_external_url(url: str) -> str:
@@ -114,14 +118,16 @@ def authorized(state: str, code: str) -> ResponseWrapper:
 
     # Code is automatically read from flask session
     token = google.authorize_access_token()
-    rawinfo: GoogleUserInfo = parse_id_token(token["id_token"])
+    rawinfo = parse_id_token(token["id_token"])
     userinfo = filter_user_info(rawinfo)
 
     loaded_user = load_user(userinfo)
     if loaded_user is None:
         user = register_user(userinfo)
     else:
-        new_user: User = {**loaded_user, **userinfo}
+        new_user = user_from_doc(
+            {**dataclasses.asdict(loaded_user), **dataclasses.asdict(userinfo)}
+        )
         user = updated_user(new_user)
 
     user = set_user_cookie(user)

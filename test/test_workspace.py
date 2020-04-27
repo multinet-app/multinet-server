@@ -31,7 +31,6 @@ def handled_workspace(generated_workspace):
     yield generated_workspace
 
     delete_workspace(generated_workspace)
-    workspace_mapping.cache_clear()
 
 
 # BEGIN TESTS

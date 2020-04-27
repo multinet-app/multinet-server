@@ -130,6 +130,7 @@ def create_workspace(name: str) -> None:
         # Could only happen if there's a name collisison
         raise InternalServerError()
 
+    # Invalidate the cache for things changed by this function
     workspace_mapping.cache_clear()
     get_workspace_db.cache_clear()
 

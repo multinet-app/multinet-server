@@ -13,16 +13,14 @@ from webargs.flaskparser import use_kwargs
 from webargs import fields
 
 from multinet.user import (
-    load_user_from_cookie,
     load_user,
     updated_user,
     get_user_cookie,
     set_user_cookie,
     register_user,
     filter_user_info,
-    filter_document_meta,
 )
-
+from multinet.auth import MULTINET_COOKIE
 from multinet.auth.types import GoogleUserInfo, User
 
 from typing import Dict
@@ -33,8 +31,6 @@ CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
 
 GOOGLE_BASE_API = "https://www.googleapis.com/"
 GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
-
-MULTINET_COOKIE = "multinet-token"
 
 bp = Blueprint("google", "google")
 oauth = OAuth()
@@ -137,22 +133,3 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     resp.set_cookie(MULTINET_COOKIE, cookie)
 
     return resp
-
-
-@bp.route("/info")
-def user_info() -> ResponseWrapper:
-    """Return the filtered user object."""
-    # TODO: Filter out unwanted keys from the user object
-
-    forbidden = make_response("403 Forbidden")
-
-    cookie = request.cookies.get(MULTINET_COOKIE)
-    if cookie is None:
-        return forbidden
-
-    user = load_user_from_cookie(cookie)
-    if user is None:
-        forbidden.set_cookie(MULTINET_COOKIE, expires=0)
-        return forbidden
-
-    return filter_document_meta(user)

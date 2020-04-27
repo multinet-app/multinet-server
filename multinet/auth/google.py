@@ -5,6 +5,7 @@ import base64
 import json
 import os
 
+from dacite import from_dict
 from flask import Flask, redirect, request, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
@@ -15,7 +16,6 @@ from webargs import fields
 
 from multinet.user import (
     load_user,
-    user_from_doc,
     updated_user,
     get_user_cookie,
     set_user_cookie,
@@ -23,7 +23,7 @@ from multinet.user import (
     filter_user_info,
 )
 from multinet.auth import MULTINET_COOKIE
-from multinet.auth.types import GoogleUserInfo
+from multinet.auth.types import GoogleUserInfo, User
 
 from typing import Dict
 
@@ -49,9 +49,8 @@ def parse_id_token(token: str) -> GoogleUserInfo:
     payload = parts[1]
     padded = payload + ("=" * (4 - len(payload) % 4))
     decoded = base64.b64decode(padded)
-    json_decoded = json.loads(decoded)
 
-    return GoogleUserInfo(**json_decoded)
+    return from_dict(GoogleUserInfo, json.loads(decoded))
 
 
 def ensure_external_url(url: str) -> str:
@@ -125,8 +124,8 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     if loaded_user is None:
         user = register_user(userinfo)
     else:
-        new_user = user_from_doc(
-            {**dataclasses.asdict(loaded_user), **dataclasses.asdict(userinfo)}
+        new_user = from_dict(
+            User, {**dataclasses.asdict(loaded_user), **dataclasses.asdict(userinfo)}
         )
         user = updated_user(new_user)
 

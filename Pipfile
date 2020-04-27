@@ -19,6 +19,7 @@ sentry-sdk = {extras = ["flask"],version = "==0.14.1"}
 gunicorn = "==20.0.4"
 python-dotenv = "==0.12.0"
 authlib = "==0.14.1"
+dacite = "==1.4.0"
 
 [dev-packages]
 black = "==19.3b0"

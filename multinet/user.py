@@ -3,6 +3,7 @@
 import dataclasses
 from uuid import uuid4
 from arango.collection import StandardCollection
+from dacite import from_dict
 
 from multinet.db import db
 from multinet.errors import InternalServerError
@@ -37,7 +38,7 @@ def load_user(userinfo: UserInfo) -> Optional[User]:
     coll = user_collection()
 
     try:
-        return user_from_doc(next(coll.find({"sub": userinfo.sub}, limit=1)))
+        return from_dict(User, next(coll.find({"sub": userinfo.sub}, limit=1)))
     except StopIteration:
         return None
 
@@ -47,7 +48,7 @@ def updated_user(user: User) -> User:
     coll = user_collection()
     inserted_info = coll.update(dataclasses.asdict(user))
 
-    return user_from_doc(next(coll.find({"_id": inserted_info["_id"]}, limit=1)))
+    return from_dict(User, next(coll.find({"_id": inserted_info["_id"]}, limit=1)))
 
 
 def register_user(userinfo: UserInfo) -> User:
@@ -58,12 +59,13 @@ def register_user(userinfo: UserInfo) -> User:
     document["multinet"] = dataclasses.asdict(MultinetInfo())
 
     inserted_info: Dict = coll.insert(document)
-    return user_from_doc(next(coll.find(inserted_info, limit=1)))
+    return from_dict(User, next(coll.find(inserted_info, limit=1)))
 
 
 def set_user_cookie(user: User) -> User:
     """Update the user cookie."""
     new_user = copy_user(user)
+
     new_cookie = uuid4().hex
     new_user.multinet.session = new_cookie
 
@@ -75,7 +77,7 @@ def load_user_from_cookie(cookie: str) -> Optional[User]:
     coll = user_collection()
 
     try:
-        return user_from_doc(next(coll.find({"multinet.session": cookie}, limit=1)))
+        return from_dict(User, next(coll.find({"multinet.session": cookie}, limit=1)))
     except StopIteration:
         return None
 
@@ -96,35 +98,20 @@ def filter_user_info(info: GoogleUserInfo) -> UserInfo:
     """Return a subset of the User Object."""
     fields = {field.name for field in dataclasses.fields(UserInfo)}
     info_dict = dataclasses.asdict(info)
-    new_dict = {k: v for k, v in info_dict.items() if k in fields}
 
-    return UserInfo(**new_dict)
+    return from_dict(UserInfo, {k: v for k, v in info_dict.items() if k in fields})
 
 
 def filtered_user(user: User) -> FilteredUser:
     """Remove ArangoDB metadata from a document."""
     doc = dataclasses.asdict(user)
-    multinet = MultinetInfo(**doc.pop("multinet"))
 
     fields = {field.name for field in dataclasses.fields(FilteredUser)}
     filtered = {k: v for k, v in doc.items() if k in fields}
 
-    return FilteredUser(multinet=multinet, **filtered)
-
-
-def user_from_doc(doc: Dict) -> User:
-    """Properly convert an arango document to a User."""
-    # Makes this function mutable
-    multinet_dict = doc.pop("multinet")
-    multinet = MultinetInfo(**multinet_dict)
-
-    return User(multinet=multinet, **doc)
+    return from_dict(FilteredUser, filtered)
 
 
 def copy_user(user: User) -> User:
-    """Copy a User type."""
-    user_dict = dataclasses.asdict(user)
-    multinet_dict = user_dict.pop("multinet")
-    multinet = MultinetInfo(**multinet_dict)
-
-    return User(multinet=multinet, **user_dict)
+    """Create and return a new instance of User."""
+    return from_dict(User, dataclasses.asdict(user))

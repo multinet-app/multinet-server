@@ -91,6 +91,6 @@ def filter_user_info(info: GoogleUserInfo) -> UserInfo:
     return {k: v for k, v in info.items() if k in USER_FIELDS}
 
 
-def filter_document_meta(doc: Dict) -> User:
+def filter_document_metadata(doc: Dict) -> User:
     """Remove ArangoDB metadata from a document."""
     return {k: v for k, v in doc.items() if k not in {"_id", "_key", "_rev"}}

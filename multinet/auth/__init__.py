@@ -27,3 +27,13 @@ def user_info() -> ResponseWrapper:
         return forbidden
 
     return make_response(asdict(filtered_user(user)))
+
+
+@bp.route("/logout")
+def logout() -> ResponseWrapper:
+    """Return the filtered user object."""
+
+    resp = make_response("", 200)
+    resp.set_cookie(MULTINET_COOKIE, expires=0)
+
+    return resp

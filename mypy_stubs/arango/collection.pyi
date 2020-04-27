@@ -18,16 +18,14 @@ class StandardCollection(Collection):
         document: Any,
         return_new: bool = ...,
         sync: Optional[Any] = ...,
-        silent: bool = ...,
         overwrite: bool = ...,
         return_old: bool = ...,
-    ) -> Union[bool, Dict]: ...
+    ) -> Dict: ...
     def insert_many(
         self,
         documents: Any,
         return_new: bool = ...,
         sync: Optional[Any] = ...,
-        silent: bool = ...,
         overwrite: bool = ...,
         return_old: bool = ...,
     ) -> List[Union[Dict, ArangoError]]: ...
@@ -39,8 +37,7 @@ class StandardCollection(Collection):
         ignore_missing: bool = ...,
         return_old: bool = ...,
         sync: Optional[Any] = ...,
-        silent: bool = ...,
-    ) -> Union[Dict, bool]: ...
+    ) -> Dict: ...
     def update(
         self,
         document: Union[Dict, str],
@@ -50,8 +47,7 @@ class StandardCollection(Collection):
         return_new: bool = ...,
         return_old: bool = ...,
         sync: Optional[Any] = ...,
-        silent: bool = ...,
-    ) -> Union[Dict, bool]: ...
+    ) -> Dict: ...
 
 class VertexCollection(Collection): ...
 class EdgeCollection(Collection): ...

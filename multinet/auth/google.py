@@ -2,8 +2,8 @@
 import requests
 import base64
 import json
+import os
 
-from os import getenv
 from flask import Flask, redirect, request, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
@@ -26,8 +26,8 @@ from multinet.auth.types import GoogleUserInfo, User
 from typing import Dict
 
 
-CLIENT_ID = getenv("GOOGLE_CLIENT_ID")
-CLIENT_SECRET = getenv("GOOGLE_CLIENT_SECRET")
+CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 GOOGLE_BASE_API = "https://www.googleapis.com/"
 GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"

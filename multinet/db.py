@@ -104,7 +104,8 @@ def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
 
 def workspace_exists(name: str) -> bool:
     """Convinience wrapper for checking if a workspace exists."""
-    return bool(workspace_mapping(name))
+    # Use un-cached underlying function
+    return bool(workspace_mapping.__wrapped__(name))
 
 
 def workspace_exists_internal(name: str) -> bool:
@@ -128,6 +129,10 @@ def create_workspace(name: str) -> None:
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
+
+    # Invalidate the cache for things changed by this function
+    workspace_mapping.cache_clear()
+    get_workspace_db.cache_clear()
 
 
 def rename_workspace(old_name: str, new_name: str) -> None:
@@ -159,6 +164,10 @@ def delete_workspace(name: str) -> None:
 
     sysdb.delete_database(doc["internal"])
     coll.delete(doc["_id"])
+
+    # Invalidate the cache for things changed by this function
+    get_workspace_db.cache_clear()
+    workspace_mapping.cache_clear()
 
 
 def get_workspace(name: str) -> WorkspaceSpec:

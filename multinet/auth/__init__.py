@@ -1,6 +1,6 @@
 """Authorization types."""
 from dataclasses import asdict
-from flask import request, make_response
+from flask import make_response, session
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 
@@ -17,13 +17,13 @@ def user_info() -> ResponseWrapper:
 
     forbidden = make_response("403 Forbidden")
 
-    cookie = request.cookies.get(MULTINET_COOKIE)
+    cookie = session.get(MULTINET_COOKIE)
     if cookie is None:
         return forbidden
 
     user = load_user_from_cookie(cookie)
     if user is None:
-        forbidden.set_cookie(MULTINET_COOKIE, expires=0)
+        session.pop(MULTINET_COOKIE, None)
         return forbidden
 
     return make_response(asdict(filtered_user(user)))
@@ -33,7 +33,5 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    resp = make_response("", 200)
-    resp.set_cookie(MULTINET_COOKIE, expires=0)
-
-    return resp
+    session.pop(MULTINET_COOKIE, None)
+    return make_response("", 200)

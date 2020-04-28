@@ -6,7 +6,7 @@ import json
 import os
 
 from dacite import from_dict
-from flask import Flask, redirect, request, make_response, url_for
+from flask import Flask, redirect, request, session, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
@@ -135,6 +135,6 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     # Pop return_url using state as key
     return_url = states_to_return_urls.pop(state)
     resp = make_response(redirect(ensure_external_url(return_url)))
-    resp.set_cookie(MULTINET_COOKIE, cookie)
+    session[MULTINET_COOKIE] = cookie
 
     return resp

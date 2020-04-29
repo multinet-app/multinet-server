@@ -10,7 +10,7 @@ from flasgger import swag_from
 from flask import Flask, redirect, request, session, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
-from authlib.integrations.flask_client import OAuth  # type: ignore
+from authlib.integrations.flask_client import OAuth
 
 from webargs.flaskparser import use_kwargs
 from webargs import fields
@@ -75,15 +75,17 @@ def init_oauth(app: Flask) -> None:
     """Initialize the OAuth integration."""
     oauth.init_app(app)
     info = google_oauth2_info()
-    oauth.register(
-        name="google",
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        access_token_url=info["token_endpoint"],
-        authorize_url=info["authorization_endpoint"],
-        api_base_url=GOOGLE_BASE_API,
-        client_kwargs={"scope": "openid profile email"},
-    )
+
+    if CLIENT_ID is not None and CLIENT_SECRET is not None:
+        oauth.register(
+            name="google",
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET,
+            access_token_url=info["token_endpoint"],
+            authorize_url=info["authorization_endpoint"],
+            api_base_url=GOOGLE_BASE_API,
+            client_kwargs={"scope": "openid profile email"},
+        )
 
 
 @bp.route("/login")

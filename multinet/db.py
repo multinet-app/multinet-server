@@ -1,5 +1,6 @@
 """Low-level database operations."""
 import os
+from functools import lru_cache
 
 from arango import ArangoClient
 from arango.graph import Graph
@@ -9,7 +10,7 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Any, Sequence, List, Dict, Set, Generator, Tuple, Union
+from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 from multinet.errors import InternalServerError
@@ -38,6 +39,7 @@ GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
 arango = ArangoClient(
     host=os.environ.get("ARANGO_HOST", "localhost"),
     port=int(os.environ.get("ARANGO_PORT", "8529")),
+    protocol=os.environ.get("ARANGO_PROTOCOL", "http"),
 )
 restricted_keys = {"_rev", "_id"}
 
@@ -64,13 +66,15 @@ def register_legacy_workspaces() -> None:
     coll = workspace_mapping_collection()
 
     databases = {name for name in sysdb.databases() if name != "_system"}
-    registered = {doc["internal"] for doc in workspace_mapping_collection().all()}
+    registered = {doc["internal"] for doc in coll.all()}
 
     unregistered = databases - registered
     for workspace in unregistered:
         coll.insert({"name": workspace, "internal": workspace})
 
 
+# Since this shouldn't ever change while running, this function becomes a singleton
+@lru_cache(maxsize=1)
 def workspace_mapping_collection() -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
     sysdb = db("_system")
@@ -81,6 +85,8 @@ def workspace_mapping_collection() -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
+# Caches the document that maps an external workspace name to it's internal one
+@lru_cache()
 def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
@@ -98,7 +104,8 @@ def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
 
 def workspace_exists(name: str) -> bool:
     """Convinience wrapper for checking if a workspace exists."""
-    return bool(workspace_mapping(name))
+    # Use un-cached underlying function
+    return bool(workspace_mapping.__wrapped__(name))
 
 
 def workspace_exists_internal(name: str) -> bool:
@@ -123,6 +130,10 @@ def create_workspace(name: str) -> None:
         # Could only happen if there's a name collisison
         raise InternalServerError()
 
+    # Invalidate the cache for things changed by this function
+    workspace_mapping.cache_clear()
+    get_workspace_db.cache_clear()
+
 
 def rename_workspace(old_name: str, new_name: str) -> None:
     """Rename a workspace."""
@@ -137,6 +148,10 @@ def rename_workspace(old_name: str, new_name: str) -> None:
     coll = workspace_mapping_collection()
     coll.update(doc)
 
+    # Invalidate the cache for things changed by this function
+    get_workspace_db.cache_clear()
+    workspace_mapping.cache_clear()
+
 
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
@@ -150,6 +165,10 @@ def delete_workspace(name: str) -> None:
     sysdb.delete_database(doc["internal"])
     coll.delete(doc["_id"])
 
+    # Invalidate the cache for things changed by this function
+    get_workspace_db.cache_clear()
+    workspace_mapping.cache_clear()
+
 
 def get_workspace(name: str) -> WorkspaceSpec:
     """Return a single workspace, if it exists."""
@@ -159,6 +178,8 @@ def get_workspace(name: str) -> WorkspaceSpec:
     return {"name": name, "owner": "", "readers": [], "writers": []}
 
 
+# Caches the reference to the StandardDatabase instance for each workspace
+@lru_cache()
 def get_workspace_db(name: str) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     doc = workspace_mapping(name)
@@ -196,25 +217,21 @@ def workspace_tables(
     workspace: str, table_type: TableType
 ) -> Generator[str, None, None]:
     """Return a list of all table names in the workspace named `workspace`."""
-
-    def edge_table(fields: Sequence[str]) -> bool:
-        return "_from" in fields and "_to" in fields
-
     space = get_workspace_db(workspace)
     tables = (
-        (table["name"], edge_table(table_fields(workspace, table["name"])))
+        space.collection(table["name"]).properties()
         for table in space.collections()
         if not table["name"].startswith("_")
     )
 
-    def pass_all(x: Tuple[Any, bool]) -> bool:
+    def pass_all(x: Dict[str, Any]) -> bool:
         return True
 
-    def is_edge(x: Tuple[Any, bool]) -> bool:
-        return x[1]
+    def is_edge(x: Dict[str, Any]) -> bool:
+        return x["edge"]
 
-    def is_node(x: Tuple[Any, bool]) -> bool:
-        return not is_edge(x)
+    def is_node(x: Dict[str, Any]) -> bool:
+        return not x["edge"]
 
     if table_type == "all":
         desired_type = pass_all
@@ -225,7 +242,7 @@ def workspace_tables(
     else:
         raise BadQueryArgument("type", table_type, ["all", "node", "edge"])
 
-    return (table[0] for table in tables if desired_type(table))
+    return (table["name"] for table in tables if desired_type(table))
 
 
 def workspace_table(workspace: str, table: str, offset: int, limit: int) -> dict:
@@ -354,16 +371,6 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
     count: int = next(aql_query(workspace, count_query))
 
     return {"count": count, "nodes": list(nodes)}
-
-
-def table_fields(workspace: str, table: str) -> List[str]:
-    """Return a list of column names for `query.table` in `query.workspace`."""
-    space = get_workspace_db(workspace)
-    if space.has_collection(table) and space.collection(table).count() > 0:
-        sample = space.collection(table).random()
-        return list(sample.keys())
-    else:
-        return []
 
 
 def delete_table(workspace: str, table: str) -> str:

@@ -1,0 +1,18 @@
+User Login Endpoint
+---
+parameters:
+  - return_url:
+    name: return_url
+    in: query
+    description: The URL to redirect back to after login.
+    required: true
+    schema:
+      type: string
+      example: https://multinet.app
+
+responses:
+  302:
+    description: Redirect to Google
+
+tags:
+  - user

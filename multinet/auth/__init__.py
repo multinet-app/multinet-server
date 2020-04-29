@@ -1,5 +1,6 @@
 """Authorization types."""
 from dataclasses import asdict
+from flasgger import swag_from
 from flask import make_response, session
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
@@ -12,6 +13,7 @@ bp = Blueprint("user", "user")
 
 
 @bp.route("/info")
+@swag_from("swagger/user/info.yaml")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
@@ -30,6 +32,7 @@ def user_info() -> ResponseWrapper:
 
 
 @bp.route("/logout")
+@swag_from("swagger/user/logout.yaml")
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 

@@ -6,6 +6,7 @@ import json
 import os
 
 from dacite import from_dict
+from flasgger import swag_from
 from flask import Flask, redirect, request, session, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
@@ -87,6 +88,7 @@ def init_oauth(app: Flask) -> None:
 
 @bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
+@swag_from("swagger/google/login.yaml")
 def login(return_url: str) -> ResponseWrapper:
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
@@ -111,6 +113,7 @@ def login(return_url: str) -> ResponseWrapper:
 
 @bp.route("/authorized")
 @use_kwargs({"state": fields.Str(), "code": fields.Str()})
+@swag_from("swagger/google/authorized.yaml")
 def authorized(state: str, code: str) -> ResponseWrapper:
     """Where google redirects to once the user had authorized the app."""
     google = oauth.create_client("google")

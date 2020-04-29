@@ -15,7 +15,7 @@ bp = Blueprint("user", "user")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    forbidden = make_response("403 Forbidden")
+    forbidden = make_response("null", 403)
 
     cookie = session.get(MULTINET_COOKIE)
     if cookie is None:

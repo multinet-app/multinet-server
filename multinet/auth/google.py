@@ -10,7 +10,7 @@ from flasgger import swag_from
 from flask import Flask, redirect, request, session, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
-from authlib.integrations.flask_client import OAuth
+from authlib.integrations.flask_client import OAuth  # type: ignore
 
 from webargs.flaskparser import use_kwargs
 from webargs import fields

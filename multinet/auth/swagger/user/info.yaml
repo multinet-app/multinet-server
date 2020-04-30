@@ -1,0 +1,11 @@
+Fetches user info using a browser cookie
+---
+
+responses:
+  200:
+    description: User Info
+  403:
+    description: Not logged in
+
+tags:
+  - user

@@ -45,7 +45,7 @@ def default_return_url() -> str:
 
     Must be done as a function, so the app context is available.
     """
-    return url_for("user.user_info")
+    return url_for("user.user_info", _external=True)
 
 
 def parse_id_token(token: str) -> GoogleUserInfo:

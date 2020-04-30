@@ -39,6 +39,15 @@ bp = Blueprint("google", "google")
 oauth = OAuth()
 
 
+def default_return_url() -> str:
+    """
+    Return a default return_url value.
+
+    Must be done as a function, so the app context is available.
+    """
+    return url_for("user.user_info")
+
+
 def parse_id_token(token: str) -> GoogleUserInfo:
     """Parse the base64 encoded id token."""
     parts = token.split(".")
@@ -89,9 +98,12 @@ def init_oauth(app: Flask) -> None:
 @bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
 @swag_from("swagger/google/login.yaml")
-def login(return_url: str) -> ResponseWrapper:
+def login(return_url: str = None) -> ResponseWrapper:
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
+
+    if return_url is None:
+        return_url = default_return_url()
 
     # Used instead of google.authorize_redirect, so we can grab the state and url
     state_and_url = google.create_authorization_url(
@@ -135,7 +147,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     user = set_user_cookie(user)
     cookie = get_user_cookie(user)
 
-    return_url = session.pop("return_url")
+    return_url = session.pop("return_url", default_return_url())
     resp = make_response(redirect(ensure_external_url(return_url)))
     session[MULTINET_COOKIE] = cookie
 

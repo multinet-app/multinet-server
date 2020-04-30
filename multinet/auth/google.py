@@ -38,8 +38,6 @@ GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
 bp = Blueprint("google", "google")
 oauth = OAuth()
 
-states_to_return_urls = {}
-
 
 def parse_id_token(token: str) -> GoogleUserInfo:
     """Parse the base64 encoded id token."""
@@ -104,7 +102,7 @@ def login(return_url: str) -> ResponseWrapper:
     url = state_and_url["url"]
 
     # Used to return user to return_url
-    states_to_return_urls[state] = return_url
+    session["return_url"] = return_url
 
     # So the flask session knows about the state
     google.save_authorize_data(
@@ -137,8 +135,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     user = set_user_cookie(user)
     cookie = get_user_cookie(user)
 
-    # Pop return_url using state as key
-    return_url = states_to_return_urls.pop(state)
+    return_url = session.pop("return_url")
     resp = make_response(redirect(ensure_external_url(return_url)))
     session[MULTINET_COOKIE] = cookie
 

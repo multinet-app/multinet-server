@@ -2,7 +2,8 @@
 import os
 import json
 
-from uuid import uuid1
+from functools import lru_cache
+from uuid import uuid1, uuid4
 from flask import Response
 from typing import Any, Generator, Dict, Set, Iterable
 
@@ -104,3 +105,10 @@ def data_path(file_name: str) -> str:
 def generate_arango_workspace_name() -> str:
     """Generate a string that can be used as an ArangoDB workspace name."""
     return f"w-{uuid1()}"
+
+
+# Make sure this function is only evaluated once
+@lru_cache()
+def flask_secret_key() -> str:
+    """Load or create a flask secret key."""
+    return os.getenv("FLASK_SECRET_KEY") or uuid4().hex

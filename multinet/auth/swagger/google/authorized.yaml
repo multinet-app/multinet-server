@@ -1,0 +1,21 @@
+Endpoint called from Google on successful authorization. Should not be called directly.
+---
+parameters:
+  - state:
+    name: state
+    in: query
+    description: The state of the current OAuth flow
+    required: true
+
+  - code:
+    name: code
+    in: query
+    description: The Code to be exchanged for an auth token
+    required: true
+
+responses:
+  302:
+    description: Redirect to the return url specified in the login step
+
+tags:
+  - user

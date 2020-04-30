@@ -1,0 +1,9 @@
+Logout the current user
+---
+
+responses:
+  200:
+    description: User logged out (Idempotent)
+
+tags:
+  - user

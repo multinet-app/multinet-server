@@ -26,7 +26,7 @@ from multinet.user import (
 from multinet.auth import MULTINET_COOKIE
 from multinet.auth.types import GoogleUserInfo, User
 
-from typing import Dict
+from typing import Dict, Optional
 
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -38,7 +38,14 @@ GOOGLE_USER_INFO_URL = "oauth2/v3/userinfo"
 bp = Blueprint("google", "google")
 oauth = OAuth()
 
-states_to_return_urls = {}
+
+def default_return_url() -> str:
+    """
+    Return a default return_url value.
+
+    Must be done as a function, so the app context is available.
+    """
+    return url_for("user.user_info", _external=True)
 
 
 def parse_id_token(token: str) -> GoogleUserInfo:
@@ -91,9 +98,12 @@ def init_oauth(app: Flask) -> None:
 @bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
 @swag_from("swagger/google/login.yaml")
-def login(return_url: str) -> ResponseWrapper:
+def login(return_url: Optional[str] = None) -> ResponseWrapper:
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
+
+    if return_url is None:
+        return_url = default_return_url()
 
     # Used instead of google.authorize_redirect, so we can grab the state and url
     state_and_url = google.create_authorization_url(
@@ -104,7 +114,7 @@ def login(return_url: str) -> ResponseWrapper:
     url = state_and_url["url"]
 
     # Used to return user to return_url
-    states_to_return_urls[state] = return_url
+    session["return_url"] = return_url
 
     # So the flask session knows about the state
     google.save_authorize_data(
@@ -137,8 +147,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     user = set_user_cookie(user)
     cookie = get_user_cookie(user)
 
-    # Pop return_url using state as key
-    return_url = states_to_return_urls.pop(state)
+    return_url = session.pop("return_url", default_return_url())
     resp = make_response(redirect(ensure_external_url(return_url)))
     session[MULTINET_COOKIE] = cookie
 

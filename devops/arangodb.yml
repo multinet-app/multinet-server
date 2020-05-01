@@ -4,7 +4,10 @@
 
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    arangodb_password: "letmein"
+
+  vars_prompt:
+    - name: arangodb_root_password
+      prompt: "Password for ArangoDB root account"
 
   tasks:
     # https://www.arangodb.com/download-major/ubuntu/
@@ -36,7 +39,7 @@
       become: true
 
     - name: Overwrite the default arangodb password
-      shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_password }} arango-secure-installation
+      shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
     - name: Enable arangodb to listen on all interfaces

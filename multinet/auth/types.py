@@ -33,9 +33,10 @@ class GoogleUserInfo:
 
     azp: str
     aud: str
-    hd: str
     at_hash: str
     nonce: str
+
+    hd: Optional[str] = None
 
 
 @dataclass

@@ -26,7 +26,7 @@ from multinet.user import (
 from multinet.auth import MULTINET_COOKIE
 from multinet.auth.types import GoogleUserInfo, User
 
-from typing import Dict
+from typing import Dict, Optional
 
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -98,7 +98,7 @@ def init_oauth(app: Flask) -> None:
 @bp.route("/login")
 @use_kwargs({"return_url": fields.Str(location="query")})
 @swag_from("swagger/google/login.yaml")
-def login(return_url: str = None) -> ResponseWrapper:
+def login(return_url: Optional[str] = None) -> ResponseWrapper:
     """Redirect the user to Google to authorize this app."""
     google = oauth.create_client("google")
 

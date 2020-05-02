@@ -1,5 +1,6 @@
 ---
 - hosts: all
+  become: yes
   remote_user: ubuntu
 
   vars:
@@ -8,6 +9,11 @@
   vars_prompt:
     - name: arangodb_root_password
       prompt: "Password for ArangoDB root account"
+      default: "letmein"
+
+    - name: ssl_cert_path
+      prompt: "Path to parent ssl cert directory"
+      default: "/etc/letsencrypt/live/multinet.app/"
 
   tasks:
     # https://www.arangodb.com/download-major/ubuntu/
@@ -42,11 +48,38 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
+    - name: Copy the compressed ssl certificate files to the server
+      copy:
+        src: '{{ ssl_cert_path }}'
+        dest: /home/ubuntu/
+        follow: yes
+
+    - name: Combine the chain and the private key into one file (required by arango)
+      shell:
+        chdir: /home/ubuntu/
+        cmd: cat fullchain.pem privkey.pem > server.pem
+
+    - name: Set the combined file as 600 permission
+      shell:
+        chdir: /home/ubuntu/
+        cmd: chmod 600 *
+
+    - name: Add an exception to the permissions for the arangodb user
+      shell:
+        chdir: /home/ubuntu/
+        cmd: setfacl -m u:arangodb:r /home/ubuntu/server.pem
+
+    - name: Add the ssl filepath to the config
+      lineinfile:
+        path: /etc/arangodb3/arangod.conf
+        regexp: '^\[ssl\]'
+        line: "\n[ssl]\nkeyfile = /home/ubuntu/server.pem"
+
     - name: Enable arangodb to listen on all interfaces
       lineinfile:
         path: /etc/arangodb3/arangod.conf
         regexp: '^endpoint ='
-        line: "endpoint = tcp://0.0.0.0:8529"
+        line: "endpoint = ssl://0.0.0.0:8529"
       become: true
 
     - name: Start arangodb service

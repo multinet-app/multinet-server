@@ -9,7 +9,6 @@
   vars_prompt:
     - name: arangodb_root_password
       prompt: "Password for ArangoDB root account"
-      default: "letmein"
 
     - name: ssl_cert_path
       prompt: "Path to parent ssl cert directory"

@@ -53,6 +53,7 @@
         src: '{{ ssl_cert_path }}'
         dest: /home/ubuntu/
         follow: yes
+        mode: u=rw,g=,o=
 
     - name: Combine the chain and the private key into one file (required by arango)
       shell:
@@ -60,9 +61,9 @@
         cmd: cat fullchain.pem privkey.pem > server.pem
 
     - name: Set the combined file as 600 permission
-      shell:
-        chdir: /home/ubuntu/
-        cmd: chmod 600 *
+      file:
+        path: /home/ubuntu/server.pem
+        mode: u=rw,g=,o=
 
     - name: Add an exception to the permissions for the arangodb user
       shell:

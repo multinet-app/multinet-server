@@ -11,7 +11,7 @@
       prompt: "Password for ArangoDB root account"
 
     - name: ssl_cert_path
-      prompt: "Path to parent ssl cert directory"
+      prompt: "Path to parent SSL cert directory"
       default: "/etc/letsencrypt/live/multinet.app/"
 
   tasks:

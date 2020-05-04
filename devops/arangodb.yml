@@ -47,7 +47,7 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
-    - name: Copy the compressed ssl certificate files to the server
+    - name: Copy the compressed SSL certificate files to the server
       copy:
         src: '{{ ssl_cert_path }}'
         dest: /home/ubuntu/

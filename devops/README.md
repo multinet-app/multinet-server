@@ -27,8 +27,7 @@ sudo ansible-playbook arangodb.yml -i <target-hostname>, --ssh-extra-args="-i <i
 
 # Vagrant
 
-To test locally, you can use vagrant. Vagrant is a python package that is most easily installed with pip by running, 
-`pip install vagrant`. Once you have Vagrant installed, you can run the vagrant file using:
+To test locally, you can use vagrant. Vagrant is a python package that is easily installed on most systems. If you need help installing it, please read the [docs](https://www.vagrantup.com/docs/installation/). Once you have Vagrant installed, you can run the vagrant file using:
 
 ```
 sudo vagrant up -i

@@ -1,6 +1,5 @@
 ---
 - hosts: all
-  become: yes
   remote_user: ubuntu
 
   vars:
@@ -47,33 +46,39 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
-    - name: Copy the compressed SSL certificate files to the server
+    - name: Copy the SSL certificate files to the server
       copy:
         src: '{{ ssl_cert_path }}'
         dest: /home/ubuntu/
         follow: yes
         mode: u=rw,g=,o=
+      become: true
 
     - name: Combine the chain and the private key into one file (required by arango)
       shell:
         chdir: /home/ubuntu/
         cmd: cat fullchain.pem privkey.pem > server.pem
+      become: true
 
     - name: Set the combined file as 600 permission
       file:
         path: /home/ubuntu/server.pem
         mode: u=rw,g=,o=
+      become: true
 
     - name: Add an exception to the permissions for the arangodb user
       shell:
         chdir: /home/ubuntu/
         cmd: setfacl -m u:arangodb:r /home/ubuntu/server.pem
+      become: true
 
     - name: Add the SSL filepath to the config
-      lineinfile:
+      blockinfile:
         path: /etc/arangodb3/arangod.conf
-        regexp: '^\[ssl\]'
-        line: "\n[ssl]\nkeyfile = /home/ubuntu/server.pem"
+        block: |
+          [ssl]
+          keyfile = /home/ubuntu/server.pem
+      become: true
 
     - name: Enable arangodb to listen on all interfaces
       lineinfile:

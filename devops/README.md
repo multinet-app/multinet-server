@@ -34,5 +34,5 @@ To test locally, you can use vagrant. Vagrant is a python package that is most e
 sudo vagrant up -i
 ```
 
-*NOTE*: Since vagrant is started with sudo, any subsequent command to interact with the instance must be ran with sudo,
+*NOTE*: Since vagrant is started with sudo, any subsequent command to interact with the instance must be run with sudo,
 e.g. `sudo vagrant ssh`.

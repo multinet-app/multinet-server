@@ -11,7 +11,7 @@ ArangoDB on an Ubuntu server. It does the following:
 To set the root account password, you can either supply it on the command line
 (see below) or just let Ansible prompt you for it.
 
-To use a wildcard ssl certificate for your domain you'll need to supply one, we use Let's Encrypt, and pass in the file path to the command.
+To use a wildcard SSL certificate for your domain you'll need to supply one (we use Let's Encrypt) and pass in the file path to the command.
 If you're using a provider other than Let's Encrypt, you'll have to modify the playbook to work with your provider and file structure. 
 If you're using Let's Encrypt, follow along with [this](https://medium.com/@saurabh6790/generate-wildcard-ssl-certificate-using-lets-encrypt-certbot-273e432794d7) 
 guide to generate a wildcard certificate. This playbook assumes you have the certificate files and that they're in the default location.

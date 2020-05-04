@@ -5,7 +5,7 @@ ArangoDB on an Ubuntu server. It does the following:
 - installs ArangoDB
 - sets a password on the root account
 - copies an SSL certificate to the server
-- configures it to listen on all interfaces using ssl
+- configures it to listen on all interfaces using SSL
 - starts the service
 
 To set the root account password, you can either supply it on the command line

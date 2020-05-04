@@ -50,7 +50,7 @@
       copy:
         src: '{{ ssl_cert_path }}'
         dest: /home/ubuntu/
-        follow: yes
+        local_follow: yes
         mode: u=rw,g=,o=
       become: true
 
@@ -58,7 +58,6 @@
       shell:
         chdir: /home/ubuntu/
         cmd: cat fullchain.pem privkey.pem > server.pem
-        creates: server.pem
       become: true
 
     - name: Set the combined file as 600 permission

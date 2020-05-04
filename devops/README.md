@@ -4,7 +4,7 @@ The `arangodb.yml` Ansible playbook in this directory installs and configures
 ArangoDB on an Ubuntu server. It does the following:
 - installs ArangoDB
 - sets a password on the root account
-- copies an ssl certificate
+- copies an SSL certificate to the server
 - configures it to listen on all interfaces using ssl
 - starts the service
 

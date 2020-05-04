@@ -69,7 +69,7 @@
         chdir: /home/ubuntu/
         cmd: setfacl -m u:arangodb:r /home/ubuntu/server.pem
 
-    - name: Add the ssl filepath to the config
+    - name: Add the SSL filepath to the config
       lineinfile:
         path: /etc/arangodb3/arangod.conf
         regexp: '^\[ssl\]'

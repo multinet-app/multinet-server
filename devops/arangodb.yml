@@ -58,6 +58,7 @@
       shell:
         chdir: /home/ubuntu/
         cmd: cat fullchain.pem privkey.pem > server.pem
+        creates: server.pem
       become: true
 
     - name: Set the combined file as 600 permission
@@ -69,7 +70,7 @@
     - name: Add an exception to the permissions for the arangodb user
       shell:
         chdir: /home/ubuntu/
-        cmd: setfacl -m u:arangodb:r /home/ubuntu/server.pem
+        cmd: setfacl -m u:arangodb:r server.pem
       become: true
 
     - name: Add the SSL filepath to the config

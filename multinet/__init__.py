@@ -24,7 +24,13 @@ sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
 def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
-    CORS(app)
+    CORS(
+        app,
+        resources={
+            "/api/.*": {"origins": "*"},
+            "/user/.*": {"origins": "multinet.app", "supports-credentials": True},
+        },
+    )
     Swagger(app, template_file="swagger/template.yaml")
 
     app.secret_key = flask_secret_key()

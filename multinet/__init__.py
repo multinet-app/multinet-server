@@ -42,8 +42,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
     app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")
 
-    app.register_blueprint(auth.bp, url_prefix="/user")
-    app.register_blueprint(google.bp, url_prefix="/user/oauth/google")
+    app.register_blueprint(auth.bp, url_prefix="/api/user")
+    app.register_blueprint(google.bp, url_prefix="/api/user/oauth/google")
 
     google.init_oauth(app)
     register_legacy_workspaces()

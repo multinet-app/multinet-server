@@ -21,14 +21,25 @@ sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
 
 
+def get_cors_hosts():
+    """Read in comma-separated CORS hosts list from environment."""
+    cors_hosts = os.getenv("CORS_HOSTS", default=None)
+    if cors_hosts is None:
+        return []
+
+    return cors_hosts.split(",")
+
+
 def create_app(config: Optional[MutableMapping] = None) -> Flask:
     """Create a Multinet app instance."""
     app = Flask(__name__)
+
+    cors_hosts = get_cors_hosts()
     CORS(
         app,
         resources={
-            "/api/.*": {"origins": "*"},
-            "/user/.*": {"origins": "multinet.app", "supports-credentials": True},
+            "/api/.*": {"origins": cors_hosts, "supports_credentials": True},
+            "/user/.*": {"origins": cors_hosts, "supports_credentials": True},
         },
     )
     Swagger(app, template_file="swagger/template.yaml")

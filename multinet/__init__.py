@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flasgger import Swagger
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from typing import Optional, MutableMapping, Any, Tuple, Union
+from typing import Optional, MutableMapping, Any, Tuple, Union, List
 
 from multinet import auth
 from multinet.auth import google
@@ -21,7 +21,7 @@ sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
 
 
-def get_cors_hosts():
+def get_cors_hosts() -> List[str]:
     """Read in comma-separated CORS hosts list from environment."""
     cors_hosts = os.getenv("CORS_HOSTS", default=None)
     if cors_hosts is None:
@@ -35,13 +35,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app = Flask(__name__)
 
     cors_hosts = get_cors_hosts()
-    CORS(
-        app,
-        resources={
-            "/api/.*": {"origins": cors_hosts, "supports_credentials": True},
-            "/user/.*": {"origins": cors_hosts, "supports_credentials": True},
-        },
-    )
+    CORS(app, origins=cors_hosts, supports_credentials=True)
     Swagger(app, template_file="swagger/template.yaml")
 
     app.secret_key = flask_secret_key()

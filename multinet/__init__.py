@@ -22,7 +22,7 @@ sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
 
 
 def get_allowed_origins() -> List[str]:
-    """Read in comma-separated CORS hosts list from environment."""
+    """Read in comma-separated list of allowed origins from environment."""
     allowed_origins = os.getenv("ALLOWED_ORIGINS", default=None)
     if allowed_origins is None:
         return []

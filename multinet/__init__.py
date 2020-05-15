@@ -27,7 +27,7 @@ def get_allowed_origins() -> List[str]:
     if allowed_origins is None:
         return []
 
-    return allowed_origins.split(",")
+    return [s.strip() for s in allowed_origins.split(",")]
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:

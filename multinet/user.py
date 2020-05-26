@@ -72,6 +72,16 @@ def set_user_cookie(user: User) -> User:
     return updated_user(new_user)
 
 
+def delete_user_cookie(user: User) -> User:
+    """Delete the user cookie."""
+    user_copy = copy_user(user)
+
+    # Remove the session object from the user record, then persist that to the
+    # database.
+    user_copy.multinet.session = None
+    return updated_user(user_copy)
+
+
 def load_user_from_cookie(cookie: str) -> Optional[User]:
     """Use provided cookie to load a user, return None if they dont exist."""
     coll = user_collection()

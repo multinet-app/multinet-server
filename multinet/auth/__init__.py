@@ -5,7 +5,7 @@ from flask import make_response, session
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 
-from multinet.user import load_user_from_cookie, filtered_user, updated_user
+from multinet.user import load_user_from_cookie, filtered_user, delete_user_cookie
 
 MULTINET_COOKIE = "multinet-token"
 
@@ -40,8 +40,7 @@ def logout() -> ResponseWrapper:
     cookie = session.get(MULTINET_COOKIE)
     if cookie is not None:
         user = load_user_from_cookie(cookie)
-        user.multinet.session = None
-        updated_user(user)
+        delete_user_cookie(user)
 
     # Instruct the browser to delete its session cookie.
     session.pop(MULTINET_COOKIE, None)

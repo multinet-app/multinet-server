@@ -40,7 +40,8 @@ def logout() -> ResponseWrapper:
     cookie = session.get(MULTINET_COOKIE)
     if cookie is not None:
         user = load_user_from_cookie(cookie)
-        delete_user_cookie(user)
+        if user is not None:
+            delete_user_cookie(user)
 
     # Instruct the browser to delete its session cookie.
     session.pop(MULTINET_COOKIE, None)

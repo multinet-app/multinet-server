@@ -36,14 +36,12 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    # Load the user model and invalidate its session.
-    cookie = session.get(MULTINET_COOKIE)
+    # Instruct the browser to delete its session cookie, if it exists.
+    cookie = session.pop(MULTINET_COOKIE, None)
     if cookie is not None:
+        # Load the user model and invalidate its session.
         user = load_user_from_cookie(cookie)
         if user is not None:
             delete_user_cookie(user)
-
-    # Instruct the browser to delete its session cookie.
-    session.pop(MULTINET_COOKIE, None)
 
     return make_response("", 200)

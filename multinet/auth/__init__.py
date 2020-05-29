@@ -3,6 +3,7 @@ from dataclasses import asdict
 from flasgger import swag_from
 from flask import make_response, session
 from flask.blueprints import Blueprint
+import json
 from werkzeug.wrappers import Response as ResponseWrapper
 
 from multinet.user import load_user_from_cookie, filtered_user, delete_user_cookie
@@ -17,7 +18,7 @@ bp = Blueprint("user", "user")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    logged_out = make_response("null", 200)
+    logged_out = make_response(json.dumps(None), 200)
 
     cookie = session.get(MULTINET_COOKIE)
     if cookie is None:

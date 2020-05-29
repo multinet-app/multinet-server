@@ -5,7 +5,7 @@ from flask import make_response, session
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 
-from multinet.user import load_user_from_cookie, filtered_user
+from multinet.user import load_user_from_cookie, filtered_user, delete_user_cookie
 
 MULTINET_COOKIE = "multinet-token"
 
@@ -36,5 +36,12 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    session.pop(MULTINET_COOKIE, None)
+    # Instruct the browser to delete its session cookie, if it exists.
+    cookie = session.pop(MULTINET_COOKIE, None)
+    if cookie is not None:
+        # Load the user model and invalidate its session.
+        user = load_user_from_cookie(cookie)
+        if user is not None:
+            delete_user_cookie(user)
+
     return make_response("", 200)

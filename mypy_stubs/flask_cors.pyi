@@ -1,3 +1,10 @@
 from flask import Flask
 
-def CORS(app: Flask) -> None: ...
+from typing import Dict, Any, List, Union
+
+def CORS(
+    app: Flask,
+    origins: Union[str, List[str]],
+    supports_credentials: bool,
+    resources: Dict[str, Dict[str, Any]] = None,
+) -> None: ...

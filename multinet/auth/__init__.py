@@ -17,16 +17,16 @@ bp = Blueprint("user", "user")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    forbidden = make_response("null", 403)
+    logged_out = make_response("null", 200)
 
     cookie = session.get(MULTINET_COOKIE)
     if cookie is None:
-        return forbidden
+        return logged_out
 
     user = load_user_from_cookie(cookie)
     if user is None:
         session.pop(MULTINET_COOKIE, None)
-        return forbidden
+        return logged_out
 
     return make_response(asdict(filtered_user(user)))
 

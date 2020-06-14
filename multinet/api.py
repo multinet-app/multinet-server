@@ -1,6 +1,6 @@
 """Flask blueprint for Multinet REST API."""
 from flasgger import swag_from
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
@@ -16,6 +16,7 @@ from multinet.errors import (
     AlreadyExists,
     RequiredParamsMissing,
 )
+from multinet.user import session_user
 
 bp = Blueprint("multinet", __name__)
 
@@ -24,6 +25,9 @@ bp = Blueprint("multinet", __name__)
 @swag_from("swagger/workspaces.yaml")
 def get_workspaces() -> Any:
     """Retrieve list of workspaces."""
+    user = session_user()
+    current_app.logger.info(user)
+
     return util.stream(db.get_workspaces())
 
 

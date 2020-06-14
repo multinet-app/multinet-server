@@ -4,6 +4,7 @@ import dataclasses
 from uuid import uuid4
 from arango.collection import StandardCollection
 from dacite import from_dict
+from flask import session
 
 from multinet.db import db
 from multinet.errors import InternalServerError
@@ -16,6 +17,8 @@ from multinet.auth.types import (
 )
 
 from typing import Optional, Dict
+
+MULTINET_COOKIE = "multinet-token"
 
 
 def user_collection() -> StandardCollection:
@@ -90,6 +93,15 @@ def cookie_user(cookie: str) -> Optional[User]:
         return from_dict(User, next(coll.find({"multinet.session": cookie}, limit=1)))
     except StopIteration:
         return None
+
+
+def session_user() -> Optional[User]:
+    """Return the logged in user (if any) from the current session."""
+    cookie = session.get(MULTINET_COOKIE)
+    if cookie is None:
+        return None
+
+    return cookie_user(cookie)
 
 
 def get_user_cookie(user: User) -> str:

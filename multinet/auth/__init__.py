@@ -6,7 +6,7 @@ from flask.blueprints import Blueprint
 import json
 from werkzeug.wrappers import Response as ResponseWrapper
 
-from multinet.user import load_user_from_cookie, filtered_user, delete_user_cookie
+from multinet.user import cookie_user, filtered_user, delete_user_cookie
 
 MULTINET_COOKIE = "multinet-token"
 
@@ -24,7 +24,7 @@ def user_info() -> ResponseWrapper:
     if cookie is None:
         return logged_out
 
-    user = load_user_from_cookie(cookie)
+    user = cookie_user(cookie)
     if user is None:
         session.pop(MULTINET_COOKIE, None)
         return logged_out
@@ -41,7 +41,7 @@ def logout() -> ResponseWrapper:
     cookie = session.pop(MULTINET_COOKIE, None)
     if cookie is not None:
         # Load the user model and invalidate its session.
-        user = load_user_from_cookie(cookie)
+        user = cookie_user(cookie)
         if user is not None:
             delete_user_cookie(user)
 

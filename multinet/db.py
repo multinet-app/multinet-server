@@ -10,6 +10,8 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
+from multinet.user import session_user
+
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType, Workspace
@@ -121,7 +123,25 @@ def create_workspace(name: str) -> None:
         raise AlreadyExists("Workspace", name)
 
     coll = workspace_mapping_collection()
-    new_doc = {"name": name, "internal": generate_arango_workspace_name()}
+    new_doc: Workspace = {
+        "name": name,
+        "internal": generate_arango_workspace_name(),
+        "permissions": {
+            "owner": "",
+            "maintainers": [],
+            "writers": [],
+            "readers": [],
+            "public": False,
+        },
+    }
+
+    # Assign owner and public flags depending on who's logged in.
+    user = session_user()
+    if user is None:
+        new_doc["permissions"]["public"] = True
+    else:
+        new_doc["permissions"]["owner"] = user.sub
+
     coll.insert(new_doc)
 
     try:

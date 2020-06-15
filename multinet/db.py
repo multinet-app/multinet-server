@@ -12,7 +12,7 @@ from requests.exceptions import ConnectionError
 
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
-from multinet.types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, TableType, Workspace
 from multinet.errors import InternalServerError
 from multinet.util import generate_arango_workspace_name
 
@@ -207,7 +207,7 @@ def get_table_collection(workspace: str, table: str) -> StandardCollection:
     return space.collection(table)
 
 
-def get_workspaces() -> Generator[str, None, None]:
+def get_workspaces() -> Generator[Workspace, None, None]:
     """Return a list of all workspace names."""
     coll = workspace_mapping_collection()
     return (doc for doc in coll.all())

@@ -5,7 +5,8 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
-from multinet.types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, TableType, Workspace
+from multinet.auth.types import UserInfo
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -28,7 +29,7 @@ def get_workspaces() -> Any:
     user = session_user()
     current_app.logger.info(user)
 
-    def can_read(user, ws):
+    def can_read(user: Optional[UserInfo], ws: Workspace) -> bool:
         perms = ws["permissions"]
 
         # No one logged in means only return the public workspaces.

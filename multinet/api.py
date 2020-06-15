@@ -28,8 +28,6 @@ def get_workspaces() -> Any:
     user = session_user()
     current_app.logger.info(user)
 
-    dbs = db.get_workspaces()
-
     def can_read(user, ws):
         perms = ws["permissions"]
 
@@ -40,7 +38,13 @@ def get_workspaces() -> Any:
         # Otherwise, check to see if the workspace is public, or the user is at
         # least a Reader of the workspace.
         sub = user.sub
-        return perms["public"] or perms["owner"] == sub or sub in perms["readers"] or sub in perms["writers"] or sub in perms["maintainers"]
+        return (
+            perms["public"]
+            or perms["owner"] == sub
+            or sub in perms["readers"]
+            or sub in perms["writers"]
+            or sub in perms["maintainers"]
+        )
 
     # Filter all workspaces based on whether it should be shown to the user who
     # is logged in.

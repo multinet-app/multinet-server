@@ -6,7 +6,12 @@ from flask.blueprints import Blueprint
 import json
 from werkzeug.wrappers import Response as ResponseWrapper
 
-from multinet.user import MULTINET_COOKIE, cookie_user, filtered_user, delete_user_cookie
+from multinet.user import (
+    MULTINET_COOKIE,
+    cookie_user,
+    filtered_user,
+    delete_user_cookie,
+)
 
 bp = Blueprint("user", "user")
 

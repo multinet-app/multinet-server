@@ -138,7 +138,29 @@ def get_node_edges(
 @swag_from("swagger/create_workspace.yaml")
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
-    db.create_workspace(workspace)
+
+    # Set up a new ArangoDB document to describe the newly created workspace.
+    new_doc: Workspace = {
+        "name": workspace,
+        "internal": util.generate_arango_workspace_name(),
+        "permissions": {
+            "owner": "",
+            "maintainers": [],
+            "writers": [],
+            "readers": [],
+            "public": False,
+        },
+    }
+
+    # Assign owner and public flags depending on who's logged in.
+    user = session_user()
+    if user is None:
+        new_doc["permissions"]["public"] = True
+    else:
+        new_doc["permissions"]["owner"] = user.sub
+
+    # Perform the actual backend update.
+    db.create_workspace(workspace, new_doc)
     return workspace
 
 

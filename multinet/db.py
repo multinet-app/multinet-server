@@ -10,13 +10,10 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from multinet.user import session_user
-
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType, Workspace
 from multinet.errors import InternalServerError
-from multinet.util import generate_arango_workspace_name
 
 from multinet.errors import (
     BadQueryArgument,
@@ -116,36 +113,17 @@ def workspace_exists_internal(name: str) -> bool:
     return sysdb.has_database(name)
 
 
-def create_workspace(name: str) -> None:
+def create_workspace(name: str, ws_doc: Workspace) -> None:
     """Create a new workspace named `name`."""
 
     if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
 
     coll = workspace_mapping_collection()
-    new_doc: Workspace = {
-        "name": name,
-        "internal": generate_arango_workspace_name(),
-        "permissions": {
-            "owner": "",
-            "maintainers": [],
-            "writers": [],
-            "readers": [],
-            "public": False,
-        },
-    }
-
-    # Assign owner and public flags depending on who's logged in.
-    user = session_user()
-    if user is None:
-        new_doc["permissions"]["public"] = True
-    else:
-        new_doc["permissions"]["owner"] = user.sub
-
-    coll.insert(new_doc)
+    coll.insert(ws_doc)
 
     try:
-        db("_system").create_database(new_doc["internal"])
+        db("_system").create_database(ws_doc["internal"])
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()

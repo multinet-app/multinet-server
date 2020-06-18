@@ -16,6 +16,7 @@ from multinet.errors import (
     MalformedRequestBody,
     AlreadyExists,
     RequiredParamsMissing,
+    Unauthorized,
 )
 from multinet.user import session_user
 
@@ -139,25 +140,25 @@ def get_node_edges(
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
 
+    # Check for a logged in user; prevent access to this endpoint if there isn't
+    # one.
+    user = session_user()
+    if user is None:
+        raise Unauthorized("You must be logged in to create new workspaces")
+
     # Set up a new ArangoDB document to describe the newly created workspace.
+    # The logged in user owns the new workspace, and it is non-public.
     new_doc: Workspace = {
         "name": workspace,
         "internal": util.generate_arango_workspace_name(),
         "permissions": {
-            "owner": "",
+            "owner": user.sub,
             "maintainers": [],
             "writers": [],
             "readers": [],
             "public": False,
         },
     }
-
-    # Assign owner and public flags depending on who's logged in.
-    user = session_user()
-    if user is None:
-        new_doc["permissions"]["public"] = True
-    else:
-        new_doc["permissions"]["owner"] = user.sub
 
     # Perform the actual backend update.
     db.create_workspace(workspace, new_doc)

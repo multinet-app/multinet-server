@@ -18,7 +18,7 @@ from multinet.errors import (
     AlreadyExists,
     RequiredParamsMissing,
 )
-from multinet.user import session_user
+from multinet.user import current_user
 
 bp = Blueprint("multinet", __name__)
 
@@ -27,7 +27,7 @@ bp = Blueprint("multinet", __name__)
 @swag_from("swagger/workspaces.yaml")
 def get_workspaces() -> Any:
     """Retrieve list of workspaces."""
-    user = session_user()
+    user = current_user()
     current_app.logger.info(user)
 
     def can_read(user: Optional[UserInfo], ws: Workspace) -> bool:
@@ -143,7 +143,7 @@ def create_workspace(workspace: str) -> Any:
 
     # Set up a new ArangoDB document to describe the newly created workspace.
     # The logged in user owns the new workspace, and it is non-public.
-    user = session_user()
+    user = current_user()
     assert user is not None
 
     new_doc: Workspace = {

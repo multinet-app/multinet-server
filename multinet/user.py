@@ -95,7 +95,7 @@ def cookie_user(cookie: str) -> Optional[User]:
         return None
 
 
-def session_user() -> Optional[User]:
+def current_user() -> Optional[User]:
     """Return the logged in user (if any) from the current session."""
     cookie = session.get(MULTINET_COOKIE)
     if cookie is None:

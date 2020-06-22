@@ -3,7 +3,7 @@
 from typing import Any
 
 from multinet.errors import Unauthorized
-from multinet.user import session_user
+from multinet.user import current_user
 
 
 # NOTE: unfortunately, it is difficult to write a type signature for this
@@ -13,7 +13,7 @@ def require_login(f: Any) -> Any:
     """Decorate an API endpoint to check for a logged in user."""
 
     def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
-        user = session_user()
+        user = current_user()
         if user is None:
             raise Unauthorized("You must be logged in to create new workspaces")
 

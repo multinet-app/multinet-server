@@ -1,8 +1,10 @@
 """Utility functions for auth."""
 
-from typing import Any
+from typing import Any, Optional
 
 from multinet.errors import Unauthorized
+from multinet.types import Workspace
+from multinet.auth.types import UserInfo
 from multinet.user import current_user
 
 
@@ -20,3 +22,23 @@ def require_login(f: Any) -> Any:
         return f(workspace, *args, **kwargs)
 
     return wrapper
+
+
+def is_reader(user: Optional[UserInfo], workspace: Workspace) -> bool:
+    """Indicate whether `user` has read permissions for `workspace`."""
+    perms = workspace["permissions"]
+
+    # A non-logged-in user, by definition, is a reader of public workspaces.
+    if user is None:
+        return perms["public"]
+
+    # Otherwise, check to see if the workspace is public, or the user is at
+    # least a Reader of the workspace.
+    sub = user.sub
+    return (
+        perms["public"]
+        or perms["owner"] == sub
+        or sub in perms["readers"]
+        or sub in perms["writers"]
+        or sub in perms["maintainers"]
+    )

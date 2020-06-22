@@ -7,7 +7,7 @@ from webargs.flaskparser import use_kwargs
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType, Workspace
 from multinet.auth.types import UserInfo
-from multinet.auth.util import require_login
+from multinet.auth.util import require_login, is_reader
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -50,7 +50,7 @@ def get_workspaces() -> Any:
 
     # Filter all workspaces based on whether it should be shown to the user who
     # is logged in.
-    stream = util.stream(w["name"] for w in db.get_workspaces() if can_read(user, w))
+    stream = util.stream(w["name"] for w in db.get_workspaces() if is_reader(user, w))
     return stream
 
 

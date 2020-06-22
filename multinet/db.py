@@ -118,10 +118,14 @@ def workspace_exists_internal(name: str) -> bool:
 def create_workspace(name: str, user: User) -> str:
     """Create a new workspace named `name`, owned by `user`."""
 
+    # Bail out with a 409 if the workspace exists already.
     if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
 
-    # Create a workspace mapping document to represent the new workspace.
+    # Create a workspace mapping document to represent the new workspace. This
+    # document (1) sets the external name of the workspace to the requested
+    # name, (2) sets the internal name to a random string, and (3) makes the
+    # specified user the owner of the workspace.
     ws_doc: Workspace = {
         "name": name,
         "internal": util.generate_arango_workspace_name(),
@@ -134,14 +138,20 @@ def create_workspace(name: str, user: User) -> str:
         },
     }
 
-    coll = workspace_mapping_collection()
-    coll.insert(ws_doc)
-
+    # Attempt to create an Arango database to serve as the workspace itself.
+    # There is an astronomically negligible chance that the internal name would
+    # clash with an existing internal name; in this case we go full UNIX and
+    # just bail out, rather than building in logic to catch it happening.
     try:
         db("_system").create_database(ws_doc["internal"])
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
+
+    # Retrieve the workspace mapping collection and log the workspace metadata
+    # record.
+    coll = workspace_mapping_collection()
+    coll.insert(ws_doc)
 
     # Invalidate the cache for things changed by this function
     workspace_mapping.cache_clear()

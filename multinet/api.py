@@ -5,8 +5,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
-from multinet.types import EdgeDirection, TableType, Workspace
-from multinet.auth.types import UserInfo
+from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import require_login, is_reader
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 

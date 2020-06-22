@@ -141,26 +141,14 @@ def get_node_edges(
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
 
-    # Set up a new ArangoDB document to describe the newly created workspace.
-    # The logged in user owns the new workspace, and it is non-public.
+    # The `require_login()` decorator ensures that a user is logged in by this
+    # point.
     user = current_user()
     assert user is not None
 
-    new_doc: Workspace = {
-        "name": workspace,
-        "internal": util.generate_arango_workspace_name(),
-        "permissions": {
-            "owner": user.sub,
-            "maintainers": [],
-            "writers": [],
-            "readers": [],
-            "public": False,
-        },
-    }
-
-    # Perform the actual backend update.
-    db.create_workspace(workspace, new_doc)
-    return workspace
+    # Perform the actual backend update to create a new workspace owned by the
+    # logged in user.
+    return db.create_workspace(workspace, user)
 
 
 @bp.route("/workspaces/<workspace>/aql", methods=["POST"])

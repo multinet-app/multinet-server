@@ -13,7 +13,9 @@ from requests.exceptions import ConnectionError
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType, Workspace
+from multinet.auth.types import User
 from multinet.errors import InternalServerError
+from multinet import util
 
 from multinet.errors import (
     BadQueryArgument,
@@ -113,11 +115,24 @@ def workspace_exists_internal(name: str) -> bool:
     return sysdb.has_database(name)
 
 
-def create_workspace(name: str, ws_doc: Workspace) -> None:
-    """Create a new workspace named `name`."""
+def create_workspace(name: str, user: User) -> str:
+    """Create a new workspace named `name`, owned by `user`."""
 
     if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
+
+    # Create a workspace mapping document to represent the new workspace.
+    ws_doc: Workspace = {
+        "name": name,
+        "internal": util.generate_arango_workspace_name(),
+        "permissions": {
+            "owner": user.sub,
+            "maintainers": [],
+            "writers": [],
+            "readers": [],
+            "public": False,
+        },
+    }
 
     coll = workspace_mapping_collection()
     coll.insert(ws_doc)
@@ -131,6 +146,8 @@ def create_workspace(name: str, ws_doc: Workspace) -> None:
     # Invalidate the cache for things changed by this function
     workspace_mapping.cache_clear()
     get_workspace_db.cache_clear()
+
+    return name
 
 
 def rename_workspace(old_name: str, new_name: str) -> None:

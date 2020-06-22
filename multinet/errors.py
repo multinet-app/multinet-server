@@ -28,9 +28,13 @@ class ServerError(Exception):
 class InternalServerError(ServerError):
     """General exception for internal server errors."""
 
+    def __init__(self, message: str = ""):
+        """Initialize the exception."""
+        self.message = message
+
     def flask_response(self) -> FlaskTuple:
         """Generate a 500 level error."""
-        return ("", "500 Internal Server Error")
+        return (self.message, "500 Internal Server Error")
 
 
 class NotFound(ServerError):

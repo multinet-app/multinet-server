@@ -29,24 +29,6 @@ def get_workspaces() -> Any:
     """Retrieve list of workspaces."""
     user = current_user()
 
-    def can_read(user: Optional[UserInfo], ws: Workspace) -> bool:
-        perms = ws["permissions"]
-
-        # No one logged in means only return the public workspaces.
-        if user is None:
-            return perms["public"]
-
-        # Otherwise, check to see if the workspace is public, or the user is at
-        # least a Reader of the workspace.
-        sub = user.sub
-        return (
-            perms["public"]
-            or perms["owner"] == sub
-            or sub in perms["readers"]
-            or sub in perms["writers"]
-            or sub in perms["maintainers"]
-        )
-
     # Filter all workspaces based on whether it should be shown to the user who
     # is logged in.
     stream = util.stream(w["name"] for w in db.get_workspaces() if is_reader(user, w))

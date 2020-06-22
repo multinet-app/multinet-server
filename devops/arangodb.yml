@@ -46,6 +46,14 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
+    # - name: Ensure there is a read-only user
+    #   executable: /usr/bin/arangosh --server.password {{ arangodb_root_password }}
+    #   shell:
+    #     const users = require('@arangodb/users')
+    #     if (!users.exists('{{ arango_readonly_username }}')) { users.save('{{ arango_readonly_username }}', '{{ arango_readonly_password }}') }
+    #     users.grantDatabase('{{ arango_readonly_username }}', '*', 'ro')
+    #   become: true
+
     - name: Copy the SSL certificate files to the server
       copy:
         src: '{{ ssl_cert_path }}'

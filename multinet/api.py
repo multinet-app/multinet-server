@@ -116,8 +116,8 @@ def get_node_edges(
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])
-@swag_from("swagger/create_workspace.yaml")
 @require_login
+@swag_from("swagger/create_workspace.yaml")
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
 

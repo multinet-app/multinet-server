@@ -8,7 +8,7 @@ TableType = Literal["all", "node", "edge"]
 WorkspacePermissions = TypedDict(
     "WorkspacePermissions",
     {
-        "owner": str,
+        "owner": str,  # this is the `sub` property of the `User` dataclass
         "maintainers": List[str],
         "writers": List[str],
         "readers": List[str],

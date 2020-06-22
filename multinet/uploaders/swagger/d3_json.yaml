@@ -5,7 +5,7 @@ consumes:
 
 parameters:
   - $ref: "#/parameters/workspace"
-  - $ref: "#/parameters/table"
+  - $ref: "#/parameters/graph"
   - name: data
     in: body
     description: Raw JSON text

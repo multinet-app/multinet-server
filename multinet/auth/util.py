@@ -1,5 +1,7 @@
 """Utility functions for auth."""
 
+import functools
+
 from typing import Any, Optional
 
 from multinet import db
@@ -15,6 +17,7 @@ from multinet.user import current_user
 def require_login(f: Any) -> Any:
     """Decorate an API endpoint to check for a logged in user."""
 
+    @functools.wraps(f)
     def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
         user = current_user()
         if user is None:
@@ -48,6 +51,7 @@ def is_reader(user: Optional[UserInfo], workspace: Workspace) -> bool:
 def require_reader(f: Any) -> Any:
     """Decorate an API endpoint to require read permission."""
 
+    @functools.wraps(f)
     def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
         user = current_user()
         workspace_metadata = db.get_workspace_metadata(workspace)

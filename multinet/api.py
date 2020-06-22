@@ -7,6 +7,7 @@ from webargs.flaskparser import use_kwargs
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType, Workspace
 from multinet.auth.types import UserInfo
+from multinet.auth.util import require_login
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -16,7 +17,6 @@ from multinet.errors import (
     MalformedRequestBody,
     AlreadyExists,
     RequiredParamsMissing,
-    Unauthorized,
 )
 from multinet.user import session_user
 
@@ -137,17 +137,15 @@ def get_node_edges(
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])
 @swag_from("swagger/create_workspace.yaml")
+@require_login
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
 
-    # Check for a logged in user; prevent access to this endpoint if there isn't
-    # one.
-    user = session_user()
-    if user is None:
-        raise Unauthorized("You must be logged in to create new workspaces")
-
     # Set up a new ArangoDB document to describe the newly created workspace.
     # The logged in user owns the new workspace, and it is non-public.
+    user = session_user()
+    assert user is not None
+
     new_doc: Workspace = {
         "name": workspace,
         "internal": util.generate_arango_workspace_name(),

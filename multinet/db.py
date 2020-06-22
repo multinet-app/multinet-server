@@ -15,6 +15,7 @@ from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
 from multinet.errors import InternalServerError
 from multinet.util import generate_arango_workspace_name
+from multinet.uploaders.csv import validate_csv
 
 from multinet.errors import (
     BadQueryArgument,
@@ -47,7 +48,20 @@ restricted_keys = {"_rev", "_id"}
 def db(name: str) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
     return arango.db(
-        name, username="root", password=os.environ.get("ARANGO_PASSWORD", "letmein")
+        name,
+        username="root",
+        password=os.environ.get("ARANGO_PASSWORD", "letmein"),
+        verify=True,
+    )
+
+
+def read_only_db(name: str) -> StandardDatabase:
+    """Return a read-only handle for the Arango database `name`."""
+    return arango.db(
+        name,
+        username=str(os.environ.get("ARANGO_READONLY_USERNAME", "")),
+        password=str(os.environ.get("ARANGO_READONLY_PASSWORD", "")),
+        verify=True,
     )
 
 
@@ -181,11 +195,14 @@ def get_workspace(name: str) -> WorkspaceSpec:
 
 # Caches the reference to the StandardDatabase instance for each workspace
 @lru_cache()
-def get_workspace_db(name: str) -> StandardDatabase:
+def get_workspace_db(name: str, readonly=False) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     doc = workspace_mapping(name)
     if not doc:
         raise WorkspaceNotFound(name)
+
+    if readonly:
+        return read_only_db(doc["internal"])
 
     return db(doc["internal"])
 
@@ -301,6 +318,27 @@ def workspace_table_keys(
     return keys
 
 
+# TODO: Ensure current user has writer role
+def create_workspace_table_from_aql(workspace: str, name: str, aql: str) -> str:
+    """Create a new workspace from an aql query."""
+    db = get_workspace_db(workspace, readonly=True)
+
+    if db.has_collection(name):
+        raise AlreadyExists("table", name)
+
+    # In the future, the result of this validation can be
+    # used to determine dependencies in virtual tables
+    db.aql.validate(aql)
+
+    rows = list(db.aql.execute(aql))
+    validate_csv(rows, "_key", False)
+
+    coll = db.create_collection(name, sync=True)
+    coll.insert_many(rows)
+
+    return name
+
+
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:
     """Return the data associated with a particular node in a graph."""
     space = get_workspace_db(workspace)
@@ -387,6 +425,7 @@ def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
     aql = get_workspace_db(workspace).aql
 
+    aql.validate(query)
     cursor = aql.execute(query)
     return cursor
 

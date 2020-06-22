@@ -38,7 +38,17 @@ def get_workspaces() -> Any:
 @swag_from("swagger/workspace.yaml")
 def get_workspace(workspace: str) -> Any:
     """Retrieve a single workspace."""
-    return db.get_workspace(workspace)
+    metadata = db.get_workspace(workspace)
+    perms = metadata["permissions"]
+
+    return {
+        "name": metadata["name"],
+        "owner": perms["owner"],
+        "maintainers": perms["maintainers"],
+        "writers": perms["writers"],
+        "readers": perms["readers"],
+        "public": perms["public"],
+    }
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

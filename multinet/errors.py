@@ -33,6 +33,14 @@ class InternalServerError(ServerError):
         return ("", "500 Internal Server Error")
 
 
+class DatabaseCorrupted(ServerError):
+    """The database has a consistency issue."""
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 500 level error."""
+        return ("", "500 Database Corrupted")
+
+
 class Unauthorized(ServerError):
     """The request did not indicate sufficient permission."""
 

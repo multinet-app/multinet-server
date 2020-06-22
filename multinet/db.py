@@ -25,6 +25,7 @@ from multinet.errors import (
     NodeNotFound,
     AlreadyExists,
     GraphCreationError,
+    DatabaseCorrupted,
 )
 
 
@@ -195,12 +196,18 @@ def delete_workspace(name: str) -> None:
     workspace_mapping.cache_clear()
 
 
-def get_workspace(name: str) -> WorkspaceSpec:
-    """Return a single workspace, if it exists."""
+def get_workspace_metadata(name: str) -> Workspace:
+    """Return the metadata for a single workspace, if it exists."""
     if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
-    return {"name": name, "owner": "", "readers": [], "writers": []}
+    # Find the metadata record for the named workspace. If it's not there,
+    # something went very wrong, so bail out.
+    metadata = workspace_mapping(name)
+    if metadata is None:
+        raise DatabaseCorrupted()
+
+    return metadata
 
 
 # Caches the reference to the StandardDatabase instance for each workspace

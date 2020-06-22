@@ -14,25 +14,35 @@ definitions:
     required:
       - name
       - owner
-      - readers
+      - maintainers
       - writers
+      - readers
+      - public
     properties:
       name:
         description: The name of the workspace
         type: string
       owner:
-        description: The owner of the workspace, who has read and write access, and can also delete it
+        description: The owner of the workspace
         type: string
-      readers:
-        description: A list of users with read access to the workspace
+      maintainers:
+        description: The list of maintainers of the workspace
         type: array
         items:
           type: string
       writers:
-        description: A list of users with write access to the workspace
+        description: The list of writers of the workspace
         type: array
         items:
           type: string
+      readers:
+        description: The list of readers of the workspace
+        type: array
+        items:
+          type: string
+      public:
+        description: Whether this workspace is public or not
+        type: boolean
     example:
       name: engineering
       owner: laforge
@@ -40,9 +50,10 @@ definitions:
         - worf
         - data
         - troi
-      writers:
+      maintainers:
         - picard
         - riker
+      writers: []
 
   graph:
     description: A description of a graph, including its constituent tables

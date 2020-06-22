@@ -8,7 +8,7 @@ from werkzeug.wrappers import Response as ResponseWrapper
 
 from multinet.user import (
     MULTINET_COOKIE,
-    cookie_user,
+    user_from_cookie,
     filtered_user,
     delete_user_cookie,
 )
@@ -27,7 +27,7 @@ def user_info() -> ResponseWrapper:
     if cookie is None:
         return logged_out
 
-    user = cookie_user(cookie)
+    user = user_from_cookie(cookie)
     if user is None:
         session.pop(MULTINET_COOKIE, None)
         return logged_out
@@ -44,7 +44,7 @@ def logout() -> ResponseWrapper:
     cookie = session.pop(MULTINET_COOKIE, None)
     if cookie is not None:
         # Load the user model and invalidate its session.
-        user = cookie_user(cookie)
+        user = user_from_cookie(cookie)
         if user is not None:
             delete_user_cookie(user)
 

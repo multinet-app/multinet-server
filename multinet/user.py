@@ -85,7 +85,7 @@ def delete_user_cookie(user: User) -> User:
     return updated_user(user_copy)
 
 
-def cookie_user(cookie: str) -> Optional[User]:
+def user_from_cookie(cookie: str) -> Optional[User]:
     """Use provided cookie to load a user, return None if they dont exist."""
     coll = user_collection()
 
@@ -101,7 +101,7 @@ def current_user() -> Optional[User]:
     if cookie is None:
         return None
 
-    return cookie_user(cookie)
+    return user_from_cookie(cookie)
 
 
 def get_user_cookie(user: User) -> str:

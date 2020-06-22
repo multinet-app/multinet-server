@@ -11,31 +11,6 @@ from multinet.db import (
 )
 
 
-@pytest.fixture
-def generated_workspace():
-    """Create a workspace, and yield the name of the workspace."""
-
-    workspace_name = uuid4().hex
-
-    create_workspace(workspace_name)
-    return workspace_name
-
-
-@pytest.fixture
-def handled_workspace(generated_workspace):
-    """
-    Create a workspace, and yield the name of the workspace.
-
-    On teardown, deletes the workspace.
-    """
-    yield generated_workspace
-
-    delete_workspace(generated_workspace)
-
-
-# BEGIN TESTS
-
-
 @pytest.mark.skip()
 def test_present_workspace(handled_workspace):
     """Test that workspace caching works as expected on present workspaces."""

@@ -16,9 +16,19 @@ WorkspacePermissions = TypedDict(
     },
 )
 
-Workspace = TypedDict(
-    "Workspace", {"name": str, "internal": str, "permissions": WorkspacePermissions}
-)
+
+class Workspace(TypedDict):
+    """Workspace metadata."""
+
+    name: str
+    internal: str
+    permissions: WorkspacePermissions
+
+
+class WorkspaceDocument(Workspace):
+    """Workspace metadata as it appears in ArangoDB."""
+
+    _id: str
 
 
 class EdgeTableProperties(TypedDict):

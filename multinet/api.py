@@ -6,7 +6,7 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType
-from multinet.auth.util import require_login, is_reader
+from multinet.auth.util import require_login, require_reader, is_reader
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -35,10 +35,11 @@ def get_workspaces() -> Any:
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])
+@require_reader
 @swag_from("swagger/workspace.yaml")
 def get_workspace(workspace: str) -> Any:
     """Retrieve a single workspace."""
-    metadata = db.get_workspace(workspace)
+    metadata = db.get_workspace_metadata(workspace)
     perms = metadata["permissions"]
 
     return {

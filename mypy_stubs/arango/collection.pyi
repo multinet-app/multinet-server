@@ -1,6 +1,6 @@
 from arango.cursor import Cursor  # type: ignore
 from arango.exceptions import ArangoError  # type: ignore
-from typing import Any, Optional, Dict, Union, List
+from typing import Any, Optional, Dict, Union, List, Mapping
 
 class Collection:
     def count(self) -> int: ...
@@ -40,7 +40,7 @@ class StandardCollection(Collection):
     ) -> Dict: ...
     def update(
         self,
-        document: Union[Dict, str],
+        document: Union[Mapping[str, Any], str],
         check_rev: bool = ...,
         merge: bool = ...,
         keep_none: bool = ...,

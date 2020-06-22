@@ -1,6 +1,6 @@
 """Flask blueprint for Multinet REST API."""
 from flasgger import swag_from
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
@@ -28,7 +28,6 @@ bp = Blueprint("multinet", __name__)
 def get_workspaces() -> Any:
     """Retrieve list of workspaces."""
     user = current_user()
-    current_app.logger.info(user)
 
     def can_read(user: Optional[UserInfo], ws: Workspace) -> bool:
         perms = ws["permissions"]

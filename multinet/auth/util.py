@@ -17,7 +17,7 @@ def require_login(f: Any) -> Any:
     def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
         user = current_user()
         if user is None:
-            raise Unauthorized("You must be logged in to create new workspaces")
+            raise Unauthorized("You must be logged in to perform this action")
 
         return f(workspace, *args, **kwargs)
 

@@ -7,13 +7,18 @@ from arango.graph import Graph
 from arango.database import StandardDatabase
 from arango.collection import StandardCollection
 
-from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
+from arango.exceptions import (
+    DatabaseCreateError,
+    EdgeDefinitionCreateError,
+    AQLQueryValidateError,
+    AQLQueryExecuteError,
+)
 from requests.exceptions import ConnectionError
 
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
-from multinet.errors import InternalServerError
+from multinet.errors import InternalServerError, MalformedRequestBody
 from multinet.util import generate_arango_workspace_name
 from multinet.uploaders.csv import validate_csv
 
@@ -328,9 +333,12 @@ def create_workspace_table_from_aql(workspace: str, name: str, aql: str) -> str:
 
     # In the future, the result of this validation can be
     # used to determine dependencies in virtual tables
-    db.aql.validate(aql)
+    try:
+        db.aql.validate(aql)
+        rows = list(db.aql.execute(aql))
+    except (AQLQueryValidateError, AQLQueryExecuteError) as e:
+        raise MalformedRequestBody(str(e))
 
-    rows = list(db.aql.execute(aql))
     validate_csv(rows, "_key", False)
 
     db = get_workspace_db(workspace, readonly=False)
@@ -426,8 +434,12 @@ def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
     aql = get_workspace_db(workspace).aql
 
-    aql.validate(query)
-    cursor = aql.execute(query)
+    try:
+        aql.validate(query)
+        cursor = aql.execute(query)
+    except (AQLQueryValidateError, AQLQueryExecuteError) as e:
+        raise MalformedRequestBody(str(e))
+
     return cursor
 
 

@@ -333,6 +333,7 @@ def create_workspace_table_from_aql(workspace: str, name: str, aql: str) -> str:
     rows = list(db.aql.execute(aql))
     validate_csv(rows, "_key", False)
 
+    db = get_workspace_db(workspace, readonly=False)
     coll = db.create_collection(name, sync=True)
     coll.insert_many(rows)
 

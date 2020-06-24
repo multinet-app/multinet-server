@@ -9,6 +9,12 @@
     - name: arangodb_root_password
       prompt: "Password for ArangoDB root account"
 
+    - name: arango_readonly_username
+      prompt: "Username for ArangoDB readonly user"
+
+    - name: arango_readonly_password
+      prompt: "Password for ArangoDB readonly user"
+
     - name: ssl_cert_path
       prompt: "Path to parent SSL cert directory"
       default: "/etc/letsencrypt/live/multinet.app/"
@@ -46,13 +52,9 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
-    # - name: Ensure there is a read-only user
-    #   executable: /usr/bin/arangosh --server.password {{ arangodb_root_password }}
-    #   shell:
-    #     const users = require('@arangodb/users')
-    #     if (!users.exists('{{ arango_readonly_username }}')) { users.save('{{ arango_readonly_username }}', '{{ arango_readonly_password }}') }
-    #     users.grantDatabase('{{ arango_readonly_username }}', '*', 'ro')
-    #   become: true
+    - name: Ensure there is a read-only user
+      command: arangosh --server.password {{ arangodb_root_password }} --server.endpoint ssl://127.0.0.1:8529 --javascript.execute-string "const users = require('@arangodb/users'); if (!users.exists('{{ arango_readonly_username }}')) { users.save('{{ arango_readonly_username }}', '{{ arango_readonly_password }}'); } users.grantDatabase('{{ arango_readonly_username }}', '*', 'ro');"
+      become: true
 
     - name: Copy the SSL certificate files to the server
       copy:

@@ -27,8 +27,6 @@ def server(app):
 @pytest.fixture
 def data_directory() -> Path:
     """Return the path to the test data directory."""
-
-    # return os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
     return Path(__file__).parent / "data"
 
 

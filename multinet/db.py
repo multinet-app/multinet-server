@@ -200,7 +200,7 @@ def get_workspace(name: str) -> WorkspaceSpec:
 
 # Caches the reference to the StandardDatabase instance for each workspace
 @lru_cache()
-def get_workspace_db(name: str, readonly=False) -> StandardDatabase:
+def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     doc = workspace_mapping(name)
     if not doc:

@@ -5,10 +5,7 @@ def test_malformed_aql(handled_workspace, server):
     """Test that invalid/malformed AQL results in an error."""
     table_name = "malformed_table"
     malformed_aql = """FOR members RETURN member"""
-    malformed_aql_error = (
-        """unexpected RETURN declaration, expecting IN keyword"""
-        """ or "," near 'RETURN member' at position 1:13"""
-    )
+    malformed_aql_error = """unexpected RETURN declaration"""
 
     resp = server.post(
         f"/api/workspaces/{handled_workspace}/tables",
@@ -26,7 +23,7 @@ def test_mutating_aql(populated_workspace, server):
 
     table = tables[0]
     mutating_aql = f"""FOR thing in {table} UPDATE thing in {table}"""
-    mutating_aql_error = """AQL: read only (while parsing)"""
+    mutating_aql_error = """AQL: read only"""
 
     new_table_name = "mutating_table"
     resp = server.post(

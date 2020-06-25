@@ -29,6 +29,8 @@ class WorkspaceDocument(Workspace):
     """Workspace metadata as it appears in ArangoDB."""
 
     _id: str
+    _key: str
+    _rev: str
 
 
 class EdgeTableProperties(TypedDict):

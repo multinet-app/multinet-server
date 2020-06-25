@@ -37,8 +37,8 @@ def is_reader(user: Optional[UserInfo], workspace: Workspace) -> bool:
     sub = user.sub
     return (
         perms["public"]
-        or perms["owner"] == sub
         or sub in perms["readers"]
         or sub in perms["writers"]
         or sub in perms["maintainers"]
+        or perms["owner"] == sub
     )

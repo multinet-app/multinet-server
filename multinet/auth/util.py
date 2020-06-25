@@ -1,6 +1,6 @@
 """Utility functions for auth."""
 
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 from multinet.errors import Unauthorized
 from multinet.types import Workspace
@@ -11,15 +11,15 @@ from multinet.user import current_user
 # NOTE: unfortunately, it is difficult to write a type signature for this
 # decorator. I've opened an issue to ask about this here:
 # https://github.com/python/mypy/issues/9032.
-def require_login(f: Any) -> Any:
+def require_login(f: Callable) -> Callable:
     """Decorate an API endpoint to check for a logged in user."""
 
-    def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         user = current_user()
         if user is None:
             raise Unauthorized("You must be logged in to perform this action")
 
-        return f(workspace, *args, **kwargs)
+        return f(*args, **kwargs)
 
     return wrapper
 

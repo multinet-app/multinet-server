@@ -40,16 +40,8 @@ def get_workspaces() -> Any:
 def get_workspace(workspace: str) -> Any:
     """Retrieve a single workspace."""
     metadata = db.get_workspace_metadata(workspace)
-    perms = metadata["permissions"]
 
-    return {
-        "name": metadata["name"],
-        "owner": perms["owner"],
-        "maintainers": perms["maintainers"],
-        "writers": perms["writers"],
-        "readers": perms["readers"],
-        "public": perms["public"],
-    }
+    return {"name": metadata["name"], "permissions": metadata["permissions"]}
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

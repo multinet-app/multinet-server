@@ -54,6 +54,7 @@ definitions:
         - picard
         - riker
       writers: []
+      public: False
 
   graph:
     description: A description of a graph, including its constituent tables

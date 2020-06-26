@@ -21,7 +21,7 @@ jobs:
           architecture: 'x64'
 
       # Copy Env File
-      - run: cp .env.base .env
+      - run: cp .env.testing .env
 
       # Build and test Multinet server.
       - run: pip install pipenv

@@ -10,9 +10,9 @@ from arango.collection import StandardCollection
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from requests.exceptions import ConnectionError
 
-from typing import Any, List, Dict, Set, Generator, Union
+from typing import Any, List, Dict, Set, Generator, Optional
 from typing_extensions import TypedDict
-from multinet.types import EdgeDirection, TableType, Workspace
+from multinet.types import EdgeDirection, TableType, Workspace, WorkspaceDocument
 from multinet.auth.types import User
 from multinet.errors import InternalServerError
 from multinet import util
@@ -25,14 +25,11 @@ from multinet.errors import (
     NodeNotFound,
     AlreadyExists,
     GraphCreationError,
+    DatabaseCorrupted,
 )
 
 
 # Type definitions.
-WorkspaceSpec = TypedDict(
-    "WorkspaceSpec",
-    {"name": str, "owner": str, "readers": List[str], "writers": List[str]},
-)
 GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
@@ -88,7 +85,7 @@ def workspace_mapping_collection() -> StandardCollection:
 
 # Caches the document that maps an external workspace name to it's internal one
 @lru_cache()
-def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
+def workspace_mapping(name: str) -> Optional[WorkspaceDocument]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
 
@@ -195,12 +192,18 @@ def delete_workspace(name: str) -> None:
     workspace_mapping.cache_clear()
 
 
-def get_workspace(name: str) -> WorkspaceSpec:
-    """Return a single workspace, if it exists."""
+def get_workspace_metadata(name: str) -> Workspace:
+    """Return the metadata for a single workspace, if it exists."""
     if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
-    return {"name": name, "owner": "", "readers": [], "writers": []}
+    # Find the metadata record for the named workspace. If it's not there,
+    # something went very wrong, so bail out.
+    metadata = workspace_mapping(name)
+    if metadata is None:
+        raise DatabaseCorrupted()
+
+    return metadata
 
 
 # Caches the reference to the StandardDatabase instance for each workspace

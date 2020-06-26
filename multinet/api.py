@@ -6,7 +6,7 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType
-from multinet.auth.util import require_login, is_reader
+from multinet.auth.util import require_login, require_reader, is_reader
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -35,13 +35,17 @@ def get_workspaces() -> Any:
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])
+@require_reader
 @swag_from("swagger/workspace.yaml")
 def get_workspace(workspace: str) -> Any:
     """Retrieve a single workspace."""
-    return db.get_workspace(workspace)
+    metadata = db.get_workspace_metadata(workspace)
+
+    return {"name": metadata["name"], "permissions": metadata["permissions"]}
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])
+@require_reader
 @use_kwargs({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
 def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
@@ -51,6 +55,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
+@require_reader
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 @swag_from("swagger/table_rows.yaml")
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
@@ -59,6 +64,7 @@ def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
+@require_reader
 @swag_from("swagger/workspace_graphs.yaml")
 def get_workspace_graphs(workspace: str) -> Any:
     """Retrieve the graphs of a single workspace."""
@@ -67,6 +73,7 @@ def get_workspace_graphs(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
+@require_reader
 @swag_from("swagger/workspace_graph.yaml")
 def get_workspace_graph(workspace: str, graph: str) -> Any:
     """Retrieve information about a graph."""
@@ -74,6 +81,7 @@ def get_workspace_graph(workspace: str, graph: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>/nodes", methods=["GET"])
+@require_reader
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})
 @swag_from("swagger/graph_nodes.yaml")
 def get_graph_nodes(
@@ -87,6 +95,7 @@ def get_graph_nodes(
     "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/attributes",
     methods=["GET"],
 )
+@require_reader
 @swag_from("swagger/node_data.yaml")
 def get_node_data(workspace: str, graph: str, table: str, node: str) -> Any:
     """Return the attributes associated with a node."""
@@ -96,6 +105,7 @@ def get_node_data(workspace: str, graph: str, table: str, node: str) -> Any:
 @bp.route(
     "/workspaces/<workspace>/graphs/<graph>/nodes/<table>/<node>/edges", methods=["GET"]
 )
+@require_reader
 @use_kwargs({"direction": fields.Str(), "offset": fields.Int(), "limit": fields.Int()})
 @swag_from("swagger/node_edges.yaml")
 def get_node_edges(
@@ -132,6 +142,7 @@ def create_workspace(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/aql", methods=["POST"])
+@require_reader
 @swag_from("swagger/aql.yaml")
 def aql(workspace: str) -> Any:
     """Perform an AQL query in the given workspace."""

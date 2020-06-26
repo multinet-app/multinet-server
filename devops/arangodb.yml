@@ -9,9 +9,6 @@
     - name: arangodb_root_password
       prompt: "Password for ArangoDB root account"
 
-    - name: arango_readonly_username
-      prompt: "Username for ArangoDB readonly user"
-
     - name: arango_readonly_password
       prompt: "Password for ArangoDB readonly user"
 

@@ -1,8 +1,7 @@
 """Utility functions for auth."""
 
 import functools
-
-from typing import Any, Optional
+from typing import Any, Optional, Callable
 
 from multinet import db
 from multinet.errors import Unauthorized
@@ -14,16 +13,16 @@ from multinet.user import current_user
 # NOTE: unfortunately, it is difficult to write a type signature for this
 # decorator. I've opened an issue to ask about this here:
 # https://github.com/python/mypy/issues/9032.
-def require_login(f: Any) -> Any:
+def require_login(f: Callable) -> Callable:
     """Decorate an API endpoint to check for a logged in user."""
 
     @functools.wraps(f)
-    def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         user = current_user()
         if user is None:
             raise Unauthorized("You must be logged in to perform this action")
 
-        return f(workspace, *args, **kwargs)
+        return f(*args, **kwargs)
 
     return wrapper
 
@@ -41,10 +40,10 @@ def is_reader(user: Optional[UserInfo], workspace: Workspace) -> bool:
     sub = user.sub
     return (
         perms["public"]
-        or perms["owner"] == sub
         or sub in perms["readers"]
         or sub in perms["writers"]
         or sub in perms["maintainers"]
+        or perms["owner"] == sub
     )
 
 

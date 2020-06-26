@@ -7,7 +7,7 @@ from pathlib import Path
 from multinet import create_app
 from multinet.db import create_workspace, delete_workspace
 
-from typing import Tuple, List
+from typing import Tuple
 
 
 @pytest.fixture
@@ -55,12 +55,12 @@ def handled_workspace(generated_workspace):
 @pytest.fixture
 def populated_workspace(
     handled_workspace, data_directory, server
-) -> Tuple[str, Tuple[List[str], List[str]]]:
+) -> Tuple[str, str, str, str]:
     """
     Populate a workspace with some data.
 
     Returns a Nested Tuple of the form:
-    `(workspace_name: str, (graphs: List[str], tables: List[str]))`
+    `(workspace_name: str, graph: str, node_table: str, edge_table: str)`
 
     """
     with open(Path(data_directory) / "miserables.json") as miserables:
@@ -69,7 +69,4 @@ def populated_workspace(
     resp = server.post(f"/api/d3_json/{handled_workspace}/miserables", data=data)
     assert resp.status_code == 200
 
-    return (
-        handled_workspace,
-        (["miserables"], ["miserables_nodes", "miserables_links"]),
-    )
+    return (handled_workspace, "miserables", "miserables_nodes", "miserables_links")

@@ -9,7 +9,7 @@ def test_generated_workspace(handled_workspace, server):
 
 def test_populated_workspace(populated_workspace, server):
     """Test that the populated workspace has a graph, an edge and node table."""
-    workspace, (graphs, tables) = populated_workspace
+    workspace, graphs, *tables = populated_workspace
 
     # Graphs
     resp = server.get(f"/api/workspaces/{workspace}/graphs")

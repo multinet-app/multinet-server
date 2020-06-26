@@ -64,8 +64,8 @@ def read_only_db(name: str) -> StandardDatabase:
     """Return a read-only handle for the Arango database `name`."""
     return arango.db(
         name,
-        username=str(os.environ.get("ARANGO_READONLY_USERNAME", "")),
-        password=str(os.environ.get("ARANGO_READONLY_PASSWORD", "")),
+        username=str(os.environ.get("ARANGO_READONLY_USERNAME", "readonly")),
+        password=str(os.environ.get("ARANGO_READONLY_PASSWORD", "letmein")),
         verify=True,
     )
 

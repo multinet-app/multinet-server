@@ -6,6 +6,7 @@ from io import StringIO
 from dataclasses import dataclass
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists, FlaskTuple, ServerError, ValidationFailed
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
@@ -151,6 +152,7 @@ def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
         "overwrite": webarg_fields.Bool(location="query"),
     }
 )
+@require_writer
 @swag_from("swagger/csv.yaml")
 def upload(
     workspace: str, table: str, key: str = "_key", overwrite: bool = False

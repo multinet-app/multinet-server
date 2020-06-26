@@ -2,8 +2,7 @@ Create a table from an AQL query
 ---
 parameters:
   - $ref: "#/parameters/workspace"
-  -
-    name: table
+  - name: table
     in: query
     description: Name of table to create
     required: true

@@ -206,10 +206,8 @@ def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
     if not doc:
         raise WorkspaceNotFound(name)
 
-    if readonly:
-        return read_only_db(doc["internal"])
-
-    return db(doc["internal"])
+    name = doc["internal"]
+    return read_only_db(name) if readonly else db(name)
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:
@@ -325,7 +323,7 @@ def workspace_table_keys(
 
 # TODO: Ensure current user has writer role
 def create_workspace_table_from_aql(workspace: str, name: str, aql: str) -> str:
-    """Create a new workspace from an aql query."""
+    """Create a new table from an AQL query."""
     db = get_workspace_db(workspace, readonly=True)
 
     if db.has_collection(name):

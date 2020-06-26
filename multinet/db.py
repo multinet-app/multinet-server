@@ -6,6 +6,8 @@ from arango import ArangoClient
 from arango.graph import Graph
 from arango.database import StandardDatabase
 from arango.collection import StandardCollection
+from arango.aql import AQL
+from arango.cursor import Cursor
 
 from arango.exceptions import (
     DatabaseCreateError,
@@ -331,12 +333,7 @@ def create_aql_table(workspace: str, name: str, aql: str) -> str:
 
     # In the future, the result of this validation can be
     # used to determine dependencies in virtual tables
-    try:
-        db.aql.validate(aql)
-        rows = list(db.aql.execute(aql))
-    except (AQLQueryValidateError, AQLQueryExecuteError) as e:
-        raise MalformedRequestBody(str(e))
-
+    rows = list(_run_aql_query(db.aql, aql))
     validate_csv(rows, "_key", False)
 
     db = get_workspace_db(workspace, readonly=False)
@@ -428,10 +425,7 @@ def delete_table(workspace: str, table: str) -> str:
     return table
 
 
-def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
-    """Perform an AQL query in the given workspace."""
-    aql = get_workspace_db(workspace).aql
-
+def _run_aql_query(aql: AQL, query: str) -> Cursor:
     try:
         aql.validate(query)
         cursor = aql.execute(query)
@@ -439,6 +433,12 @@ def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
         raise MalformedRequestBody(str(e))
 
     return cursor
+
+
+def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
+    """Perform an AQL query in the given workspace."""
+    aql = get_workspace_db(workspace).aql
+    return _run_aql_query(aql, query)
 
 
 def create_graph(

@@ -206,10 +206,8 @@ def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
     if not doc:
         raise WorkspaceNotFound(name)
 
-    if readonly:
-        return read_only_db(doc["internal"])
-
-    return db(doc["internal"])
+    name = doc["internal"]
+    return read_only_db(name) if readonly else db(name)
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:

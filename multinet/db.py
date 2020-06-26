@@ -323,7 +323,7 @@ def workspace_table_keys(
 
 # TODO: Ensure current user has writer role
 def create_workspace_table_from_aql(workspace: str, name: str, aql: str) -> str:
-    """Create a new workspace from an aql query."""
+    """Create a new table from an AQL query."""
     db = get_workspace_db(workspace, readonly=True)
 
     if db.has_collection(name):

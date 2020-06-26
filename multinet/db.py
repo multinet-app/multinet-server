@@ -20,11 +20,11 @@ from requests.exceptions import ConnectionError
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType
-from multinet.errors import InternalServerError, MalformedRequestBody
 from multinet.util import generate_arango_workspace_name
 from multinet.uploaders.csv import validate_csv
 
 from multinet.errors import (
+    InternalServerError,
     BadQueryArgument,
     WorkspaceNotFound,
     TableNotFound,
@@ -32,6 +32,8 @@ from multinet.errors import (
     NodeNotFound,
     AlreadyExists,
     GraphCreationError,
+    AQLExecutionError,
+    AQLValidationError,
 )
 
 
@@ -429,8 +431,10 @@ def _run_aql_query(aql: AQL, query: str) -> Cursor:
     try:
         aql.validate(query)
         cursor = aql.execute(query)
-    except (AQLQueryValidateError, AQLQueryExecuteError) as e:
-        raise MalformedRequestBody(str(e))
+    except AQLQueryValidateError as e:
+        raise AQLValidationError(str(e))
+    except AQLQueryExecuteError as e:
+        raise AQLExecutionError(str(e))
 
     return cursor
 

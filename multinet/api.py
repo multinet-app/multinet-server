@@ -6,6 +6,7 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType
+from multinet.auth.util import require_login, is_reader
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -16,6 +17,7 @@ from multinet.errors import (
     AlreadyExists,
     RequiredParamsMissing,
 )
+from multinet.user import current_user
 
 bp = Blueprint("multinet", __name__)
 
@@ -24,7 +26,12 @@ bp = Blueprint("multinet", __name__)
 @swag_from("swagger/workspaces.yaml")
 def get_workspaces() -> Any:
     """Retrieve list of workspaces."""
-    return util.stream(db.get_workspaces())
+    user = current_user()
+
+    # Filter all workspaces based on whether it should be shown to the user who
+    # is logged in.
+    stream = util.stream(w["name"] for w in db.get_workspaces() if is_reader(user, w))
+    return stream
 
 
 @bp.route("/workspaces/<workspace>", methods=["GET"])
@@ -109,11 +116,19 @@ def get_node_edges(
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])
+@require_login
 @swag_from("swagger/create_workspace.yaml")
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
-    db.create_workspace(workspace)
-    return workspace
+
+    # The `require_login()` decorator ensures that a user is logged in by this
+    # point.
+    user = current_user()
+    assert user is not None
+
+    # Perform the actual backend update to create a new workspace owned by the
+    # logged in user.
+    return db.create_workspace(workspace, user)
 
 
 @bp.route("/workspaces/<workspace>/aql", methods=["POST"])

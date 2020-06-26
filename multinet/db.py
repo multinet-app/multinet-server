@@ -12,9 +12,10 @@ from requests.exceptions import ConnectionError
 
 from typing import Any, List, Dict, Set, Generator, Union
 from typing_extensions import TypedDict
-from multinet.types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, TableType, Workspace
+from multinet.auth.types import User
 from multinet.errors import InternalServerError
-from multinet.util import generate_arango_workspace_name
+from multinet import util
 
 from multinet.errors import (
     BadQueryArgument,
@@ -114,25 +115,49 @@ def workspace_exists_internal(name: str) -> bool:
     return sysdb.has_database(name)
 
 
-def create_workspace(name: str) -> None:
-    """Create a new workspace named `name`."""
+def create_workspace(name: str, user: User) -> str:
+    """Create a new workspace named `name`, owned by `user`."""
 
+    # Bail out with a 409 if the workspace exists already.
     if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
 
-    coll = workspace_mapping_collection()
-    new_doc = {"name": name, "internal": generate_arango_workspace_name()}
-    coll.insert(new_doc)
+    # Create a workspace mapping document to represent the new workspace. This
+    # document (1) sets the external name of the workspace to the requested
+    # name, (2) sets the internal name to a random string, and (3) makes the
+    # specified user the owner of the workspace.
+    ws_doc: Workspace = {
+        "name": name,
+        "internal": util.generate_arango_workspace_name(),
+        "permissions": {
+            "owner": user.sub,
+            "maintainers": [],
+            "writers": [],
+            "readers": [],
+            "public": False,
+        },
+    }
 
+    # Attempt to create an Arango database to serve as the workspace itself.
+    # There is an astronomically negligible chance that the internal name would
+    # clash with an existing internal name; in this case we go full UNIX and
+    # just bail out, rather than building in logic to catch it happening.
     try:
-        db("_system").create_database(new_doc["internal"])
+        db("_system").create_database(ws_doc["internal"])
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
 
+    # Retrieve the workspace mapping collection and log the workspace metadata
+    # record.
+    coll = workspace_mapping_collection()
+    coll.insert(ws_doc)
+
     # Invalidate the cache for things changed by this function
     workspace_mapping.cache_clear()
     get_workspace_db.cache_clear()
+
+    return name
 
 
 def rename_workspace(old_name: str, new_name: str) -> None:
@@ -207,10 +232,10 @@ def get_table_collection(workspace: str, table: str) -> StandardCollection:
     return space.collection(table)
 
 
-def get_workspaces() -> Generator[str, None, None]:
+def get_workspaces() -> Generator[Workspace, None, None]:
     """Return a list of all workspace names."""
     coll = workspace_mapping_collection()
-    return (doc["name"] for doc in coll.all())
+    return (doc for doc in coll.all())
 
 
 def workspace_tables(

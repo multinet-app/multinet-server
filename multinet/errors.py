@@ -33,6 +33,18 @@ class InternalServerError(ServerError):
         return ("", "500 Internal Server Error")
 
 
+class Unauthorized(ServerError):
+    """The request did not indicate sufficient permission."""
+
+    def __init__(self, reason: str = ""):
+        """Initialize the error with an optional reason."""
+        self.reason = reason
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 401 error."""
+        return (self.reason, "401 Unauthorized")
+
+
 class NotFound(ServerError):
     """Base exception for 404 errors of various types."""
 

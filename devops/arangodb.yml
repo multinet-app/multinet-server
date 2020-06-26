@@ -52,9 +52,21 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
+    - name: Template file to server
+      template:
+        src: create-readonly-user.js
+        dest: /tmp/create-readonly-user.js
+        owner: ubuntu
+        mode: 444
+
     - name: Ensure there is a read-only user
-      command: arangosh --server.password {{ arangodb_root_password }} --server.endpoint ssl://127.0.0.1:8529 --javascript.execute-string "const users = require('@arangodb/users'); if (!users.exists('{{ arango_readonly_username }}')) { users.save('{{ arango_readonly_username }}', '{{ arango_readonly_password }}'); } users.grantDatabase('{{ arango_readonly_username }}', '*', 'ro');"
+      command: arangosh --server.password {{ arangodb_root_password }} --server.endpoint ssl://127.0.0.1:8529 --javascript.execute /tmp/create-readonly-user.js
       become: true
+
+    - name: Delete templated file
+      file:
+        path: /tmp/create-readonly-user.js
+        state: absent
 
     - name: Copy the SSL certificate files to the server
       copy:

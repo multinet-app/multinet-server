@@ -46,10 +46,10 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
 @bp.route("/workspaces/<workspace>/tables", methods=["POST"])
 @use_kwargs({"table": fields.Str()})
 @swag_from("swagger/workspace_aql_tables.yaml")
-def create_table_from_aql(workspace: str, table: str) -> Any:
+def create_aql_table(workspace: str, table: str) -> Any:
     """Retrieve the tables of a single workspace."""
     aql = request.data.decode()
-    table = db.create_workspace_table_from_aql(workspace, table, aql)
+    table = db.create_aql_table(workspace, table, aql)
 
     return (table, "200 OK")
 

@@ -47,7 +47,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
 @use_kwargs({"table": fields.Str()})
 @swag_from("swagger/workspace_aql_tables.yaml")
 def create_aql_table(workspace: str, table: str) -> Any:
-    """Retrieve the tables of a single workspace."""
+    """Create a table from an AQL query."""
     aql = request.data.decode()
     table = db.create_aql_table(workspace, table, aql)
 

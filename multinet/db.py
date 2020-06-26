@@ -153,7 +153,6 @@ def rename_workspace(old_name: str, new_name: str) -> None:
     workspace_mapping.cache_clear()
 
 
-# TODO: Add internal function for deleting workspace
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
     doc = workspace_mapping(name)

@@ -437,7 +437,7 @@ def _run_aql_query(aql: AQL, query: str) -> Cursor:
 
 def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
     """Perform an AQL query in the given workspace."""
-    aql = get_workspace_db(workspace).aql
+    aql = get_workspace_db(workspace, readonly=True).aql
     return _run_aql_query(aql, query)
 
 

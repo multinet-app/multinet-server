@@ -1,0 +1,27 @@
+---
+  - hosts: all
+    remote_user: ubuntu
+
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
+
+    vars_prompt:
+      - name: arango_readonly_password
+        prompt: "Password for ArangoDB readonly user"
+
+    tasks:
+      - name: Template file to server
+        template:
+          src: create-readonly-user.js
+          dest: /tmp/create-readonly-user.js
+          owner: ubuntu
+          mode: 444
+
+      - name: Ensure there is a read-only user
+        command: arangosh --server.password {{ arangodb_root_password }} --server.endpoint ssl://127.0.0.1:8529 --javascript.execute /tmp/create-readonly-user.js
+        become: true
+
+      - name: Delete templated file
+        file:
+          path: /tmp/create-readonly-user.js
+          state: absent

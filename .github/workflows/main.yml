@@ -50,5 +50,4 @@ jobs:
           ARANGO_HOST: ${{ secrets.CI_ARANGO_HOST }}
           ARANGO_PASSWORD: ${{ secrets.CI_ARANGO_PASSWORD }}
           ARANGO_PROTOCOL: ${{ secrets.CI_ARANGO_PROTOCOL }}
-          ARANGO_READONLY_USERNAME: ${{ secrets.CI_ARANGO_READONLY_USERNAME }}
           ARANGO_READONLY_PASSWORD: ${{ secrets.CI_ARANGO_READONLY_PASSWORD }}

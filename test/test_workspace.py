@@ -1,6 +1,4 @@
 """Test that workspace operations act like we expect them to."""
-import pytest
-
 from uuid import uuid4
 from multinet.db import (
     create_workspace,
@@ -11,32 +9,6 @@ from multinet.db import (
 )
 
 
-@pytest.fixture
-def generated_workspace():
-    """Create a workspace, and yield the name of the workspace."""
-
-    workspace_name = uuid4().hex
-
-    create_workspace(workspace_name)
-    return workspace_name
-
-
-@pytest.fixture
-def handled_workspace(generated_workspace):
-    """
-    Create a workspace, and yield the name of the workspace.
-
-    On teardown, deletes the workspace.
-    """
-    yield generated_workspace
-
-    delete_workspace(generated_workspace)
-
-
-# BEGIN TESTS
-
-
-@pytest.mark.skip()
 def test_present_workspace(handled_workspace):
     """Test that workspace caching works as expected on present workspaces."""
 
@@ -53,7 +25,6 @@ def test_present_workspace(handled_workspace):
     assert first_resp == second_resp
 
 
-@pytest.mark.skip()
 def test_absent_workspace():
     """Test that workspace caching works as expected on absent workspaces."""
 
@@ -71,13 +42,12 @@ def test_absent_workspace():
     assert second_resp is None
 
 
-@pytest.mark.skip()
-def test_workspace_create():
+def test_workspace_create(handled_user):
     """Test that creating a workspace doesn't result in invalid caching."""
     workspace_name = uuid4().hex
 
     pre_create = workspace_mapping(workspace_name)
-    create_workspace(workspace_name)
+    create_workspace(workspace_name, handled_user)
     post_create = workspace_mapping(workspace_name)
     post_create_exists = workspace_exists(workspace_name)
 
@@ -90,7 +60,6 @@ def test_workspace_create():
     assert post_create_exists
 
 
-@pytest.mark.skip()
 def test_workspace_delete(generated_workspace):
     """Tests that deleting a workspace doesn't result in invalid caching."""
 
@@ -105,7 +74,6 @@ def test_workspace_delete(generated_workspace):
     assert not exists_post_delete
 
 
-@pytest.mark.skip()
 def test_workspace_rename(generated_workspace):
     """Test that renaming a workspace doesn't result in invalid caching."""
     new_workspace_name = uuid4().hex

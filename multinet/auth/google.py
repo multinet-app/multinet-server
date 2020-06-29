@@ -16,6 +16,7 @@ from webargs.flaskparser import use_kwargs
 from webargs import fields
 
 from multinet.user import (
+    MULTINET_COOKIE,
     load_user,
     updated_user,
     get_user_cookie,
@@ -23,7 +24,6 @@ from multinet.user import (
     register_user,
     filter_user_info,
 )
-from multinet.auth import MULTINET_COOKIE
 from multinet.auth.types import GoogleUserInfo, User
 
 from typing import Dict, Optional

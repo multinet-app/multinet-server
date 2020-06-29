@@ -94,7 +94,7 @@ def upload(workspace: str, graph: str) -> Any:
     # Change column names from the d3 format to the arango format
     nodes = data["nodes"]
     for node in nodes:
-        node["_key"] = node["id"]
+        node["_key"] = str(node["id"])
         del node["id"]
 
     links = data["links"]
@@ -116,7 +116,7 @@ def upload(workspace: str, graph: str) -> Any:
         links_coll = space.create_collection(edge_table_name, edge=True)
 
     # Insert data
-    nodes_coll.insert_many(nodes)
+    nodes_coll.insert_many(nodes, sync=True)
     links_coll.insert_many(links, sync=True)
 
     properties = util.get_edge_table_properties(workspace, edge_table_name)

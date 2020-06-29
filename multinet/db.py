@@ -17,14 +17,15 @@ from arango.exceptions import (
 )
 from requests.exceptions import ConnectionError
 
-from typing import Any, List, Dict, Set, Generator, Union
+from typing import Any, List, Dict, Set, Generator, Optional
 from typing_extensions import TypedDict
-from multinet.types import EdgeDirection, TableType
-from multinet.util import generate_arango_workspace_name
+from multinet.types import EdgeDirection, TableType, Workspace, WorkspaceDocument
+from multinet.auth.types import User
+from multinet.errors import InternalServerError
 from multinet.uploaders.csv import validate_csv
+from multinet import util
 
 from multinet.errors import (
-    InternalServerError,
     BadQueryArgument,
     WorkspaceNotFound,
     TableNotFound,
@@ -34,14 +35,11 @@ from multinet.errors import (
     GraphCreationError,
     AQLExecutionError,
     AQLValidationError,
+    DatabaseCorrupted,
 )
 
 
 # Type definitions.
-WorkspaceSpec = TypedDict(
-    "WorkspaceSpec",
-    {"name": str, "owner": str, "readers": List[str], "writers": List[str]},
-)
 GraphSpec = TypedDict("GraphSpec", {"nodeTables": List[str], "edgeTable": str})
 GraphNodesSpec = TypedDict("GraphNodesSpec", {"count": int, "nodes": List[str]})
 GraphEdgesSpec = TypedDict("GraphEdgesSpec", {"count": int, "edges": List[str]})
@@ -110,7 +108,7 @@ def workspace_mapping_collection() -> StandardCollection:
 
 # Caches the document that maps an external workspace name to it's internal one
 @lru_cache()
-def workspace_mapping(name: str) -> Union[Dict[str, str], None]:
+def workspace_mapping(name: str) -> Optional[WorkspaceDocument]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
 
@@ -137,25 +135,49 @@ def workspace_exists_internal(name: str) -> bool:
     return sysdb.has_database(name)
 
 
-def create_workspace(name: str) -> None:
-    """Create a new workspace named `name`."""
+def create_workspace(name: str, user: User) -> str:
+    """Create a new workspace named `name`, owned by `user`."""
 
+    # Bail out with a 409 if the workspace exists already.
     if workspace_exists(name):
         raise AlreadyExists("Workspace", name)
 
-    coll = workspace_mapping_collection()
-    new_doc = {"name": name, "internal": generate_arango_workspace_name()}
-    coll.insert(new_doc)
+    # Create a workspace mapping document to represent the new workspace. This
+    # document (1) sets the external name of the workspace to the requested
+    # name, (2) sets the internal name to a random string, and (3) makes the
+    # specified user the owner of the workspace.
+    ws_doc: Workspace = {
+        "name": name,
+        "internal": util.generate_arango_workspace_name(),
+        "permissions": {
+            "owner": user.sub,
+            "maintainers": [],
+            "writers": [],
+            "readers": [],
+            "public": False,
+        },
+    }
 
+    # Attempt to create an Arango database to serve as the workspace itself.
+    # There is an astronomically negligible chance that the internal name would
+    # clash with an existing internal name; in this case we go full UNIX and
+    # just bail out, rather than building in logic to catch it happening.
     try:
-        db("_system").create_database(new_doc["internal"])
+        db("_system").create_database(ws_doc["internal"])
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
 
+    # Retrieve the workspace mapping collection and log the workspace metadata
+    # record.
+    coll = workspace_mapping_collection()
+    coll.insert(ws_doc)
+
     # Invalidate the cache for things changed by this function
     workspace_mapping.cache_clear()
     get_workspace_db.cache_clear()
+
+    return name
 
 
 def rename_workspace(old_name: str, new_name: str) -> None:
@@ -176,7 +198,6 @@ def rename_workspace(old_name: str, new_name: str) -> None:
     workspace_mapping.cache_clear()
 
 
-# TODO: Add internal function for deleting workspace
 def delete_workspace(name: str) -> None:
     """Delete the workspace named `name`."""
     doc = workspace_mapping(name)
@@ -194,12 +215,18 @@ def delete_workspace(name: str) -> None:
     workspace_mapping.cache_clear()
 
 
-def get_workspace(name: str) -> WorkspaceSpec:
-    """Return a single workspace, if it exists."""
+def get_workspace_metadata(name: str) -> Workspace:
+    """Return the metadata for a single workspace, if it exists."""
     if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
-    return {"name": name, "owner": "", "readers": [], "writers": []}
+    # Find the metadata record for the named workspace. If it's not there,
+    # something went very wrong, so bail out.
+    metadata = workspace_mapping(name)
+    if metadata is None:
+        raise DatabaseCorrupted()
+
+    return metadata
 
 
 # Caches the reference to the StandardDatabase instance for each workspace
@@ -232,10 +259,10 @@ def get_table_collection(workspace: str, table: str) -> StandardCollection:
     return space.collection(table)
 
 
-def get_workspaces() -> Generator[str, None, None]:
+def get_workspaces() -> Generator[Workspace, None, None]:
     """Return a list of all workspace names."""
     coll = workspace_mapping_collection()
-    return (doc["name"] for doc in coll.all())
+    return (doc for doc in coll.all())
 
 
 def workspace_tables(

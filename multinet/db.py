@@ -352,7 +352,6 @@ def workspace_table_keys(
     return keys
 
 
-# TODO: Ensure current user has writer role
 def create_aql_table(workspace: str, name: str, aql: str) -> str:
     """Create a new table from an AQL query."""
     db = get_workspace_db(workspace, readonly=True)

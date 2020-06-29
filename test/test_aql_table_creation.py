@@ -4,8 +4,8 @@
 def test_malformed_aql(handled_workspace, server):
     """Test that invalid/malformed AQL results in an error."""
     table_name = "malformed_table"
-    malformed_aql = """FOR members RETURN member"""
-    malformed_aql_error = """unexpected RETURN declaration"""
+    malformed_aql = "FOR members RETURN member"
+    malformed_aql_error = "unexpected RETURN declaration"
 
     resp = server.post(
         f"/api/workspaces/{handled_workspace}/tables",
@@ -21,8 +21,8 @@ def test_mutating_aql(populated_workspace, server):
     """Test that an AQL query which updates documents fails."""
     workspace, _, node_table, _ = populated_workspace
 
-    mutating_aql = f"""FOR thing in {node_table} UPDATE thing in {node_table}"""
-    mutating_aql_error = """AQL: read only"""
+    mutating_aql = f"FOR thing in {node_table} UPDATE thing in {node_table}"
+    mutating_aql_error = "AQL: read only"
 
     new_table_name = "mutating_table"
     resp = server.post(
@@ -39,7 +39,7 @@ def test_existing_table(populated_workspace, server):
     """Test that attempt to create a table with an existing name fails."""
     workspace, _, node_table, _ = populated_workspace
 
-    aql = f"""FOR thing in {node_table} RETURN thing"""
+    aql = f"FOR thing in {node_table} RETURN thing"
 
     resp = server.post(
         f"/api/workspaces/{workspace}/tables",
@@ -55,7 +55,7 @@ def test_create_node_table(populated_workspace, server):
     """Test that creating a node table succeeds."""
     workspace, _, node_table, edge_table = populated_workspace
 
-    aql = f"""FOR doc in {node_table} RETURN doc"""
+    aql = f"FOR doc in {node_table} RETURN doc"
     new_table_name = "new_table"
 
     resp = server.post(
@@ -72,7 +72,7 @@ def test_create_edge_table(populated_workspace, server):
     """Test that creating an edge table succeeds."""
     workspace, _, node_table, edge_table = populated_workspace
 
-    aql = f"""FOR doc in {edge_table} RETURN doc"""
+    aql = f"FOR doc in {edge_table} RETURN doc"
     new_table_name = "new_table"
 
     resp = server.post(
@@ -89,7 +89,7 @@ def test_unsupported_table(populated_workspace, server):
     """Test that creating a non edge/node table results in an error."""
     workspace, _, node_table, edge_table = populated_workspace
 
-    aql = f"""FOR doc in {edge_table} RETURN {{ name: 'something' }}"""
+    aql = f"FOR doc in {edge_table} RETURN {{ name: 'something' }}"
     new_table_name = "new_table"
 
     resp = server.post(

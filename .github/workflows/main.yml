@@ -21,7 +21,7 @@ jobs:
           architecture: 'x64'
 
       # Copy Env File
-      - run: cp .env.default .env
+      - run: cp .env.testing .env
 
       # Build and test Multinet server.
       - run: pip install pipenv
@@ -46,3 +46,7 @@ jobs:
       - run: pipenv run format
       - run: pipenv run typecheck
       - run: pipenv run test
+        env:
+          ARANGO_HOST: ${{ secrets.CI_ARANGO_HOST }}
+          ARANGO_PASSWORD: ${{ secrets.CI_ARANGO_PASSWORD }}
+          ARANGO_PROTOCOL: ${{ secrets.CI_ARANGO_PROTOCOL }}

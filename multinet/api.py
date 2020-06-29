@@ -51,7 +51,7 @@ def create_aql_table(workspace: str, table: str) -> Any:
     aql = request.data.decode()
     table = db.create_aql_table(workspace, table, aql)
 
-    return (table, "200 OK")
+    return table
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])

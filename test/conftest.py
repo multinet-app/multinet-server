@@ -32,6 +32,7 @@ def data_directory() -> Path:
     return Path(__file__).parent / "data"
 
 
+@pytest.fixture
 def handled_user():
     """
     Create a user, and yield that user.

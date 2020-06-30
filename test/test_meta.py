@@ -13,9 +13,12 @@ def test_generated_workspace(handled_workspace, handled_user, server):
     assert resp.status_code == 200
 
 
-def test_populated_workspace(populated_workspace, server):
+def test_populated_workspace(populated_workspace, handled_user, server):
     """Test that the populated workspace has a graph, an edge and node table."""
     workspace, graphs, *tables = populated_workspace
+
+    with server.session_transaction() as session:
+        session[MULTINET_COOKIE] = handled_user.multinet.session
 
     # Graphs
     resp = server.get(f"/api/workspaces/{workspace}/graphs")

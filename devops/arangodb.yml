@@ -96,7 +96,7 @@
         state: restarted
       become: true
 
-    - name: Template file to server
+    - name: Install arangosh script for user provisioning to server
       template:
         src: create-readonly-user.js
         dest: /tmp/create-readonly-user.js
@@ -107,7 +107,7 @@
       command: arangosh --server.password {{ arangodb_root_password }} --server.endpoint ssl://127.0.0.1:8529 --javascript.execute /tmp/create-readonly-user.js
       become: true
 
-    - name: Delete templated file
+    - name: Delete user provisioning script
       file:
         path: /tmp/create-readonly-user.js
         state: absent

@@ -5,6 +5,7 @@ import dacite
 from uuid import uuid4
 from dataclasses import asdict, dataclass
 from contextlib import contextmanager
+from pathlib import Path
 
 from multinet import create_app
 from multinet.db import create_workspace, delete_workspace
@@ -17,7 +18,7 @@ from multinet.user import (
     MULTINET_COOKIE,
 )
 
-from typing import Generator
+from typing import Generator, Tuple
 
 
 @dataclass
@@ -48,6 +49,12 @@ def server(app):
     """Return a test client to `app`."""
     client = app.test_client()
     return client
+
+
+@pytest.fixture
+def data_directory() -> Path:
+    """Return the path to the test data directory."""
+    return Path(__file__).parent / "data"
 
 
 @pytest.fixture
@@ -96,3 +103,23 @@ def managed_workspace(generated_workspace):
     yield generated_workspace
 
     delete_workspace(generated_workspace)
+
+
+@pytest.fixture
+def populated_workspace(
+    managed_workspace, data_directory, server
+) -> Tuple[str, str, str, str]:
+    """
+    Populate a workspace with some data.
+
+    Returns a Nested Tuple of the form:
+    `(workspace_name: str, graph: str, node_table: str, edge_table: str)`
+
+    """
+    with open(Path(data_directory) / "miserables.json") as miserables:
+        data = miserables.read()
+
+    resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+    assert resp.status_code == 200
+
+    return (managed_workspace, "miserables", "miserables_nodes", "miserables_links")

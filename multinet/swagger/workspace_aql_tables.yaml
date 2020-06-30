@@ -1,0 +1,34 @@
+Create a table from an AQL query
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - name: table
+    in: query
+    description: Name of table to create
+    required: true
+    schema:
+      type: string
+      example: table4
+
+  - $ref: "#/parameters/aql"
+
+responses:
+  200:
+    description: The name of the table created
+    schema:
+      type: string
+
+  400:
+    description: Malformed AQL
+
+  401:
+    description: Insufficient permissions to perform the desired AQL query
+
+  404:
+    description: Specified workspace could not be found
+    schema:
+      type: string
+      example: workspace_that_doesnt_exist
+
+tags:
+  - table

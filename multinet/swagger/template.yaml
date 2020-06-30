@@ -135,6 +135,15 @@ parameters:
       type: string
       example: workspace3
 
+  aql:
+    name: aql
+    in: body
+    description: An AQL query
+    required: true
+    schema:
+      type: string
+      example: FOR member IN members RETURN member
+
   table:
     name: table
     in: path

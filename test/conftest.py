@@ -1,12 +1,39 @@
 """Pytest configurations for multinet tests."""
 
 import pytest
+import dacite
 from uuid import uuid4
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+from contextlib import contextmanager
 
 from multinet import create_app
 from multinet.db import create_workspace, delete_workspace
-from multinet.user import register_user, set_user_cookie, user_collection, UserInfo
+from multinet.user import (
+    register_user,
+    set_user_cookie,
+    user_collection,
+    UserInfo,
+    User,
+    MULTINET_COOKIE,
+)
+
+from typing import Generator
+
+
+@dataclass
+class ContextUser(User):
+    """Inherits User to provide testing login context."""
+
+    @contextmanager
+    def login(self, server) -> Generator[None, None, None]:
+        """Ensure the user is logged in during this context."""
+        with server.session_transaction() as session:
+            session[MULTINET_COOKIE] = self.multinet.session
+
+        yield None
+
+        with server.session_transaction() as session:
+            del session[MULTINET_COOKIE]
 
 
 @pytest.fixture
@@ -43,7 +70,7 @@ def managed_user():
         )
     )
 
-    yield user
+    yield dacite.from_dict(data_class=ContextUser, data=asdict(user))
 
     # TODO: Once the function exists, use `delete_user` here instead
     user_collection().delete(asdict(user))

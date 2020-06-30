@@ -54,6 +54,17 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
     return util.stream(tables)
 
 
+@bp.route("/workspaces/<workspace>/tables", methods=["POST"])
+@use_kwargs({"table": fields.Str()})
+@swag_from("swagger/workspace_aql_tables.yaml")
+def create_aql_table(workspace: str, table: str) -> Any:
+    """Create a table from an AQL query."""
+    aql = request.data.decode()
+    table = db.create_aql_table(workspace, table, aql)
+
+    return table
+
+
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["GET"])
 @require_reader
 @use_kwargs({"offset": fields.Int(), "limit": fields.Int()})

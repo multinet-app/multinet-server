@@ -24,7 +24,7 @@ def server(app):
 
 
 @pytest.fixture
-def handled_user():
+def managed_user():
     """
     Create a user, and yield that user.
 
@@ -50,17 +50,17 @@ def handled_user():
 
 
 @pytest.fixture
-def generated_workspace(handled_user):
+def generated_workspace(managed_user):
     """Create a workspace, and yield the name of the workspace."""
 
     workspace_name = uuid4().hex
 
-    create_workspace(workspace_name, handled_user)
+    create_workspace(workspace_name, managed_user)
     return workspace_name
 
 
 @pytest.fixture
-def handled_workspace(generated_workspace):
+def managed_workspace(generated_workspace):
     """
     Create a workspace, and yield the name of the workspace.
 

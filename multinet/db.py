@@ -6,8 +6,15 @@ from arango import ArangoClient
 from arango.graph import Graph
 from arango.database import StandardDatabase
 from arango.collection import StandardCollection
+from arango.aql import AQL
+from arango.cursor import Cursor
 
-from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
+from arango.exceptions import (
+    DatabaseCreateError,
+    EdgeDefinitionCreateError,
+    AQLQueryValidateError,
+    AQLQueryExecuteError,
+)
 from requests.exceptions import ConnectionError
 
 from typing import Any, List, Dict, Set, Generator, Optional
@@ -15,6 +22,7 @@ from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType, Workspace, WorkspaceDocument
 from multinet.auth.types import User
 from multinet.errors import InternalServerError
+from multinet.uploaders.csv import validate_csv
 from multinet import util
 
 from multinet.errors import (
@@ -25,6 +33,8 @@ from multinet.errors import (
     NodeNotFound,
     AlreadyExists,
     GraphCreationError,
+    AQLExecutionError,
+    AQLValidationError,
     DatabaseCorrupted,
 )
 
@@ -45,7 +55,20 @@ restricted_keys = {"_rev", "_id"}
 def db(name: str) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
     return arango.db(
-        name, username="root", password=os.environ.get("ARANGO_PASSWORD", "letmein")
+        name,
+        username="root",
+        password=os.environ.get("ARANGO_PASSWORD", "letmein"),
+        verify=True,
+    )
+
+
+def read_only_db(name: str) -> StandardDatabase:
+    """Return a read-only handle for the Arango database `name`."""
+    return arango.db(
+        name,
+        username="readonly",
+        password=os.environ.get("ARANGO_READONLY_PASSWORD", "letmein"),
+        verify=True,
     )
 
 
@@ -208,13 +231,14 @@ def get_workspace_metadata(name: str) -> Workspace:
 
 # Caches the reference to the StandardDatabase instance for each workspace
 @lru_cache()
-def get_workspace_db(name: str) -> StandardDatabase:
+def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     doc = workspace_mapping(name)
     if not doc:
         raise WorkspaceNotFound(name)
 
-    return db(doc["internal"])
+    name = doc["internal"]
+    return read_only_db(name) if readonly else db(name)
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:
@@ -328,6 +352,25 @@ def workspace_table_keys(
     return keys
 
 
+def create_aql_table(workspace: str, name: str, aql: str) -> str:
+    """Create a new table from an AQL query."""
+    db = get_workspace_db(workspace, readonly=True)
+
+    if db.has_collection(name):
+        raise AlreadyExists("table", name)
+
+    # In the future, the result of this validation can be
+    # used to determine dependencies in virtual tables
+    rows = list(_run_aql_query(db.aql, aql))
+    validate_csv(rows, "_key", False)
+
+    db = get_workspace_db(workspace, readonly=False)
+    coll = db.create_collection(name, sync=True)
+    coll.insert_many(rows)
+
+    return name
+
+
 def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:
     """Return the data associated with a particular node in a graph."""
     space = get_workspace_db(workspace)
@@ -410,12 +453,22 @@ def delete_table(workspace: str, table: str) -> str:
     return table
 
 
-def aql_query(workspace: str, query: str) -> Generator[Any, None, None]:
-    """Perform an AQL query in the given workspace."""
-    aql = get_workspace_db(workspace).aql
+def _run_aql_query(aql: AQL, query: str) -> Cursor:
+    try:
+        aql.validate(query)
+        cursor = aql.execute(query)
+    except AQLQueryValidateError as e:
+        raise AQLValidationError(str(e))
+    except AQLQueryExecuteError as e:
+        raise AQLExecutionError(str(e))
 
-    cursor = aql.execute(query)
     return cursor
+
+
+def aql_query(workspace: str, query: str) -> Cursor:
+    """Perform an AQL query in the given workspace."""
+    aql = get_workspace_db(workspace, readonly=True).aql
+    return _run_aql_query(aql, query)
 
 
 def create_graph(

@@ -28,9 +28,13 @@ class ServerError(Exception):
 class InternalServerError(ServerError):
     """General exception for internal server errors."""
 
+    def __init__(self, message: str = ""):
+        """Initialize the exception."""
+        self.message = message
+
     def flask_response(self) -> FlaskTuple:
         """Generate a 500 level error."""
-        return ("", "500 Internal Server Error")
+        return (self.message, "500 Internal Server Error")
 
 
 class DatabaseCorrupted(ServerError):
@@ -214,3 +218,27 @@ class GraphCreationError(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 500 error."""
         return (self.message, "500 Graph Creation Failed")
+
+
+class AQLValidationError(ServerError):
+    """Exception for errors when validating an aql query in Arango."""
+
+    def __init__(self, message: str = ""):
+        """Initialize error message."""
+        self.message = message
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 400 error."""
+        return (self.message, "400 AQL Validation Failed")
+
+
+class AQLExecutionError(ServerError):
+    """Exception for errors when executing an aql query in Arango."""
+
+    def __init__(self, message: str = ""):
+        """Initialize error message."""
+        self.message = message
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 400 error."""
+        return (self.message, "400 Error during AQL Execution")

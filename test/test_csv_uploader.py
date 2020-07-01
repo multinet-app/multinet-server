@@ -6,13 +6,10 @@ import pytest
 
 from multinet.errors import ValidationFailed, DecodeFailed
 from multinet.uploaders.csv import (
-    validate_csv,
     decode_data,
-    InvalidRow,
-    KeyFieldAlreadyExists,
-    KeyFieldDoesNotExist,
 )
 from multinet.validation import DuplicateKey, UnsupportedTable
+from multinet.validation.validate_csv import validate_csv, InvalidRow, KeyFieldAlreadyExists, KeyFieldDoesNotExist
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 

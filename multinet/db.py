@@ -22,7 +22,7 @@ from typing_extensions import TypedDict
 from multinet.types import EdgeDirection, TableType, Workspace, WorkspaceDocument
 from multinet.auth.types import User
 from multinet.errors import InternalServerError
-from multinet.uploaders.csv import validate_csv
+from multinet.validation.validate_csv import validate_csv
 from multinet import util
 
 from multinet.errors import (

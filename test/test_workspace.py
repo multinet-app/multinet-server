@@ -9,17 +9,17 @@ from multinet.db import (
 )
 
 
-def test_present_workspace(handled_workspace):
+def test_present_workspace(managed_workspace):
     """Test that workspace caching works as expected on present workspaces."""
 
     # Assert that the cached response matches the actual response
-    assert workspace_mapping.__wrapped__(handled_workspace) == workspace_mapping(
-        handled_workspace
+    assert workspace_mapping.__wrapped__(managed_workspace) == workspace_mapping(
+        managed_workspace
     )
     workspace_mapping.cache_clear()
 
-    first_resp = workspace_mapping(handled_workspace)
-    second_resp = workspace_mapping(handled_workspace)
+    first_resp = workspace_mapping(managed_workspace)
+    second_resp = workspace_mapping(managed_workspace)
 
     # Assert that cached response is idempotent
     assert first_resp == second_resp
@@ -42,12 +42,12 @@ def test_absent_workspace():
     assert second_resp is None
 
 
-def test_workspace_create(handled_user):
+def test_workspace_create(managed_user):
     """Test that creating a workspace doesn't result in invalid caching."""
     workspace_name = uuid4().hex
 
     pre_create = workspace_mapping(workspace_name)
-    create_workspace(workspace_name, handled_user)
+    create_workspace(workspace_name, managed_user)
     post_create = workspace_mapping(workspace_name)
     post_create_exists = workspace_exists(workspace_name)
 

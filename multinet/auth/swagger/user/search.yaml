@@ -1,0 +1,15 @@
+Search for users
+---
+consumes:
+    - text/plain
+parameters:
+    - name: query
+      description: Query to search for users with
+      in: query
+
+responses:
+  200:
+    description: List of matching users
+
+tags:
+  - user

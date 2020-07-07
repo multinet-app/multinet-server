@@ -10,6 +10,8 @@ parameters:
 responses:
   200:
     description: List of matching users
+  401:
+    description: Not logged in
 
 tags:
   - user

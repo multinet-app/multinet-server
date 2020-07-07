@@ -17,6 +17,7 @@ from multinet.user import (
 )
 
 from multinet.util import stream
+from multinet.auth.util import require_login
 
 bp = Blueprint("user", "user")
 
@@ -57,6 +58,7 @@ def logout() -> ResponseWrapper:
 
 
 @bp.route("/search", methods=["GET"])
+@require_login
 @use_kwargs({"query": fields.Str()})
 @swag_from("swagger/user/search.yaml")
 def search(query: str) -> ResponseWrapper:

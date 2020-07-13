@@ -84,12 +84,12 @@ def upload(workspace: str, graph: str) -> Any:
     `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
-    # Set up the parameters.
-    data = request.data.decode("utf8")
-
     space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
+
+    # Set up the parameters.
+    data = request.data.decode("utf8")
 
     edgetable_name = f"{graph}_edges"
     int_nodetable_name = f"{graph}_internal_nodes"

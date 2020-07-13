@@ -75,6 +75,10 @@ def upload(workspace: str, graph: str) -> Any:
     `data` - the json data, passed in the request body. The json data should contain
     nodes: [] and links: []
     """
+    space = db.get_workspace_db(workspace)
+    if space.has_graph(graph):
+        raise AlreadyExists("graph", graph)
+
     # Get data from the request and load it as json
     body = decode_data(request.data)
     data = json.load(StringIO(body), object_pairs_hook=OrderedDict)
@@ -83,10 +87,6 @@ def upload(workspace: str, graph: str) -> Any:
     errors = validate_d3_json(data)
     if len(errors) > 0:
         raise ValidationFailed(errors)
-
-    space = db.get_workspace_db(workspace)
-    if space.has_graph(graph):
-        raise AlreadyExists("graph", graph)
 
     node_table_name = f"{graph}_nodes"
     edge_table_name = f"{graph}_links"

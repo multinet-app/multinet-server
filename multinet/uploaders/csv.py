@@ -163,6 +163,10 @@ def upload(
     `data` - the CSV data, passed in the request body. If the CSV data contains
              `_from` and `_to` fields, it will be treated as an edge table.
     """
+    space = db.get_workspace_db(workspace)
+    if space.has_collection(table):
+        raise AlreadyExists("table", table)
+
     app.logger.info("Bulk Loading")
 
     # Read the request body into CSV format
@@ -187,13 +191,9 @@ def upload(
 
     # Set the collection, paying attention to whether the data contains
     # _from/_to fields.
-    space = db.get_workspace_db(workspace)
-    if space.has_collection(table):
-        raise AlreadyExists("table", table)
-    else:
-        fieldnames = rows[0].keys()
-        edges = "_from" in fieldnames and "_to" in fieldnames
-        coll = space.create_collection(table, edge=edges)
+    fieldnames = rows[0].keys()
+    edges = "_from" in fieldnames and "_to" in fieldnames
+    coll = space.create_collection(table, edge=edges)
 
     # Insert the data into the collection.
     results = coll.insert_many(rows)

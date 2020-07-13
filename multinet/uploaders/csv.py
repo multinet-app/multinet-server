@@ -125,10 +125,10 @@ def validate_csv(
     if not rows:
         raise ValidationFailed([MissingBody()])
 
-    if is_node_table(rows, key_field):
-        validate_node_table(rows, key_field, overwrite)
-    elif is_edge_table(rows):
+    if is_edge_table(rows):
         validate_edge_table(rows)
+    elif is_node_table(rows, key_field):
+        validate_node_table(rows, key_field, overwrite)
     else:
         raise ValidationFailed([UnsupportedTable()])
 

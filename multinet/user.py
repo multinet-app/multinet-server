@@ -151,6 +151,7 @@ def search_user(query: str) -> Cursor:
           FILTER CONTAINS(LOWER(doc.name), LOWER('{query}'))
             OR CONTAINS(LOWER(doc.email), LOWER('{query}'))
 
+          LIMIT 50
           RETURN doc
     """
 

@@ -75,15 +75,13 @@ def upload(workspace: str, graph: str) -> Any:
     """
     app.logger.info("newick tree")
 
-    body = decode_data(request.data)
-
-    tree = newick.loads(body)
-
-    validate_newick(tree)
-
     space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
+
+    body = decode_data(request.data)
+    tree = newick.loads(body)
+    validate_newick(tree)
 
     edgetable_name = f"{graph}_edges"
     nodetable_name = f"{graph}_nodes"

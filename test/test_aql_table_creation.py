@@ -1,14 +1,14 @@
 """Tests for creating a table from an AQL query."""
 
 
-def test_malformed_aql(handled_workspace, server):
+def test_malformed_aql(managed_workspace, server):
     """Test that invalid/malformed AQL results in an error."""
     table_name = "malformed_table"
     malformed_aql = "FOR members RETURN member"
     malformed_aql_error = "unexpected RETURN declaration"
 
     resp = server.post(
-        f"/api/workspaces/{handled_workspace}/tables",
+        f"/api/workspaces/{managed_workspace}/tables",
         data=malformed_aql,
         query_string={"table": table_name},
     )

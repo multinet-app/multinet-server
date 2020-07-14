@@ -3,11 +3,10 @@
 from multinet.user import MULTINET_COOKIE
 
 
-def test_require_reader(server, handled_workspace, handled_user):
+def test_require_reader(server, managed_workspace, managed_user):
     """Test the `require_reader` decorator."""
-    with server.session_transaction() as session:
-        session[MULTINET_COOKIE] = handled_user.multinet.session
+    with managed_user.login(server):
+        resp = server.get(f"/api/workspaces/{managed_workspace}")
 
-    resp = server.get(f"/api/workspaces/{handled_workspace}")
     assert resp.status_code == 200
-    assert resp.json["permissions"]["owner"] == handled_user.sub
+    assert resp.json["permissions"]["owner"] == managed_user.sub

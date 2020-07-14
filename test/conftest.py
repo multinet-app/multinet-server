@@ -107,7 +107,7 @@ def managed_workspace(generated_workspace):
 
 @pytest.fixture
 def populated_workspace(
-    managed_workspace, data_directory, server
+    managed_workspace, data_directory, server, managed_user
 ) -> Tuple[str, str, str, str]:
     """
     Populate a workspace with some data.
@@ -119,7 +119,9 @@ def populated_workspace(
     with open(Path(data_directory) / "miserables.json") as miserables:
         data = miserables.read()
 
-    resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+    with managed_user.login(server):
+        resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+
     assert resp.status_code == 200
 
     return (managed_workspace, "miserables", "miserables_nodes", "miserables_links")

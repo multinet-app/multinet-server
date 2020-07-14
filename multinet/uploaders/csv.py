@@ -7,7 +7,7 @@ from multinet import db, util
 from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists, FlaskTuple, ServerError
 from multinet.util import decode_data
-from multinet.validation.validate_csv import validate_csv
+from multinet.validation.csv import validate_csv
 
 from flask import Blueprint, request
 from flask import current_app as app

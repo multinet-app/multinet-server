@@ -8,7 +8,7 @@ import conftest
 from multinet.errors import ValidationFailed, DecodeFailed
 from multinet.uploaders.csv import decode_data
 from multinet.validation import DuplicateKey, UnsupportedTable
-from multinet.validation.validate_csv import (
+from multinet.validation.csv import (
     validate_csv,
     InvalidRow,
     KeyFieldAlreadyExists,

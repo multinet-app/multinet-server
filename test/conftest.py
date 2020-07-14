@@ -1,7 +1,6 @@
 """Pytest configurations for multinet tests."""
 
 import pytest
-import dacite
 from uuid import uuid4
 from dataclasses import asdict
 from contextlib import contextmanager
@@ -13,7 +12,6 @@ from multinet.user import (
     register_user,
     set_user_cookie,
     user_collection,
-    User,
     UserInfo,
     MULTINET_COOKIE,
 )
@@ -74,7 +72,7 @@ def managed_user():
         )
     )
 
-    yield dacite.from_dict(data_class=User, data=asdict(user))
+    yield user
 
     # TODO: Once the function exists, use `delete_user` here instead
     user_collection().delete(asdict(user))

@@ -1,3 +1,5 @@
+"""Utilities for validating tabular data for upload to Multinet."""
+
 from dataclasses import dataclass
 import re
 from typing import Set, MutableMapping, Sequence, List

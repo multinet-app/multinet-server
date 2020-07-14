@@ -4,6 +4,7 @@ import itertools
 import json
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request

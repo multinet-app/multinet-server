@@ -1,5 +1,7 @@
 """Tests for creating a table from an AQL query."""
 
+import conftest
+
 
 def test_malformed_aql(managed_workspace, managed_user, server):
     """Test that invalid/malformed AQL results in an error."""
@@ -7,7 +9,7 @@ def test_malformed_aql(managed_workspace, managed_user, server):
     malformed_aql = "FOR members RETURN member"
     malformed_aql_error = "unexpected RETURN declaration"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{managed_workspace}/tables",
             data=malformed_aql,
@@ -27,7 +29,7 @@ def test_mutating_aql(populated_workspace, managed_user, server):
 
     new_table_name = "mutating_table"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{workspace}/tables",
             data=mutating_aql,
@@ -44,7 +46,7 @@ def test_existing_table(populated_workspace, managed_user, server):
 
     aql = f"FOR thing in {node_table} RETURN thing"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{workspace}/tables",
             data=aql,
@@ -62,7 +64,7 @@ def test_create_node_table(populated_workspace, managed_user, server):
     aql = f"FOR doc in {node_table} RETURN doc"
     new_table_name = "new_table"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{workspace}/tables",
             data=aql,
@@ -80,7 +82,7 @@ def test_create_edge_table(populated_workspace, managed_user, server):
     aql = f"FOR doc in {edge_table} RETURN doc"
     new_table_name = "new_table"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{workspace}/tables",
             data=aql,
@@ -98,7 +100,7 @@ def test_unsupported_table(populated_workspace, managed_user, server):
     aql = f"FOR doc in {edge_table} RETURN {{ name: 'something' }}"
     new_table_name = "new_table"
 
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/workspaces/{workspace}/tables",
             data=aql,

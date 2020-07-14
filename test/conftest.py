@@ -3,7 +3,7 @@
 import pytest
 import dacite
 from uuid import uuid4
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -13,28 +13,25 @@ from multinet.user import (
     register_user,
     set_user_cookie,
     user_collection,
-    UserInfo,
     User,
+    UserInfo,
     MULTINET_COOKIE,
 )
 
 from typing import Generator, Tuple
 
 
-@dataclass
-class ContextUser(User):
-    """Inherits User to provide testing login context."""
+@contextmanager
+def login(user, server) -> Generator[None, None, None]:
+    """Perform server actions under a user login."""
 
-    @contextmanager
-    def login(self, server) -> Generator[None, None, None]:
-        """Ensure the user is logged in during this context."""
-        with server.session_transaction() as session:
-            session[MULTINET_COOKIE] = self.multinet.session
+    with server.session_transaction() as session:
+        session[MULTINET_COOKIE] = user.multinet.session
 
-        yield None
+    yield None
 
-        with server.session_transaction() as session:
-            del session[MULTINET_COOKIE]
+    with server.session_transaction() as session:
+        del session[MULTINET_COOKIE]
 
 
 @pytest.fixture
@@ -77,7 +74,7 @@ def managed_user():
         )
     )
 
-    yield dacite.from_dict(data_class=ContextUser, data=asdict(user))
+    yield dacite.from_dict(data_class=User, data=asdict(user))
 
     # TODO: Once the function exists, use `delete_user` here instead
     user_collection().delete(asdict(user))
@@ -119,7 +116,7 @@ def populated_workspace(
     with open(Path(data_directory) / "miserables.json") as miserables:
         data = miserables.read()
 
-    with managed_user.login(server):
+    with login(managed_user, server):
         resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
 
     assert resp.status_code == 200

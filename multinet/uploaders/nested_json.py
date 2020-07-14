@@ -75,6 +75,7 @@ def analyze_nested_json(
 
 
 @bp.route("/<workspace>/<graph>", methods=["POST"])
+@require_writer
 @swag_from("swagger/nested_json.yaml")
 def upload(workspace: str, graph: str) -> Any:
     """

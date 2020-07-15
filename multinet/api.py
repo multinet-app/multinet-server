@@ -57,6 +57,7 @@ def get_workspace_permissions(workspace: str) -> Any:
 @swag_from("swagger/set_workspace_permissions.yaml")
 def set_workspace_permissions(workspace: str) -> Any:
     """Set the permissions on a workspace."""
+    # TODO: Add validation of json
     new_perms: WorkspacePermissions = request.json
     return db.set_workspace_permissions(workspace, new_perms)
 

@@ -15,6 +15,7 @@ from multinet.auth.util import (
     require_owner,
 )
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
+from multinet.types import WorkspacePermissions
 
 from multinet import db, util
 from multinet.errors import (
@@ -41,14 +42,23 @@ def get_workspaces() -> Any:
     return stream
 
 
-@bp.route("/workspaces/<workspace>", methods=["GET"])
+@bp.route("/workspaces/<workspace>/permissions", methods=["GET"])
 @require_reader
-@swag_from("swagger/workspace.yaml")
-def get_workspace(workspace: str) -> Any:
-    """Retrieve a single workspace."""
+@swag_from("swagger/get_workspace_permissions.yaml")
+def get_workspace_permissions(workspace: str) -> Any:
+    """Retrieve the permissions of a workspace."""
     metadata = db.get_workspace_metadata(workspace)
 
-    return {"name": metadata["name"], "permissions": metadata["permissions"]}
+    return metadata["permissions"]
+
+
+@bp.route("/workspaces/<workspace>/permissions", methods=["PUT"])
+@require_maintainer
+@swag_from("swagger/set_workspace_permissions.yaml")
+def set_workspace_permissions(workspace: str) -> Any:
+    """Set the permissions on a workspace."""
+    new_perms: WorkspacePermissions = request.json
+    return db.set_workspace_permissions(workspace, new_perms)
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

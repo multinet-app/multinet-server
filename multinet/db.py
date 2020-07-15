@@ -247,6 +247,7 @@ def set_workspace_permissions(
     if doc is None:
         raise DatabaseCorrupted()
 
+    # To ensure owner is only changed explicitly
     new_permissions = copy.deepcopy(permissions)
     new_permissions["owner"] = doc["permissions"]["owner"]
 

@@ -1,7 +1,10 @@
-Retrieve a single workspace.
+Set the permissions on a workspace.
 ---
 parameters:
   - $ref: "#/parameters/workspace"
+  - name: permissions
+    description: Permission Document
+    in: body
 
 responses:
   200:

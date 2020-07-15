@@ -4,15 +4,16 @@ from io import StringIO
 import os
 import pytest
 
+import conftest
 from multinet.errors import ValidationFailed, DecodeFailed
-from multinet.uploaders.csv import (
+from multinet.uploaders.csv import decode_data
+from multinet.validation import DuplicateKey, UnsupportedTable
+from multinet.validation.csv import (
     validate_csv,
-    decode_data,
     InvalidRow,
     KeyFieldAlreadyExists,
     KeyFieldDoesNotExist,
 )
-from multinet.validation import DuplicateKey, UnsupportedTable
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
@@ -32,7 +33,7 @@ def test_edge_table_with_key_field(
         request_body = csv_file.read()
 
     table_name = "membership_with_keys"
-    with managed_user.login(server):
+    with conftest.login(managed_user, server):
         resp = server.post(
             f"/api/csv/{managed_workspace}/{table_name}", data=request_body
         )

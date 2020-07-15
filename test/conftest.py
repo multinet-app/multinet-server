@@ -1,9 +1,8 @@
 """Pytest configurations for multinet tests."""
 
 import pytest
-import dacite
 from uuid import uuid4
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -14,27 +13,23 @@ from multinet.user import (
     set_user_cookie,
     user_collection,
     UserInfo,
-    User,
     MULTINET_COOKIE,
 )
 
 from typing import Generator, Tuple
 
 
-@dataclass
-class ContextUser(User):
-    """Inherits User to provide testing login context."""
+@contextmanager
+def login(user, server) -> Generator[None, None, None]:
+    """Perform server actions under a user login."""
 
-    @contextmanager
-    def login(self, server) -> Generator[None, None, None]:
-        """Ensure the user is logged in during this context."""
-        with server.session_transaction() as session:
-            session[MULTINET_COOKIE] = self.multinet.session
+    with server.session_transaction() as session:
+        session[MULTINET_COOKIE] = user.multinet.session
 
-        yield None
+    yield None
 
-        with server.session_transaction() as session:
-            del session[MULTINET_COOKIE]
+    with server.session_transaction() as session:
+        del session[MULTINET_COOKIE]
 
 
 @pytest.fixture
@@ -77,7 +72,7 @@ def managed_user():
         )
     )
 
-    yield dacite.from_dict(data_class=ContextUser, data=asdict(user))
+    yield user
 
     # TODO: Once the function exists, use `delete_user` here instead
     user_collection().delete(asdict(user))
@@ -107,7 +102,7 @@ def managed_workspace(generated_workspace):
 
 @pytest.fixture
 def populated_workspace(
-    managed_workspace, data_directory, server
+    managed_workspace, data_directory, server, managed_user
 ) -> Tuple[str, str, str, str]:
     """
     Populate a workspace with some data.
@@ -119,7 +114,9 @@ def populated_workspace(
     with open(Path(data_directory) / "miserables.json") as miserables:
         data = miserables.read()
 
-    resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+    with login(managed_user, server):
+        resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+
     assert resp.status_code == 200
 
     return (managed_workspace, "miserables", "miserables_nodes", "miserables_links")

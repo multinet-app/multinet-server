@@ -1,5 +1,6 @@
 """Low-level database operations."""
 import os
+import copy
 from functools import lru_cache
 
 from arango import ArangoClient
@@ -19,7 +20,13 @@ from requests.exceptions import ConnectionError
 
 from typing import Any, List, Dict, Set, Generator, Optional
 from typing_extensions import TypedDict
-from multinet.types import EdgeDirection, TableType, Workspace, WorkspaceDocument
+from multinet.types import (
+    EdgeDirection,
+    TableType,
+    Workspace,
+    WorkspaceDocument,
+    WorkspacePermissions,
+)
 from multinet.auth.types import User
 from multinet.errors import InternalServerError
 from multinet.validation.csv import validate_csv
@@ -227,6 +234,28 @@ def get_workspace_metadata(name: str) -> Workspace:
         raise DatabaseCorrupted()
 
     return metadata
+
+
+def set_workspace_permissions(
+    name: str, permissions: WorkspacePermissions
+) -> WorkspacePermissions:
+    """Update the permissions for a given workspace."""
+    if not workspace_exists(name):
+        raise WorkspaceNotFound(name)
+
+    doc = workspace_mapping(name)
+    if doc is None:
+        raise DatabaseCorrupted()
+
+    new_permissions = copy.deepcopy(permissions)
+    new_permissions["owner"] = doc["permissions"]["owner"]
+
+    doc["permissions"] = new_permissions
+    return_doc: WorkspacePermissions = workspace_mapping_collection().get(
+        workspace_mapping_collection().update(doc)
+    )
+
+    return return_doc
 
 
 # Caches the reference to the StandardDatabase instance for each workspace

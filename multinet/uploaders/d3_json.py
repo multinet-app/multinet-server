@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from collections import OrderedDict
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure
@@ -66,6 +67,7 @@ def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
 
 
 @bp.route("/<workspace>/<graph>", methods=["POST"])
+@require_writer
 @swag_from("swagger/d3_json.yaml")
 def upload(workspace: str, graph: str) -> Any:
     """Store a d3 json-encoded graph into the database, with node and edge tables.

@@ -15,7 +15,7 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 def test_validate_d3_json():
-    """Tests the validate_csv function."""
+    """Test the validate_d3_json() function."""
     # Arrange: Import the les miserables datasets with and without errors
     with open(data_path("miserables.json")) as f:
         good_data = json.load(f, object_pairs_hook=OrderedDict)

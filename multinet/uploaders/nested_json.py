@@ -4,6 +4,7 @@ import itertools
 import json
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request
@@ -75,6 +76,7 @@ def analyze_nested_json(
 
 
 @bp.route("/<workspace>/<graph>", methods=["POST"])
+@require_writer
 @swag_from("swagger/nested_json.yaml")
 def upload(workspace: str, graph: str) -> Any:
     """

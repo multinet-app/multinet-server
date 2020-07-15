@@ -5,16 +5,15 @@ from typing_extensions import Literal, TypedDict
 EdgeDirection = Literal["all", "incoming", "outgoing"]
 TableType = Literal["all", "node", "edge"]
 
-WorkspacePermissions = TypedDict(
-    "WorkspacePermissions",
-    {
-        "owner": str,  # this is the `sub` property of the `User` dataclass
-        "maintainers": List[str],
-        "writers": List[str],
-        "readers": List[str],
-        "public": bool,
-    },
-)
+
+class WorkspacePermissions(TypedDict):
+    """Permissions on a Workspace."""
+
+    owner: str  # this is the `sub` property of the `User` dataclass
+    maintainers: List[str]
+    writers: List[str]
+    readers: List[str]
+    public: bool
 
 
 class Workspace(TypedDict):

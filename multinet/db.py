@@ -313,7 +313,7 @@ def workspace_table_rows(
     """Stream the rows of a table in CSV form."""
 
     query = f"""
-    FOR d in {table}
+    FOR d in `{table}`
         LIMIT {offset}, {limit}
         RETURN d
     """
@@ -324,7 +324,7 @@ def workspace_table_rows(
 def workspace_table_row_count(workspace: str, table: str) -> int:
     """Return the number of rows in a table."""
     count_query = f"""
-    RETURN LENGTH({table})
+    RETURN LENGTH(`{table}`)
     """
     return next(aql_query(workspace, count_query))
 
@@ -335,7 +335,7 @@ def workspace_table_keys(
     """Get the keys of a table in a workspace."""
 
     query = f"""
-    FOR d in {table}
+    FOR d in `{table}`
         LIMIT 0, 1
         RETURN ATTRIBUTES(d)
     """
@@ -387,7 +387,7 @@ def graph_node(workspace: str, graph: str, table: str, node: str) -> dict:
         raise TableNotFound(workspace, table)
 
     query = f"""
-    FOR d in {table}
+    FOR d in `{table}`
       FILTER d._id == "{table}/{node}"
       RETURN d
     """
@@ -424,8 +424,9 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
 
     # Get the actual node data.
     node_tables = graph_node_tables(workspace, graph)
+    node_table_names = ", ".join(f"`{name}`" for name in node_tables)
     node_query = f"""
-    FOR c in [{", ".join(node_tables)}]
+    FOR c in [{node_table_names}]
       FOR d in c
         LIMIT {offset}, {limit}
         RETURN d
@@ -434,7 +435,7 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
 
     # Get the total node count.
     count_query = f"""
-    FOR c in [{", ".join(node_tables)}]
+    FOR c in [{node_table_names}]
       FOR d in c
         COLLECT WITH COUNT INTO count
         RETURN count
@@ -541,7 +542,7 @@ def node_edges(
 
     def query_text(filt: str) -> str:
         return f"""
-        FOR e IN {edge_table}
+        FOR e IN `{edge_table}`
             FILTER {filt}
             LIMIT {offset}, {limit}
             RETURN {{
@@ -553,7 +554,7 @@ def node_edges(
 
     def count_text(filt: str) -> str:
         return f"""
-        FOR e IN {edge_table}
+        FOR e IN `{edge_table}`
             FILTER {filt}
             COLLECT WITH COUNT INTO count
             RETURN count

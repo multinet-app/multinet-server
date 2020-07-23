@@ -32,11 +32,15 @@ jobs:
       - name: Check generated requirements against existing requirements
         run: diff requirements.txt generated-requirements.txt
 
+      - name: Capture pipenv version
+        run: echo "::set-output name=pipenv-version::$(pipenv --version | sed 's/,//g')"
+        id: pipenv-version
+
       - uses: actions/cache@v1
         id: multinet-cache
         with:
           path: /home/runner/.local/share/virtualenvs/
-          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet-server/multinet-server/Pipfile.lock') }}-pipenv-cache-2
+          key: ${{ runner.os }}-${{ hashFiles('/home/runner/work/multinet-server/multinet-server/Pipfile.lock') }}-${{ steps.pipenv-version.outputs.pipenv-version }}-pipenv-cache-2
 
       - name: Install pipenv packages
         if: steps.multinet-cache.outputs.cache-hit != 'true'

@@ -52,30 +52,30 @@ arango = ArangoClient(
 restricted_keys = {"_rev", "_id"}
 
 
-def db(name: str) -> StandardDatabase:
+def db(name: str, readonly: bool = True) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
-    return arango.db(
-        name,
-        username="root",
-        password=os.environ.get("ARANGO_PASSWORD", "letmein"),
-        verify=True,
+
+    username = "readonly" if readonly else "root"
+    password = (
+        os.environ.get("ARANGO_READONLY_PASSWORD", "letmein")
+        if readonly
+        else os.environ.get("ARANGO_PASSWORD", "letmein")
     )
 
-
-def read_only_db(name: str) -> StandardDatabase:
-    """Return a read-only handle for the Arango database `name`."""
-    return arango.db(
-        name,
-        username="readonly",
-        password=os.environ.get("ARANGO_READONLY_PASSWORD", "letmein"),
-        verify=True,
-    )
+    return arango.db(name, username=username, password=password, verify=True)
 
 
+@lru_cache()
+def system_db(readonly: bool = True) -> StandardDatabase:
+    """Return the singleton `_system` db handle."""
+    return db("_system", readonly)
+
+
+# TODO: Fix/remove this
 def check_db() -> bool:
     """Check the database to see if it's alive."""
     try:
-        db("_system").has_database("test")
+        system_db().has_database("test")
         return True
     except ConnectionError:
         return False
@@ -83,7 +83,7 @@ def check_db() -> bool:
 
 def register_legacy_workspaces() -> None:
     """Add legacy workspaces to the workspace mapping."""
-    sysdb = db("_system")
+    sysdb = system_db()
     coll = workspace_mapping_collection()
 
     databases = {name for name in sysdb.databases() if name != "_system"}
@@ -98,7 +98,7 @@ def register_legacy_workspaces() -> None:
 @lru_cache(maxsize=1)
 def workspace_mapping_collection() -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
-    sysdb = db("_system")
+    sysdb = system_db()
 
     if not sysdb.has_collection("workspace_mapping"):
         sysdb.create_collection("workspace_mapping")
@@ -131,7 +131,7 @@ def workspace_exists(name: str) -> bool:
 
 def workspace_exists_internal(name: str) -> bool:
     """Return True if a workspace with the internal name :name: exists."""
-    sysdb = db("_system")
+    sysdb = system_db()
     return sysdb.has_database(name)
 
 
@@ -163,7 +163,7 @@ def create_workspace(name: str, user: User) -> str:
     # clash with an existing internal name; in this case we go full UNIX and
     # just bail out, rather than building in logic to catch it happening.
     try:
-        db("_system").create_database(ws_doc["internal"])
+        system_db().create_database(ws_doc["internal"])
     except DatabaseCreateError:
         # Could only happen if there's a name collisison
         raise InternalServerError()
@@ -204,7 +204,7 @@ def delete_workspace(name: str) -> None:
     if not doc:
         raise WorkspaceNotFound(name)
 
-    sysdb = db("_system")
+    sysdb = system_db()
     coll = workspace_mapping_collection()
 
     sysdb.delete_database(doc["internal"])
@@ -238,7 +238,7 @@ def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
         raise WorkspaceNotFound(name)
 
     name = doc["internal"]
-    return read_only_db(name) if readonly else db(name)
+    return db(name, readonly)
 
 
 def get_graph_collection(workspace: str, graph: str) -> Graph:

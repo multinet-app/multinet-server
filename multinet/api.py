@@ -1,10 +1,12 @@
 """Flask blueprint for Multinet REST API."""
+from copy import deepcopy
+from dataclasses import asdict
 from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Dict, cast
 from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
     require_login,
@@ -25,9 +27,60 @@ from multinet.errors import (
     AlreadyExists,
     RequiredParamsMissing,
 )
-from multinet.user import current_user
+from multinet.user import current_user, find_user_from_id
 
 bp = Blueprint("multinet", __name__)
+
+
+# Included here due to circular imports
+# TODO: Remove once implementing new ORM and permission storage
+def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
+    """Transform permission documents to directly container user info."""
+
+    new_permissions = deepcopy(permissons)
+    for role, users in new_permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            assert isinstance(users, str)
+
+            user = find_user_from_id(users)
+            if user is not None:
+                # Not sure why mypy complains about `user` here
+                new_permissions["owner"] = asdict(user)  # type: ignore
+        else:
+            assert isinstance(users, list)
+
+            new_users = []
+            for sub in users:
+                user = find_user_from_id(sub)
+                if user is not None:
+                    new_users.append(asdict(user))
+
+            # Ignoring requirement of literal string keys
+            new_permissions[role] = new_users  # type: ignore
+
+    return cast(Dict, new_permissions)
+
+
+# Included here due to circular imports
+# TODO: Remove once implementing new ORM and permission storage
+def _permissions_user_to_id(expanded_user_permissions: Dict) -> WorkspacePermissions:
+    """Transform permission documents to only contain the `sub` values of users."""
+    permissions = deepcopy(expanded_user_permissions)
+
+    for role, users in permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            if users is not None:
+                permissions["owner"] = users["sub"]
+        else:
+            permissions[role] = [user["sub"] for user in users]
+
+    return cast(WorkspacePermissions, permissions)
 
 
 @bp.route("/workspaces", methods=["GET"])
@@ -43,13 +96,13 @@ def get_workspaces() -> Any:
 
 
 @bp.route("/workspaces/<workspace>/permissions", methods=["GET"])
-@require_reader
+@require_maintainer
 @swag_from("swagger/get_workspace_permissions.yaml")
 def get_workspace_permissions(workspace: str) -> Any:
     """Retrieve the permissions of a workspace."""
     metadata = db.get_workspace_metadata(workspace)
 
-    return metadata["permissions"]
+    return _permissions_id_to_user(metadata["permissions"])
 
 
 @bp.route("/workspaces/<workspace>/permissions", methods=["PUT"])
@@ -58,8 +111,8 @@ def get_workspace_permissions(workspace: str) -> Any:
 def set_workspace_permissions(workspace: str) -> Any:
     """Set the permissions on a workspace."""
     # TODO: Add validation of json
-    new_perms: WorkspacePermissions = request.json
-    return db.set_workspace_permissions(workspace, new_perms)
+    perms = _permissions_user_to_id(request.json)
+    return db.set_workspace_permissions(workspace, perms)
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

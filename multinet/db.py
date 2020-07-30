@@ -243,7 +243,7 @@ def set_workspace_permissions(
     if not workspace_exists(name):
         raise WorkspaceNotFound(name)
 
-    doc = workspace_mapping(name)
+    doc = copy.deepcopy(workspace_mapping(name))
     if doc is None:
         raise DatabaseCorrupted()
 
@@ -253,7 +253,7 @@ def set_workspace_permissions(
 
     doc["permissions"] = new_permissions
     return_doc: WorkspacePermissions = workspace_mapping_collection().get(
-        workspace_mapping_collection().update(doc)
+        workspace_mapping_collection().update(doc, check_rev=False)
     )
 
     return return_doc

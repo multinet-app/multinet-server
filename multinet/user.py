@@ -146,13 +146,14 @@ def search_user(query: str) -> Cursor:
     coll = user_collection()
     aql = read_only_db("_system").aql
 
-    query = f"""
-        FOR doc in {coll.name}
-          FILTER CONTAINS(LOWER(doc.name), LOWER('{query}'))
-            OR CONTAINS(LOWER(doc.email), LOWER('{query}'))
+    bind_vars = {"@users": coll.name, "query": query}
+    query = """
+        FOR doc in @@users
+          FILTER CONTAINS(LOWER(doc.name), LOWER(@query))
+            OR CONTAINS(LOWER(doc.email), LOWER(@query))
 
           LIMIT 50
           RETURN doc
     """
 
-    return _run_aql_query(aql, query)
+    return _run_aql_query(aql, query, bind_vars)

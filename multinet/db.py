@@ -453,10 +453,12 @@ def delete_table(workspace: str, table: str) -> str:
     return table
 
 
-def _run_aql_query(aql: AQL, query: str) -> Cursor:
+def _run_aql_query(
+    aql: AQL, query: str, bind_vars: Optional[Dict[str, Any]] = None
+) -> Cursor:
     try:
         aql.validate(query)
-        cursor = aql.execute(query)
+        cursor = aql.execute(query, bind_vars=bind_vars)
     except AQLQueryValidateError as e:
         raise AQLValidationError(str(e))
     except AQLQueryExecuteError as e:

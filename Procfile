@@ -1,1 +1,1 @@
-web: gunicorn multinet.app:app
+web: gunicorn multinet.app:app -t 120

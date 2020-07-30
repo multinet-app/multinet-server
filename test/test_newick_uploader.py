@@ -11,7 +11,7 @@ TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
 
 def test_validate_newick():
-    """Tests the validate_csv function."""
+    """Test the validate_newick() function."""
     duplicate_keys_file_path = os.path.join(
         TEST_DATA_DIR, "basic_newick_duplicates.tree"
     )

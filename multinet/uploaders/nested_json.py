@@ -4,6 +4,7 @@ import itertools
 import json
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists
 
 from flask import Blueprint, request
@@ -75,6 +76,7 @@ def analyze_nested_json(
 
 
 @bp.route("/<workspace>/<graph>", methods=["POST"])
+@require_writer
 @swag_from("swagger/nested_json.yaml")
 def upload(workspace: str, graph: str) -> Any:
     """
@@ -84,12 +86,12 @@ def upload(workspace: str, graph: str) -> Any:
     `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
-    # Set up the parameters.
-    data = request.data.decode("utf8")
-
     space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
+
+    # Set up the parameters.
+    data = request.data.decode("utf8")
 
     edgetable_name = f"{graph}_edges"
     int_nodetable_name = f"{graph}_internal_nodes"

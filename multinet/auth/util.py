@@ -36,7 +36,7 @@ def is_reader(user: Optional[UserInfo], workspace: Workspace) -> bool:
         return perms["public"]
 
     # Otherwise, check to see if the workspace is public, or the user is at
-    # least a Reader of the workspace.
+    # least a reader of the workspace.
     sub = user.sub
     return (
         perms["public"]
@@ -55,7 +55,90 @@ def require_reader(f: Any) -> Any:
         user = current_user()
         workspace_metadata = db.get_workspace_metadata(workspace)
         if not is_reader(user, workspace_metadata):
-            raise Unauthorized(f"You must be a Reader of workspace {workspace}")
+            raise Unauthorized(f"You must be a reader of workspace '{workspace}'")
+
+        return f(workspace, *args, **kwargs)
+
+    return wrapper
+
+
+def is_writer(user: Optional[UserInfo], workspace: Workspace) -> bool:
+    """Indicate whether `user` has write permissions for `workspace`."""
+
+    if user is None:
+        return False
+
+    perms = workspace["permissions"]
+    sub = user.sub
+
+    return (
+        sub in perms["writers"] or sub in perms["maintainers"] or perms["owner"] == sub
+    )
+
+
+def require_writer(f: Any) -> Any:
+    """Decorate an API endpoint to require write permission."""
+
+    @functools.wraps(f)
+    def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
+        user = current_user()
+        workspace_metadata = db.get_workspace_metadata(workspace)
+        if not is_writer(user, workspace_metadata):
+            raise Unauthorized(f"You must be a writer of workspace '{workspace}'")
+
+        return f(workspace, *args, **kwargs)
+
+    return wrapper
+
+
+def is_maintainer(user: Optional[UserInfo], workspace: Workspace) -> bool:
+    """Indicate whether `user` has maintainer permissions for `workspace`."""
+
+    if user is None:
+        return False
+
+    perms = workspace["permissions"]
+    sub = user.sub
+
+    return sub in perms["maintainers"] or perms["owner"] == sub
+
+
+def require_maintainer(f: Any) -> Any:
+    """Decorate an API endpoint to require maintainer permission."""
+
+    @functools.wraps(f)
+    def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
+        user = current_user()
+        workspace_metadata = db.get_workspace_metadata(workspace)
+        if not is_maintainer(user, workspace_metadata):
+            raise Unauthorized(f"You must be a maintainer of workspace '{workspace}'")
+
+        return f(workspace, *args, **kwargs)
+
+    return wrapper
+
+
+def is_owner(user: Optional[UserInfo], workspace: Workspace) -> bool:
+    """Indicate whether `user` is the owner of `workspace`."""
+
+    if user is None:
+        return False
+
+    perms = workspace["permissions"]
+    sub = user.sub
+
+    return perms["owner"] == sub
+
+
+def require_owner(f: Any) -> Any:
+    """Decorate an API endpoint to require ownership."""
+
+    @functools.wraps(f)
+    def wrapper(workspace: str, *args: Any, **kwargs: Any) -> Any:
+        user = current_user()
+        workspace_metadata = db.get_workspace_metadata(workspace)
+        if not is_owner(user, workspace_metadata):
+            raise Unauthorized(f"You must be the owner of workspace '{workspace}'")
 
         return f(workspace, *args, **kwargs)
 

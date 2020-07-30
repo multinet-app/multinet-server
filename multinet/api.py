@@ -6,7 +6,14 @@ from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional, List
 from multinet.types import EdgeDirection, TableType
-from multinet.auth.util import require_login, require_reader, is_reader
+from multinet.auth.util import (
+    require_login,
+    require_reader,
+    is_reader,
+    require_writer,
+    require_maintainer,
+    require_owner,
+)
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
 
 from multinet import db, util
@@ -55,6 +62,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["POST"])
+@require_writer
 @use_kwargs({"table": fields.Str()})
 @swag_from("swagger/workspace_aql_tables.yaml")
 def create_aql_table(workspace: str, table: str) -> Any:
@@ -166,6 +174,7 @@ def aql(workspace: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>", methods=["DELETE"])
+@require_owner
 @swag_from("swagger/delete_workspace.yaml")
 def delete_workspace(workspace: str) -> Any:
     """Delete a workspace."""
@@ -175,6 +184,7 @@ def delete_workspace(workspace: str) -> Any:
 
 @bp.route("/workspaces/<workspace>/name", methods=["PUT"])
 @use_kwargs({"name": fields.Str()})
+@require_maintainer
 @swag_from("swagger/rename_workspace.yaml")
 def rename_workspace(workspace: str, name: str) -> Any:
     """Delete a workspace."""
@@ -184,6 +194,7 @@ def rename_workspace(workspace: str, name: str) -> Any:
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["POST"])
 @use_kwargs({"edge_table": fields.Str()})
+@require_writer
 @swag_from("swagger/create_graph.yaml")
 def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -> Any:
     """Create a graph."""
@@ -221,6 +232,7 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["DELETE"])
+@require_writer
 @swag_from("swagger/delete_graph.yaml")
 def delete_graph(workspace: str, graph: str) -> Any:
     """Delete a graph."""
@@ -229,6 +241,7 @@ def delete_graph(workspace: str, graph: str) -> Any:
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>", methods=["DELETE"])
+@require_writer
 @swag_from("swagger/delete_table.yaml")
 def delete_table(workspace: str, table: str) -> Any:
     """Delete a table."""

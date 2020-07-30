@@ -4,6 +4,7 @@ import uuid
 import newick
 
 from multinet import db, util
+from multinet.auth.util import require_writer
 from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey
@@ -62,6 +63,7 @@ def validate_newick(tree: List[newick.Node]) -> None:
 
 
 @bp.route("/<workspace>/<graph>", methods=["POST"])
+@require_writer
 @swag_from("swagger/newick.yaml")
 def upload(workspace: str, graph: str) -> Any:
     """
@@ -73,15 +75,13 @@ def upload(workspace: str, graph: str) -> Any:
     """
     app.logger.info("newick tree")
 
-    body = decode_data(request.data)
-
-    tree = newick.loads(body)
-
-    validate_newick(tree)
-
     space = db.get_workspace_db(workspace)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
+
+    body = decode_data(request.data)
+    tree = newick.loads(body)
+    validate_newick(tree)
 
     edgetable_name = f"{graph}_edges"
     nodetable_name = f"{graph}_nodes"

@@ -4,15 +4,16 @@ from io import StringIO
 import os
 import pytest
 
+import conftest
 from multinet.errors import ValidationFailed, DecodeFailed
-from multinet.uploaders.csv import (
+from multinet.uploaders.csv import decode_data
+from multinet.validation import DuplicateKey, UnsupportedTable
+from multinet.validation.csv import (
     validate_csv,
-    decode_data,
     InvalidRow,
     KeyFieldAlreadyExists,
     KeyFieldDoesNotExist,
 )
-from multinet.validation import DuplicateKey, UnsupportedTable
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
 
@@ -22,6 +23,34 @@ def read_csv(filename: str):
     file_path = os.path.join(TEST_DATA_DIR, filename)
     with open(file_path) as path_file:
         return list(csv.DictReader(StringIO(path_file.read())))
+
+
+def test_edge_table_with_key_field(
+    server, managed_workspace, managed_user, data_directory
+):
+    """Test that an edge table with a key field is recognized as an edge table."""
+    with open(data_directory / "membership_with_keys.csv") as csv_file:
+        request_body = csv_file.read()
+
+    table_name = "membership_with_keys"
+    with conftest.login(managed_user, server):
+        resp = server.post(
+            f"/api/csv/{managed_workspace}/{table_name}", data=request_body
+        )
+        assert resp.status_code == 200
+
+        edge_table_resp = server.get(
+            f"/api/workspaces/{managed_workspace}/tables", query_string={"type": "edge"}
+        )
+        node_table_resp = server.get(
+            f"/api/workspaces/{managed_workspace}/tables", query_string={"type": "node"}
+        )
+
+    assert edge_table_resp.status_code == 200
+    assert table_name in edge_table_resp.json
+
+    assert node_table_resp.status_code == 200
+    assert table_name not in node_table_resp.json
 
 
 def test_missing_key_field():

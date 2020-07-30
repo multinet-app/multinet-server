@@ -19,6 +19,8 @@ class Collection:
     def random(self) -> Dict: ...
 
 class StandardCollection(Collection):
+    name: str
+
     def insert(
         self,
         document: Any,

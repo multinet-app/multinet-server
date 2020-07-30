@@ -3,10 +3,11 @@
 import dataclasses
 from uuid import uuid4
 from arango.collection import StandardCollection
+from arango.cursor import Cursor
 from dacite import from_dict
 from flask import session
 
-from multinet.db import db
+from multinet.db import db, read_only_db, _run_aql_query
 from multinet.errors import InternalServerError
 from multinet.auth.types import (
     GoogleUserInfo,
@@ -141,3 +142,22 @@ def filtered_user(user: User) -> FilteredUser:
 def copy_user(user: User) -> User:
     """Create and return a new instance of User."""
     return from_dict(User, dataclasses.asdict(user))
+
+
+def search_user(query: str) -> Cursor:
+    """Search for users given a partial string."""
+
+    coll = user_collection()
+    aql = read_only_db("_system").aql
+
+    bind_vars = {"@users": coll.name, "query": query}
+    query = """
+        FOR doc in @@users
+          FILTER CONTAINS(LOWER(doc.name), LOWER(@query))
+            OR CONTAINS(LOWER(doc.email), LOWER(@query))
+
+          LIMIT 50
+          RETURN doc
+    """
+
+    return _run_aql_query(aql, query, bind_vars)

@@ -22,7 +22,7 @@ from multinet.auth.util import require_login
 bp = Blueprint("user", "user")
 
 
-@bp.route("/info")
+@bp.route("/info", methods=["GET"])
 @swag_from("swagger/user/info.yaml")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
@@ -41,7 +41,7 @@ def user_info() -> ResponseWrapper:
     return make_response(asdict(filtered_user(user)))
 
 
-@bp.route("/logout")
+@bp.route("/logout", methods=["GET"])
 @swag_from("swagger/user/logout.yaml")
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""

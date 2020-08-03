@@ -18,7 +18,7 @@ from arango.exceptions import (
 )
 from requests.exceptions import ConnectionError
 
-from typing import Any, List, Dict, Set, Generator, Optional
+from typing import Any, List, Dict, Set, Generator, Optional, cast
 from typing_extensions import TypedDict
 from multinet.types import (
     EdgeDirection,
@@ -254,11 +254,11 @@ def set_workspace_permissions(
     new_permissions["owner"] = doc["permissions"]["owner"]
 
     doc["permissions"] = new_permissions
-    return_doc: WorkspacePermissions = workspace_mapping_collection().get(
+    return_doc = workspace_mapping_collection().get(
         workspace_mapping_collection().update(doc, check_rev=False)
     )
 
-    return return_doc
+    return cast(WorkspacePermissions, return_doc)
 
 
 # Caches the reference to the StandardDatabase instance for each workspace

@@ -95,7 +95,7 @@ def init_oauth(app: Flask) -> None:
         )
 
 
-@bp.route("/login")
+@bp.route("/login", methods=["GET"])
 @use_kwargs({"return_url": fields.Str(location="query")})
 @swag_from("swagger/google/login.yaml")
 def login(return_url: Optional[str] = None) -> ResponseWrapper:
@@ -123,7 +123,7 @@ def login(return_url: Optional[str] = None) -> ResponseWrapper:
     return redirect(url)
 
 
-@bp.route("/authorized")
+@bp.route("/authorized", methods=["GET"])
 @use_kwargs({"state": fields.Str(), "code": fields.Str()})
 @swag_from("swagger/google/authorized.yaml")
 def authorized(state: str, code: str) -> ResponseWrapper:

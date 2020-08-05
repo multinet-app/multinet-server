@@ -231,7 +231,7 @@ def get_workspace_metadata(name: str) -> Workspace:
 
 # Caches the reference to the StandardDatabase instance for each workspace
 @lru_cache()
-def get_workspace_db(name: str, readonly: bool = False) -> StandardDatabase:
+def get_workspace_db(name: str, readonly: bool = True) -> StandardDatabase:
     """Return the Arango database associated with a workspace, if it exists."""
     doc = workspace_mapping(name)
     if not doc:
@@ -446,7 +446,7 @@ def graph_nodes(workspace: str, graph: str, offset: int, limit: int) -> GraphNod
 
 def delete_table(workspace: str, table: str) -> str:
     """Delete a table."""
-    space = get_workspace_db(workspace)
+    space = get_workspace_db(workspace, readonly=False)
     if space.has_collection(table):
         space.delete_collection(table)
 
@@ -481,7 +481,7 @@ def create_graph(
     to_vertex_collections: Set[str],
 ) -> bool:
     """Create a graph named `graph`, defined by`node_tables` and `edge_table`."""
-    space = get_workspace_db(workspace)
+    space = get_workspace_db(workspace, readonly=False)
     if space.has_graph(graph):
         return False
 
@@ -504,7 +504,7 @@ def create_graph(
 
 def delete_graph(workspace: str, graph: str) -> str:
     """Delete graph `graph` from workspace `workspace`."""
-    space = get_workspace_db(workspace)
+    space = get_workspace_db(workspace, readonly=False)
     if space.has_graph(graph):
         space.delete_graph(graph)
 

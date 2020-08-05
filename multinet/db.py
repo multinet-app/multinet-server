@@ -249,7 +249,7 @@ def set_workspace_permissions(
 
     # TODO: Do user object validation once ORM is implemented
 
-    # To ensure owner is only changed explicitly
+    # Disallow changing workspace ownership through this function.
     new_permissions = copy.deepcopy(permissions)
     new_permissions["owner"] = doc["permissions"]["owner"]
 

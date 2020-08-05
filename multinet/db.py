@@ -229,7 +229,7 @@ def get_workspace_metadata(name: str) -> Workspace:
 
     # Find the metadata record for the named workspace. If it's not there,
     # something went very wrong, so bail out.
-    metadata = workspace_mapping.__wrapped__(name)
+    metadata = workspace_mapping(name)
     if metadata is None:
         raise DatabaseCorrupted()
 

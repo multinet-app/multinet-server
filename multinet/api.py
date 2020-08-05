@@ -37,18 +37,19 @@ bp = Blueprint("multinet", __name__)
 def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
     """Transform permission documents to directly container user info."""
 
-    new_permissions = deepcopy(permissons)
+    # Cast to a regular dict, since it won't actually be
+    # a `WorkspacePermissions` after we perform replacement
+    new_permissions = cast(Dict, deepcopy(permissons))
+
     for role, users in new_permissions.items():
         if role == "public":
             continue
 
         if role == "owner":
-            assert isinstance(users, str)
-
+            # Since the role is "owner", `users` is a `str`
             user = find_user_from_id(users)
             if user is not None:
-                # Not sure why mypy complains about `user` here
-                new_permissions["owner"] = asdict(user)  # type: ignore
+                new_permissions["owner"] = asdict(user)
         else:
             assert isinstance(users, list)
 
@@ -58,10 +59,9 @@ def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
                 if user is not None:
                     new_users.append(asdict(user))
 
-            # Ignoring requirement of literal string keys
-            new_permissions[role] = new_users  # type: ignore
+            new_permissions[role] = new_users
 
-    return cast(Dict, new_permissions)
+    return new_permissions
 
 
 # Included here due to circular imports

@@ -35,7 +35,16 @@ bp = Blueprint("multinet", __name__)
 # Included here due to circular imports
 # TODO: Remove once implementing new ORM and permission storage
 def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
-    """Transform permission documents to directly container user info."""
+    """
+    Transform permission documents to directly contain user info.
+
+    Currently, `WorkspacePermissons` only contains references to users through their
+    `sub` values, stored as a str in the role to which it pertains. The client requires
+    more information to properly display/use permissions, so this function transforms
+    the `sub` values to the entire user object.
+
+    This fuction will eventually be supplanted by a change in our permission model.
+    """
 
     # Cast to a regular dict, since it won't actually be
     # a `WorkspacePermissions` after we perform replacement

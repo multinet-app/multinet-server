@@ -256,7 +256,7 @@ def set_workspace_permissions(
     doc["permissions"] = new_permissions
     return_doc = workspace_mapping_collection().get(
         workspace_mapping_collection().update(doc)
-    )
+    )["permissions"]
 
     workspace_mapping.cache_clear()
 

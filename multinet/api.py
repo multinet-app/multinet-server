@@ -60,8 +60,6 @@ def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
             if user is not None:
                 new_permissions["owner"] = asdict(user)
         else:
-            assert isinstance(users, list)
-
             new_users = []
             for sub in users:
                 user = find_user_from_id(sub)
@@ -129,7 +127,7 @@ def set_workspace_permissions(workspace: str) -> Any:
         raise MalformedRequestBody(request.json)
 
     perms = _permissions_user_to_id(request.json)
-    return db.set_workspace_permissions(workspace, perms)
+    return _permissions_id_to_user(db.set_workspace_permissions(workspace, perms))
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

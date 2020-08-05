@@ -61,7 +61,7 @@ def upload(
     `data` - the CSV data, passed in the request body. If the CSV data contains
              `_from` and `_to` fields, it will be treated as an edge table.
     """
-    space = db.get_workspace_db(workspace)
+    space = db.get_workspace_db(workspace, readonly=False)
     if space.has_collection(table):
         raise AlreadyExists("table", table)
 

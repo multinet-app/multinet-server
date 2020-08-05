@@ -5,9 +5,9 @@ parameters:
 
 responses:
   200:
-    description: Metadata about the specified workspace
+    description: The permissions for the given workspace
     schema:
-      $ref: "#/definitions/workspace"
+      $ref: "#/definitions/workspace_permissions"
 
   404:
     description: Specified workspace could not be found

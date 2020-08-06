@@ -37,14 +37,18 @@ def user_exists(userinfo: UserInfo) -> bool:
     return load_user(userinfo) is not None
 
 
-def load_user(userinfo: UserInfo) -> Optional[User]:
-    """Return a user doc if it exists, else None."""
+def find_user_from_id(sub: str) -> Optional[User]:
+    """Directly uses the `sub` property to return a user."""
     coll = user_collection()
-
     try:
-        return from_dict(User, next(coll.find({"sub": userinfo.sub}, limit=1)))
+        return from_dict(User, next(coll.find({"sub": sub}, limit=1)))
     except StopIteration:
         return None
+
+
+def load_user(userinfo: UserInfo) -> Optional[User]:
+    """Return a user doc if it exists, else None."""
+    return find_user_from_id(userinfo.sub)
 
 
 def updated_user(user: User) -> User:

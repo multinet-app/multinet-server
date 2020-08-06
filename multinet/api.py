@@ -1,10 +1,12 @@
 """Flask blueprint for Multinet REST API."""
+from copy import deepcopy
+from dataclasses import asdict
 from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Dict, cast
 from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
     require_login,
@@ -15,6 +17,7 @@ from multinet.auth.util import (
     require_owner,
 )
 from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
+from multinet.types import WorkspacePermissions
 
 from multinet import db, util
 from multinet.errors import (
@@ -24,9 +27,67 @@ from multinet.errors import (
     AlreadyExists,
     RequiredParamsMissing,
 )
-from multinet.user import current_user
+from multinet.user import current_user, find_user_from_id
 
 bp = Blueprint("multinet", __name__)
+
+
+# Included here due to circular imports
+# TODO: Remove once implementing new ORM and permission storage
+def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
+    """
+    Transform permission documents to directly contain user info.
+
+    Currently, `WorkspacePermissons` only contains references to users through their
+    `sub` values, stored as a str in the role to which it pertains. The client requires
+    more information to properly display/use permissions, so this function transforms
+    the `sub` values to the entire user object.
+
+    This fuction will eventually be supplanted by a change in our permission model.
+    """
+
+    # Cast to a regular dict, since it won't actually be
+    # a `WorkspacePermissions` after we perform replacement
+    new_permissions = cast(Dict, deepcopy(permissons))
+
+    for role, users in new_permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            # Since the role is "owner", `users` is a `str`
+            user = find_user_from_id(users)
+            if user is not None:
+                new_permissions["owner"] = asdict(user)
+        else:
+            new_users = []
+            for sub in users:
+                user = find_user_from_id(sub)
+                if user is not None:
+                    new_users.append(asdict(user))
+
+            new_permissions[role] = new_users
+
+    return new_permissions
+
+
+# Included here due to circular imports
+# TODO: Remove once implementing new ORM and permission storage
+def _permissions_user_to_id(expanded_user_permissions: Dict) -> WorkspacePermissions:
+    """Transform permission documents to only contain the `sub` values of users."""
+    permissions = deepcopy(expanded_user_permissions)
+
+    for role, users in permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            if users is not None:
+                permissions["owner"] = users["sub"]
+        else:
+            permissions[role] = [user["sub"] for user in users]
+
+    return cast(WorkspacePermissions, permissions)
 
 
 @bp.route("/workspaces", methods=["GET"])
@@ -41,14 +102,32 @@ def get_workspaces() -> Any:
     return stream
 
 
-@bp.route("/workspaces/<workspace>", methods=["GET"])
-@require_reader
-@swag_from("swagger/workspace.yaml")
-def get_workspace(workspace: str) -> Any:
-    """Retrieve a single workspace."""
+@bp.route("/workspaces/<workspace>/permissions", methods=["GET"])
+@require_maintainer
+@swag_from("swagger/get_workspace_permissions.yaml")
+def get_workspace_permissions(workspace: str) -> Any:
+    """Retrieve the permissions of a workspace."""
     metadata = db.get_workspace_metadata(workspace)
 
-    return {"name": metadata["name"], "permissions": metadata["permissions"]}
+    return _permissions_id_to_user(metadata["permissions"])
+
+
+@bp.route("/workspaces/<workspace>/permissions", methods=["PUT"])
+@require_maintainer
+@swag_from("swagger/set_workspace_permissions.yaml")
+def set_workspace_permissions(workspace: str) -> Any:
+    """Set the permissions on a workspace."""
+    if set(request.json.keys()) != {
+        "owner",
+        "maintainers",
+        "writers",
+        "readers",
+        "public",
+    }:
+        raise MalformedRequestBody(request.json)
+
+    perms = _permissions_user_to_id(request.json)
+    return _permissions_id_to_user(db.set_workspace_permissions(workspace, perms))
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

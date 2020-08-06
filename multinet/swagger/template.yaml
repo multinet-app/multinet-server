@@ -8,53 +8,55 @@ definitions:
   any_type:
     description: Can have any type
 
-  workspace:
-    description: A description of a workspace, including its permissions
+  workspace_permissions:
+    description: A description of a workspace's permissions
     type: object
     required:
-      - name
-      - owner
       - maintainers
-      - writers
-      - readers
+      - owner
       - public
+      - readers
+      - writers
     properties:
-      name:
-        description: The name of the workspace
-        type: string
       owner:
         description: The owner of the workspace
-        type: string
+        type: object
       maintainers:
         description: The list of maintainers of the workspace
         type: array
         items:
-          type: string
+          type: object
       writers:
         description: The list of writers of the workspace
         type: array
         items:
-          type: string
+          type: object
       readers:
         description: The list of readers of the workspace
         type: array
         items:
-          type: string
+          type: object
       public:
         description: Whether this workspace is public or not
         type: boolean
     example:
-      name: engineering
-      owner: laforge
-      readers:
-        - worf
-        - data
-        - troi
-      maintainers:
-        - picard
-        - riker
-      writers: []
-      public: False
+      maintainers: []
+      owner:
+        email: guy.fieri@flavortown.com
+        family_name: Fieri
+        given_name: Guy
+        name: Guy Fieri
+        picture: "https://flowjournal.org/wp-content/uploads/2012/09/Image-1-Guy-Fieri.png"
+        sub: "123456789"
+      public: true
+      readers: []
+      writers:
+        - email: bill.murray@imdb.com
+          family_name: Murray
+          given_name: Bill
+          name: Bill Murray
+          picture: https://i.pinimg.com/originals/35/bf/be/35bfbe3173cafd59c1066fabe9bb84c5.jpg
+          sub: "987654321"
 
   graph:
     description: A description of a graph, including its constituent tables

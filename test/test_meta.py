@@ -7,7 +7,7 @@ def test_generated_workspace(managed_workspace, managed_user, server):
     """Test that a generated workspace exists when querying the API."""
 
     with conftest.login(managed_user, server):
-        resp = server.get(f"/api/workspaces/{managed_workspace}")
+        resp = server.get(f"/api/workspaces/{managed_workspace}/permissions")
         assert resp.status_code == 200
 
 

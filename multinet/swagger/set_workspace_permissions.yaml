@@ -1,13 +1,16 @@
-Retrieve a single workspace.
+Set the permissions on a workspace.
 ---
 parameters:
   - $ref: "#/parameters/workspace"
+  - name: permissions
+    description: Permission Document
+    in: body
 
 responses:
   200:
-    description: Metadata about the specified workspace
+    description: The permissions for the given workspace
     schema:
-      $ref: "#/definitions/workspace"
+      $ref: "#/definitions/workspace_permissions"
 
   404:
     description: Specified workspace could not be found

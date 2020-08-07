@@ -86,7 +86,7 @@ def upload(workspace: str, graph: str) -> Any:
     `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
-    space = db.get_workspace_db(workspace)
+    space = db.get_workspace_db(workspace, readonly=False)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 

@@ -75,7 +75,7 @@ def upload(workspace: str, graph: str) -> Any:
     """
     app.logger.info("newick tree")
 
-    space = db.get_workspace_db(workspace)
+    space = db.get_workspace_db(workspace, readonly=False)
     if space.has_graph(graph):
         raise AlreadyExists("graph", graph)
 

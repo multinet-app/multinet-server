@@ -6,6 +6,7 @@ from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
+from uuid import uuid4
 from typing import Any, Optional, List, Dict, cast
 from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
@@ -326,3 +327,26 @@ def delete_table(workspace: str, table: str) -> Any:
     """Delete a table."""
     db.delete_table(workspace, table)
     return table
+
+
+@bp.route("/uploads", methods=["POST"])
+def create_upload():
+    """Create a collection for multipart upload."""
+    upload_id = uuid4().hex
+    sysdb = db.db("_system")
+    sysdb.create_collection(upload_id)
+    return upload_id
+
+
+@bp.route("/uploads/<upload_id>/chunk", methods=["POST"])
+def chunk_upload(upload_id):
+    """Upload a chunk to the specified collection."""
+    sequence = request.args.get("sequence")
+    chunk = dict(request.files)["chunk"].read()
+
+    # convert bytes to array of ints since arrango doesn't support binary blobs
+    blob = list(chunk)
+
+    collection = db.db("_system").collection(upload_id)
+    collection.insert({sequence: blob})
+    return sequence

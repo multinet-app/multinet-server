@@ -344,9 +344,9 @@ def create_upload() -> str:
 
 
 @bp.route("/uploads/<upload_id>/chunk", methods=["POST"])
-def chunk_upload(upload_id: str) -> Any:
+@use_kwargs({"sequence": fields.Str()})
+def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
-    sequence = request.args.get("sequence")
     chunk = dict(request.files)["chunk"].read()
 
     # convert bytes to base64 string since arango doesn't support binary blobs

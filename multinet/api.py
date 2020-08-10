@@ -331,22 +331,26 @@ def delete_table(workspace: str, table: str) -> Any:
 
 
 @bp.route("/uploads", methods=["POST"])
-def create_upload():
+def create_upload() -> str:
     """Create a collection for multipart upload."""
-    upload_id = uuid4().hex
+
     sysdb = db.db("_system")
+
+    # note: arangodb collections can't start with a number
+    upload_id = f"upload_{uuid4().hex}"
+
     sysdb.create_collection(upload_id)
     return upload_id
 
 
 @bp.route("/uploads/<upload_id>/chunk", methods=["POST"])
-def chunk_upload(upload_id):
+def chunk_upload(upload_id: str) -> Any:
     """Upload a chunk to the specified collection."""
     sequence = request.args.get("sequence")
     chunk = dict(request.files)["chunk"].read()
 
     # convert bytes to base64 string since arango doesn't support binary blobs
-    blob = b64encode(chunk).decode('ascii')
+    blob = b64encode(chunk).decode("ascii")
 
     collection = db.db("_system").collection(upload_id)
     collection.insert({sequence: blob})

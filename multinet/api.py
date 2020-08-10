@@ -361,4 +361,4 @@ def chunk_upload(upload_id: str) -> Any:
 def delete_upload_collection(upload_id: str) -> Any:
     """Delete the database collection associated with the given upload_id."""
     db.db("_system").delete_collection(upload_id)
-    return ''
+    return ""

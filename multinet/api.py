@@ -355,3 +355,10 @@ def chunk_upload(upload_id: str) -> Any:
     collection = db.db("_system").collection(upload_id)
     collection.insert({sequence: blob})
     return sequence
+
+
+@bp.route("/uploads/<upload_id>", methods=["DELETE"])
+def delete_upload_collection(upload_id: str) -> Any:
+    """Delete the database collection associated with the given upload_id."""
+    db.db("_system").delete_collection(upload_id)
+    return ''

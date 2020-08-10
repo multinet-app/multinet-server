@@ -6,6 +6,7 @@ from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
+from base64 import b64encode
 from uuid import uuid4
 from typing import Any, Optional, List, Dict, cast
 from multinet.types import EdgeDirection, TableType
@@ -344,8 +345,8 @@ def chunk_upload(upload_id):
     sequence = request.args.get("sequence")
     chunk = dict(request.files)["chunk"].read()
 
-    # convert bytes to array of ints since arrango doesn't support binary blobs
-    blob = list(chunk)
+    # convert bytes to base64 string since arango doesn't support binary blobs
+    blob = b64encode(chunk).decode('ascii')
 
     collection = db.db("_system").collection(upload_id)
     collection.insert({sequence: blob})

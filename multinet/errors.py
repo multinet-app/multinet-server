@@ -242,3 +242,15 @@ class AQLExecutionError(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.message, "400 Error during AQL Execution")
+
+
+class NonExistantUploadDocument(ServerError):
+    """Exception for errors when uploading chunks to nonexistant uploads collection."""
+
+    def __init__(self, message: str = ""):
+        """Initialize error message."""
+        self.message = message
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 404 error."""
+        return (self.message, "404 Error Upload Does Not Exist")

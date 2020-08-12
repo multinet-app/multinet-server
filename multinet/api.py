@@ -6,8 +6,6 @@ from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from base64 import b64encode
-from uuid import uuid4
 from typing import Any, Optional, List, Dict, cast
 from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
@@ -328,37 +326,3 @@ def delete_table(workspace: str, table: str) -> Any:
     """Delete a table."""
     db.delete_table(workspace, table)
     return table
-
-
-@bp.route("/uploads", methods=["POST"])
-def create_upload() -> str:
-    """Create a collection for multipart upload."""
-
-    sysdb = db.db("_system")
-
-    # note: arangodb collections can't start with a number
-    upload_id = f"upload_{uuid4().hex}"
-
-    sysdb.create_collection(upload_id)
-    return upload_id
-
-
-@bp.route("/uploads/<upload_id>/chunk", methods=["POST"])
-@use_kwargs({"sequence": fields.Str()})
-def chunk_upload(upload_id: str, sequence: str) -> Any:
-    """Upload a chunk to the specified collection."""
-    chunk = dict(request.files)["chunk"].read()
-
-    # convert bytes to base64 string since arango doesn't support binary blobs
-    blob = b64encode(chunk).decode("ascii")
-
-    collection = db.db("_system").collection(upload_id)
-    collection.insert({sequence: blob})
-    return sequence
-
-
-@bp.route("/uploads/<upload_id>", methods=["DELETE"])
-def delete_upload_collection(upload_id: str) -> Any:
-    """Delete the database collection associated with the given upload_id."""
-    db.db("_system").delete_collection(upload_id)
-    return ""

@@ -28,7 +28,7 @@ from multinet.types import (
     WorkspacePermissions,
 )
 from multinet.auth.types import User
-from multinet.errors import InternalServerError
+from multinet.errors import InternalServerError, NonExistantUploadDocument
 from multinet.validation.csv import validate_csv
 from multinet import util
 
@@ -608,3 +608,44 @@ def node_edges(
         "edges": list(aql_query(workspace, query)),
         "count": next(aql_query(workspace, count)),
     }
+
+
+@lru_cache(maxsize=1)
+def uploads_collection() -> StandardCollection:
+    """Return the collection used for temporarily storing uploaded file chunks."""
+    sysdb = db("_system")
+
+    if not sysdb.has_collection("uploads"):
+        sysdb.create_collection("uploads")
+
+    return sysdb.collection("uploads")
+
+
+def create_upload_document() -> Any:
+    """Insert empty multipart upload temp document."""
+    # returns arango document key as upload_id for client
+    return uploads_collection().insert({"0": {}}).get("_key")
+
+
+def insert_file_chunk(key: str, sequence: str, chunk: str) -> str:
+    """Insert b64-encoded string `chunk` into temporary document."""
+    collection = uploads_collection()
+
+    document = collection.get(key)
+    if document is None:
+        raise NonExistantUploadDocument()
+
+    document[sequence] = chunk
+    collection.update(document)
+
+    return key
+
+
+def delete_document(collection: StandardCollection, key: str) -> Dict:
+    """Delete a document in the given collection with the specified key."""
+    document = collection.get({"_key": key})
+    if document is None:
+        raise NonExistantUploadDocument()
+    collection.delete(document)
+
+    return document

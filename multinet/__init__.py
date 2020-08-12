@@ -41,6 +41,10 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     CORS(app, origins=allowed_origins, supports_credentials=True)
     Swagger(app, template_file="swagger/template.yaml")
 
+    # Set max file upload size to 2 MB
+    # TODO: decide on a non-arbitrary limit
+    app.config["MAX_CONTENT_LENGTH"] = 2000000
+
     app.secret_key = flask_secret_key()
 
     # Set up logging.
@@ -52,6 +56,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     app.register_blueprint(uploaders.newick.bp, url_prefix="/api/newick")
     app.register_blueprint(uploaders.nested_json.bp, url_prefix="/api/nested_json")
     app.register_blueprint(uploaders.d3_json.bp, url_prefix="/api/d3_json")
+
+    app.register_blueprint(uploaders.multipart_upload.bp, url_prefix="/api/uploads")
 
     app.register_blueprint(downloaders.csv.bp, url_prefix="/api")
     app.register_blueprint(downloaders.d3_json.bp, url_prefix="/api")

@@ -157,7 +157,7 @@ class RequiredParamsMissing(ServerError):
 
     def __init__(self, missing: List[str]):
         """Initialize the exception."""
-        self.missing = missing
+        self.missing = {'missing': missing}
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""

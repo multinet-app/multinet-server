@@ -624,7 +624,7 @@ def uploads_collection() -> StandardCollection:
 def create_upload_document() -> Any:
     """Insert empty multipart upload temp document."""
     # returns arango document key as upload_id for client
-    return uploads_collection().insert({"0": {}}).get("_key")
+    return uploads_collection().insert({}).get("_key")
 
 
 def insert_file_chunk(key: str, sequence: str, chunk: str) -> str:

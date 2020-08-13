@@ -29,7 +29,7 @@ def chunk_upload(upload_id: str, sequence: str) -> Any:
     chunk = dict(request.files).get("chunk")
 
     if chunk is None:
-        raise RequiredParamsMissing()
+        raise RequiredParamsMissing(["chunk"])
 
     # convert bytes to base64 string since arango doesn't support binary blobs
     stringified_blob = b64encode(chunk.read()).decode("ascii")

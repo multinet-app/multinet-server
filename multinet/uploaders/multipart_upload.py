@@ -10,6 +10,8 @@ from webargs.flaskparser import use_kwargs
 # Import types
 from typing import Any
 
+from multinet.errors import RequiredParamsMissing
+
 bp = Blueprint("uploads", __name__)
 bp.before_request(util.require_db)
 
@@ -21,13 +23,16 @@ def create_upload() -> Any:
 
 
 @bp.route("/<upload_id>/chunk", methods=["POST"])
-@use_kwargs({"sequence": fields.Str()})
+@use_kwargs({"sequence": fields.Str(required=True)})
 def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
-    chunk = dict(request.files)["chunk"].read()
+    chunk = dict(request.files).get("chunk")#.read()
+
+    if chunk is None:
+        raise RequiredParamsMissing()
 
     # convert bytes to base64 string since arango doesn't support binary blobs
-    stringified_blob = b64encode(chunk).decode("ascii")
+    stringified_blob = b64encode(chunk.read()).decode("ascii")
 
     db.insert_file_chunk(upload_id, sequence, stringified_blob)
     return sequence

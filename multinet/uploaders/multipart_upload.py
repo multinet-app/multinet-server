@@ -26,7 +26,7 @@ def create_upload() -> Any:
 @use_kwargs({"sequence": fields.Str(required=True)})
 def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
-    chunk = dict(request.files).get("chunk")#.read()
+    chunk = dict(request.files).get("chunk")
 
     if chunk is None:
         raise RequiredParamsMissing()

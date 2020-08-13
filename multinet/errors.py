@@ -253,4 +253,4 @@ class NonExistantUploadDocument(ServerError):
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 404 error."""
-        return (self.message, "404 Error Upload Does Not Exist")
+        return (self.message, "404 Upload Does Not Exist")

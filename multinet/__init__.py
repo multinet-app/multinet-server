@@ -43,7 +43,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
 
     # Set max file upload size to 2 MB
     # TODO: decide on a non-arbitrary limit
-    app.config["MAX_CONTENT_LENGTH"] = 2000000
+    app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 
     app.secret_key = flask_secret_key()
 

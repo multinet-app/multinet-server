@@ -28,7 +28,7 @@ from multinet.types import (
     WorkspacePermissions,
 )
 from multinet.auth.types import User
-from multinet.errors import InternalServerError, NonExistantUploadDocument
+from multinet.errors import InternalServerError
 from multinet.validation.csv import validate_csv
 from multinet import util
 
@@ -38,6 +38,7 @@ from multinet.errors import (
     TableNotFound,
     GraphNotFound,
     NodeNotFound,
+    UploadNotFound,
     AlreadyExists,
     GraphCreationError,
     AQLExecutionError,
@@ -632,8 +633,12 @@ def insert_file_chunk(key: str, sequence: str, chunk: str) -> str:
     collection = uploads_collection()
 
     document = collection.get(key)
+
     if document is None:
-        raise NonExistantUploadDocument()
+        raise UploadNotFound(key)
+
+    if sequence in document:
+        raise AlreadyExists("Document", sequence)
 
     document[sequence] = chunk
     collection.update(document)
@@ -641,11 +646,15 @@ def insert_file_chunk(key: str, sequence: str, chunk: str) -> str:
     return key
 
 
-def delete_document(collection: StandardCollection, key: str) -> Dict:
+def delete_upload_document(key: str) -> Dict:
     """Delete a document in the given collection with the specified key."""
+    collection = uploads_collection()
+
     document = collection.get({"_key": key})
+
     if document is None:
-        raise NonExistantUploadDocument()
+        raise UploadNotFound(key)
+
     collection.delete(document)
 
     return document

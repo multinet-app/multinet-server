@@ -244,13 +244,9 @@ class AQLExecutionError(ServerError):
         return (self.message, "400 Error during AQL Execution")
 
 
-class NonExistantUploadDocument(ServerError):
-    """Exception for errors when uploading chunks to nonexistant uploads collection."""
+class UploadNotFound(NotFound):
+    """Exception for attempting to upload a chunk to a nonexistant upload collection."""
 
-    def __init__(self, message: str = ""):
-        """Initialize error message."""
-        self.message = message
-
-    def flask_response(self) -> FlaskTuple:
-        """Generate a 404 error."""
-        return (self.message, "404 Upload Not Found")
+    def __init__(self, upload_id: str):
+        """Initialize the exception."""
+        super().__init__("Upload", upload_id)

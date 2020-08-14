@@ -22,7 +22,7 @@ def create_upload() -> Any:
     return db.create_upload_document()
 
 
-@bp.route("/<upload_id>/chunk", methods=["POST"])
+@bp.route("/<upload_id>/chunk", methods=["GET"])
 @use_kwargs({"sequence": fields.Str(required=True)})
 def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
@@ -41,4 +41,4 @@ def chunk_upload(upload_id: str, sequence: str) -> Any:
 @bp.route("/<upload_id>", methods=["DELETE"])
 def delete_upload_collection(upload_id: str) -> Any:
     """Delete the database collection associated with the given upload_id."""
-    return db.delete_document(db.uploads_collection(), upload_id)
+    return db.delete_upload_document(upload_id)

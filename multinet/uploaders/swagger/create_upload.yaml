@@ -1,0 +1,14 @@
+Create a new document in `uploads` collection for multipart upload storage
+---
+responses:
+  200:
+    description: Unique ID (ArangoDB key) for document that was created
+    schema:
+      type: number
+      example:
+        - 50841
+        - 56039
+        - 55970
+
+tags:
+  - uploads

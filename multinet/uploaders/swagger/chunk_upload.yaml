@@ -1,0 +1,53 @@
+Upload one chunk of data to the corresponding `uploads` document
+---
+parameters:
+  - $ref: "#/parameters/upload_id"
+  - name: sequence
+    in: query
+    description: The sequence number of the multipart upload
+    required: true
+    schema:
+      type: number
+      example:
+        - 0
+        - 1
+        - 2
+responses:
+  200:
+    description: The sequence number of the multipart upload
+    schema:
+      type: number
+      example:
+        - 0
+        - 1
+        - 2
+
+  400:
+    description: Missing required parameters
+    schema:
+      type: array
+      items:
+        type: string
+      example:
+        - chunk
+
+  404:
+    description: Document with specified `upload_id` does not exist
+    schema:
+      type: number
+      example:
+        - 50841
+        - 56039
+        - 55970
+
+  409:
+    description: Document with specified sequence number already exists
+    schema:
+      type: number
+      example:
+        - 0
+        - 1
+        - 2
+
+tags:
+  - uploads

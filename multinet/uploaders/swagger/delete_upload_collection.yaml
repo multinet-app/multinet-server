@@ -1,0 +1,21 @@
+Delete a multipart-uploaded chunk from the database
+---
+parameters:
+  - $ref: "#/parameters/upload_id"
+responses:
+  200:
+    description: Document with key of `upload_id` deleted from database
+    schema:
+      type: object
+
+  404:
+    description: Document with key of `upload_id` not found
+    schema:
+      type: number
+      example:
+        - 50841
+        - 56039
+        - 55970
+
+tags:
+  - uploads

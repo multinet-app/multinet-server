@@ -226,5 +226,7 @@ tags:
     description: Table retrieval, inspection, creation, and deletion
   - name: uploader
     description: Uploaders for various input data formats
+  - name: uploads
+    description: Endpoints for multipart upload operations
   - name: user
     description: Endpoints for user operations

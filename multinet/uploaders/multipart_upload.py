@@ -3,6 +3,7 @@ from base64 import b64encode
 
 from multinet import db, util
 
+from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
@@ -17,12 +18,14 @@ bp.before_request(util.require_db)
 
 
 @bp.route("", methods=["POST"])
+@swag_from("swagger/create_upload.yaml")
 def create_upload() -> Any:
     """Create a collection for multipart upload."""
     return db.create_upload_document()
 
 
-@bp.route("/<upload_id>/chunk", methods=["GET"])
+@bp.route("/<upload_id>/chunk", methods=["POST"])
+@swag_from("swagger/chunk_upload.yaml")
 @use_kwargs({"sequence": fields.Str(required=True)})
 def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
@@ -39,6 +42,7 @@ def chunk_upload(upload_id: str, sequence: str) -> Any:
 
 
 @bp.route("/<upload_id>", methods=["DELETE"])
+@swag_from("swagger/delete_upload_collection.yaml")
 def delete_upload_collection(upload_id: str) -> Any:
     """Delete the database collection associated with the given upload_id."""
     return db.delete_upload_document(upload_id)

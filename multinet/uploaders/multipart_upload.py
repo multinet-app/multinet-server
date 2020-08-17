@@ -25,8 +25,8 @@ def create_upload() -> Any:
 
 
 @bp.route("/<upload_id>/chunk", methods=["POST"])
-@swag_from("swagger/chunk_upload.yaml")
 @use_kwargs({"sequence": fields.Str(required=True)})
+@swag_from("swagger/chunk_upload.yaml")
 def chunk_upload(upload_id: str, sequence: str) -> Any:
     """Upload a chunk to the specified collection."""
     chunk = dict(request.files).get("chunk")

@@ -7,15 +7,13 @@ responses:
     description: Document with key of `upload_id` deleted from database
     schema:
       type: object
+      example: {'_key': 50841, '0': {}, '1': {}}
 
   404:
     description: Document with key of `upload_id` not found
     schema:
       type: number
-      example:
-        - 50841
-        - 56039
-        - 55970
+      example: 50841
 
 tags:
   - uploads

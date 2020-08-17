@@ -173,6 +173,15 @@ parameters:
       type: string
       example: key0
 
+  upload_id:
+    name: upload_id
+    in: path
+    description: ArangoDB key for multipart upload file document
+    required: true
+    schema:
+      type: integer
+      example: 50841
+
   direction:
     name: direction
     description: The type of edges to retrieve

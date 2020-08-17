@@ -8,19 +8,14 @@ parameters:
     required: true
     schema:
       type: number
-      example:
-        - 0
-        - 1
-        - 2
+      example: 0
+
 responses:
   200:
     description: The sequence number of the multipart upload
     schema:
       type: number
-      example:
-        - 0
-        - 1
-        - 2
+      example: 0
 
   400:
     description: Missing required parameters
@@ -28,26 +23,19 @@ responses:
       type: array
       items:
         type: string
-      example:
-        - chunk
+      example: {"missing": ['chunk'] }
 
   404:
     description: Document with specified `upload_id` does not exist
     schema:
       type: number
-      example:
-        - 50841
-        - 56039
-        - 55970
+      example: 50841
 
   409:
     description: Document with specified sequence number already exists
     schema:
       type: number
-      example:
-        - 0
-        - 1
-        - 2
+      example: 0
 
 tags:
   - uploads

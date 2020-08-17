@@ -5,10 +5,7 @@ responses:
     description: Unique ID (ArangoDB key) for document that was created
     schema:
       type: number
-      example:
-        - 50841
-        - 56039
-        - 55970
+      example: 56039
 
 tags:
   - uploads

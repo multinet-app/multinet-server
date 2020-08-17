@@ -9,6 +9,11 @@ parameters:
     schema:
       type: number
       example: 0
+  - name: chunk
+    description: Raw file chunk data
+    required: true
+    in: formData
+    type: file
 
 responses:
   200:

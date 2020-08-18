@@ -4,7 +4,7 @@ parameters:
   - $ref: "#/parameters/upload_id"
 responses:
   200:
-    description: `upload_id` of deleted collection
+    description: The `upload_id` of the deleted collection
     schema:
       type: object
       example: {'_key': 50841, '0': {}, '1': {}}

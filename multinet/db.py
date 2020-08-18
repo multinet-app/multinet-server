@@ -638,7 +638,7 @@ def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
     collection = uploads_db.collection(upload_id)
 
     if collection.get(sequence) is not None:
-        raise AlreadyExists("Document", sequence)
+        raise AlreadyExists("Upload Chunk", f"{upload_id}/{sequence}")
 
     collection.insert({sequence: chunk, "_key": sequence})
 

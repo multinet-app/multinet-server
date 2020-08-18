@@ -33,8 +33,8 @@ responses:
   404:
     description: Collection with specified `upload_id` does not exist
     schema:
-      type: number
-      example: 50841
+      type: string
+      example: u-1234abcd
 
   409:
     description: Document with specified sequence number already exists

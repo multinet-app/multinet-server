@@ -176,11 +176,11 @@ parameters:
   upload_id:
     name: upload_id
     in: path
-    description: ArangoDB key for multipart upload file document
+    description: The collection ID associated with this upload
     required: true
     schema:
-      type: integer
-      example: 50841
+      type: string
+      example: u-1234abcd
 
   direction:
     name: direction

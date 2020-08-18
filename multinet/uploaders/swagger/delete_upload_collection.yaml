@@ -1,4 +1,4 @@
-Delete a multipart-uploaded chunk from the database
+Delete a multipart-upload collection from the database
 ---
 parameters:
   - $ref: "#/parameters/upload_id"
@@ -6,14 +6,14 @@ responses:
   200:
     description: The `upload_id` of the deleted collection
     schema:
-      type: object
-      example: {'_key': 50841, '0': {}, '1': {}}
+      type: string
+      example: u-1234abcd
 
   404:
-    description: Document with key of `upload_id` not found
+    description: Collection with ID of `upload_id` not found
     schema:
-      type: number
-      example: 50841
+      type: string
+      example: u-1234abcd
 
 tags:
   - uploads

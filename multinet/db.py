@@ -95,7 +95,8 @@ def register_legacy_workspaces() -> None:
     sysdb = db("_system")
     coll = workspace_mapping_collection()
 
-    databases = {name for name in sysdb.databases() if name != "_system"}
+    system_databases = {"_system", "uploads"}
+    databases = {name for name in sysdb.databases() if name not in system_databases}
     registered = {doc["internal"] for doc in coll.all()}
 
     unregistered = databases - registered

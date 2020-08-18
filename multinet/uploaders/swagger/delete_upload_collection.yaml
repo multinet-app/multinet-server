@@ -4,7 +4,7 @@ parameters:
   - $ref: "#/parameters/upload_id"
 responses:
   200:
-    description: Document with key of `upload_id` deleted from database
+    description: `upload_id` of deleted collection
     schema:
       type: object
       example: {'_key': 50841, '0': {}, '1': {}}

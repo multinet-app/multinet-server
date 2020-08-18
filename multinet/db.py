@@ -2,6 +2,7 @@
 import os
 import copy
 from functools import lru_cache
+from uuid import uuid4
 
 from arango import ArangoClient
 from arango.graph import Graph
@@ -612,49 +613,44 @@ def node_edges(
 
 
 @lru_cache(maxsize=1)
-def uploads_collection() -> StandardCollection:
-    """Return the collection used for temporarily storing uploaded file chunks."""
+def uploads_database() -> StandardDatabase:
     sysdb = db("_system")
-
-    if not sysdb.has_collection("uploads"):
-        sysdb.create_collection("uploads")
-
-    return sysdb.collection("uploads")
+    if not sysdb.has_database('uploads'):
+        sysdb.create_database('uploads')
+    return db("uploads")
 
 
-def create_upload_document() -> Any:
-    """Insert empty multipart upload temp document."""
-    # returns arango document key as upload_id for client
-    return uploads_collection().insert({}).get("_key")
+def create_upload_collection() -> str:
+    """Insert empty multipart upload temp collection."""
+    uploads_db = uploads_database()
+    upload_id = f"u-{uuid4().hex}"
+    uploads_db.create_collection(upload_id)
+    return upload_id
 
 
-def insert_file_chunk(key: str, sequence: str, chunk: str) -> str:
-    """Insert b64-encoded string `chunk` into temporary document."""
-    collection = uploads_collection()
+def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
+    """Insert b64-encoded string `chunk` into temporary collection."""
+    uploads_db = uploads_database()
+    if not uploads_db.has_collection(upload_id):
+        raise UploadNotFound(upload_id)
 
-    document = collection.get(key)
+    collection = uploads_db.collection(upload_id)
 
-    if document is None:
-        raise UploadNotFound(key)
-
-    if sequence in document:
+    if collection.get(sequence) is not None:
         raise AlreadyExists("Document", sequence)
 
-    document[sequence] = chunk
-    collection.update(document)
+    collection.insert({sequence: chunk, "_key": sequence})
 
-    return key
+    return upload_id
 
 
-def delete_upload_document(key: str) -> Dict:
-    """Delete a document in the given collection with the specified key."""
-    collection = uploads_collection()
+def delete_upload_collection(upload_id: str) -> bool:
+    """Delete a multipart upload collection."""
+    uploads_db = uploads_database()
 
-    document = collection.get({"_key": key})
+    if not uploads_db.has_collection(upload_id):
+        raise UploadNotFound(upload_id)
 
-    if document is None:
-        raise UploadNotFound(key)
+    uploads_db.delete_collection(upload_id)
 
-    collection.delete(document)
-
-    return document
+    return upload_id

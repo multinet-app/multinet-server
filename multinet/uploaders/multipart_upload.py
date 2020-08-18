@@ -19,9 +19,9 @@ bp.before_request(util.require_db)
 
 @bp.route("", methods=["POST"])
 @swag_from("swagger/create_upload.yaml")
-def create_upload() -> Any:
+def create_upload() -> str:
     """Create a collection for multipart upload."""
-    return db.create_upload_document()
+    return db.create_upload_collection()
 
 
 @bp.route("/<upload_id>/chunk", methods=["POST"])
@@ -45,4 +45,4 @@ def chunk_upload(upload_id: str, sequence: str) -> Any:
 @swag_from("swagger/delete_upload_collection.yaml")
 def delete_upload_collection(upload_id: str) -> Any:
     """Delete the database collection associated with the given upload_id."""
-    return db.delete_upload_document(upload_id)
+    return db.delete_upload_collection(upload_id)

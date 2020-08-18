@@ -31,7 +31,7 @@ responses:
       example: {"missing": ['chunk'] }
 
   404:
-    description: Document with specified `upload_id` does not exist
+    description: Collection with specified `upload_id` does not exist
     schema:
       type: number
       example: 50841

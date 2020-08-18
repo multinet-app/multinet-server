@@ -614,9 +614,10 @@ def node_edges(
 
 @lru_cache(maxsize=1)
 def uploads_database() -> StandardDatabase:
+    """Return the database used for storing multipart upload collections."""
     sysdb = db("_system")
-    if not sysdb.has_database('uploads'):
-        sysdb.create_database('uploads')
+    if not sysdb.has_database("uploads"):
+        sysdb.create_database("uploads")
     return db("uploads")
 
 
@@ -644,7 +645,7 @@ def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
     return upload_id
 
 
-def delete_upload_collection(upload_id: str) -> bool:
+def delete_upload_collection(upload_id: str) -> str:
     """Delete a multipart upload collection."""
     uploads_db = uploads_database()
 

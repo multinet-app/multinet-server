@@ -157,7 +157,7 @@ class RequiredParamsMissing(ServerError):
 
     def __init__(self, missing: List[str]):
         """Initialize the exception."""
-        self.missing = missing
+        self.missing = {"missing": missing}
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
@@ -242,3 +242,11 @@ class AQLExecutionError(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.message, "400 Error during AQL Execution")
+
+
+class UploadNotFound(NotFound):
+    """Exception for attempting to upload a chunk to a nonexistant upload collection."""
+
+    def __init__(self, upload_id: str):
+        """Initialize the exception."""
+        super().__init__("Upload", upload_id)

@@ -2,6 +2,7 @@
 import os
 import copy
 from functools import lru_cache
+from uuid import uuid4
 
 from arango import ArangoClient
 from arango.graph import Graph
@@ -38,6 +39,7 @@ from multinet.errors import (
     TableNotFound,
     GraphNotFound,
     NodeNotFound,
+    UploadNotFound,
     AlreadyExists,
     GraphCreationError,
     AQLExecutionError,
@@ -93,7 +95,8 @@ def register_legacy_workspaces() -> None:
     sysdb = db("_system")
     coll = workspace_mapping_collection()
 
-    databases = {name for name in sysdb.databases() if name != "_system"}
+    system_databases = {"_system", "uploads"}
+    databases = {name for name in sysdb.databases() if name not in system_databases}
     registered = {doc["internal"] for doc in coll.all()}
 
     unregistered = databases - registered
@@ -608,3 +611,48 @@ def node_edges(
         "edges": list(aql_query(workspace, query)),
         "count": next(aql_query(workspace, count)),
     }
+
+
+@lru_cache(maxsize=1)
+def uploads_database() -> StandardDatabase:
+    """Return the database used for storing multipart upload collections."""
+    sysdb = db("_system")
+    if not sysdb.has_database("uploads"):
+        sysdb.create_database("uploads")
+    return db("uploads")
+
+
+def create_upload_collection() -> str:
+    """Insert empty multipart upload temp collection."""
+    uploads_db = uploads_database()
+    upload_id = f"u-{uuid4().hex}"
+    uploads_db.create_collection(upload_id)
+    return upload_id
+
+
+def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
+    """Insert b64-encoded string `chunk` into temporary collection."""
+    uploads_db = uploads_database()
+    if not uploads_db.has_collection(upload_id):
+        raise UploadNotFound(upload_id)
+
+    collection = uploads_db.collection(upload_id)
+
+    if collection.get(sequence) is not None:
+        raise AlreadyExists("Upload Chunk", f"{upload_id}/{sequence}")
+
+    collection.insert({sequence: chunk, "_key": sequence})
+
+    return upload_id
+
+
+def delete_upload_collection(upload_id: str) -> str:
+    """Delete a multipart upload collection."""
+    uploads_db = uploads_database()
+
+    if not uploads_db.has_collection(upload_id):
+        raise UploadNotFound(upload_id)
+
+    uploads_db.delete_collection(upload_id)
+
+    return upload_id

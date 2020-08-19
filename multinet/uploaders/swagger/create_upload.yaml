@@ -1,0 +1,11 @@
+Create a new collection in the `uploads` database for multipart upload storage
+---
+responses:
+  200:
+    description: Unique ID for the collection that was created
+    schema:
+      type: string
+      example: u-1234abcd
+
+tags:
+  - uploads

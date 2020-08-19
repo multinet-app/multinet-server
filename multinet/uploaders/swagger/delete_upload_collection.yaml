@@ -1,0 +1,19 @@
+Delete a multipart-upload collection from the database
+---
+parameters:
+  - $ref: "#/parameters/upload_id"
+responses:
+  200:
+    description: The `upload_id` of the deleted collection
+    schema:
+      type: string
+      example: u-1234abcd
+
+  404:
+    description: Collection with ID of `upload_id` not found
+    schema:
+      type: string
+      example: u-1234abcd
+
+tags:
+  - uploads

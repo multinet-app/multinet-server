@@ -173,6 +173,15 @@ parameters:
       type: string
       example: key0
 
+  upload_id:
+    name: upload_id
+    in: path
+    description: The collection ID associated with this upload
+    required: true
+    schema:
+      type: string
+      example: u-1234abcd
+
   direction:
     name: direction
     description: The type of edges to retrieve
@@ -226,5 +235,7 @@ tags:
     description: Table retrieval, inspection, creation, and deletion
   - name: uploader
     description: Uploaders for various input data formats
+  - name: uploads
+    description: Endpoints for multipart upload operations
   - name: user
     description: Endpoints for user operations

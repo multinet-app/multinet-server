@@ -58,33 +58,32 @@ arango = ArangoClient(
     port=int(os.environ.get("ARANGO_PORT", "8529")),
     protocol=os.environ.get("ARANGO_PROTOCOL", "http"),
 )
-restricted_keys = {"_rev", "_id"}
 
 
-def db(name: str) -> StandardDatabase:
+def db(name: str, readonly: bool = True, immediate: bool = False) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
-    return arango.db(
-        name,
-        username="root",
-        password=os.environ.get("ARANGO_PASSWORD", "letmein"),
-        verify=True,
+
+    username = "readonly" if readonly else "root"
+    password = (
+        os.environ.get("ARANGO_READONLY_PASSWORD", "letmein")
+        if readonly
+        else os.environ.get("ARANGO_PASSWORD", "letmein")
     )
 
-
-def read_only_db(name: str) -> StandardDatabase:
-    """Return a read-only handle for the Arango database `name`."""
-    return arango.db(
-        name,
-        username="readonly",
-        password=os.environ.get("ARANGO_READONLY_PASSWORD", "letmein"),
-        verify=True,
-    )
+    return arango.db(name, username=username, password=password, verify=immediate)
 
 
+@lru_cache()
+def system_db(readonly: bool = True) -> StandardDatabase:
+    """Return the singleton `_system` db handle."""
+    return db("_system", readonly)
+
+
+# TODO: Fix/remove this
 def check_db() -> bool:
     """Check the database to see if it's alive."""
     try:
-        db("_system").has_database("test")
+        system_db().has_database("test")
         return True
     except ConnectionError:
         return False
@@ -92,8 +91,8 @@ def check_db() -> bool:
 
 def register_legacy_workspaces() -> None:
     """Add legacy workspaces to the workspace mapping."""
-    sysdb = db("_system")
-    coll = workspace_mapping_collection()
+    sysdb = system_db()
+    coll = workspace_mapping_collection(readonly=False)
 
     system_databases = {"_system", "uploads"}
     databases = {name for name in sysdb.databases() if name not in system_databases}
@@ -106,9 +105,9 @@ def register_legacy_workspaces() -> None:
 
 # Since this shouldn't ever change while running, this function becomes a singleton
 @lru_cache(maxsize=1)
-def workspace_mapping_collection() -> StandardCollection:
+def workspace_mapping_collection(readonly: bool = True) -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
-    sysdb = db("_system")
+    sysdb = system_db(readonly=readonly)
 
     if not sysdb.has_collection("workspace_mapping"):
         sysdb.create_collection("workspace_mapping")
@@ -616,10 +615,10 @@ def node_edges(
 @lru_cache(maxsize=1)
 def uploads_database() -> StandardDatabase:
     """Return the database used for storing multipart upload collections."""
-    sysdb = db("_system")
+    sysdb = system_db(readonly=False)
     if not sysdb.has_database("uploads"):
         sysdb.create_database("uploads")
-    return db("uploads")
+    return db("uploads", readonly=False)
 
 
 def create_upload_collection() -> str:
@@ -656,3 +655,4 @@ def delete_upload_collection(upload_id: str) -> str:
     uploads_db.delete_collection(upload_id)
 
     return upload_id
+# TODO: Refactor the below functions into an `Upload` class

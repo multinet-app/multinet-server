@@ -1,21 +1,14 @@
 """Authorization types."""
-from dataclasses import asdict
+import json
 from flasgger import swag_from
 from flask import make_response, session
 from flask.blueprints import Blueprint
-import json
 from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from multinet.user import (
-    MULTINET_COOKIE,
-    user_from_cookie,
-    filtered_user,
-    delete_user_cookie,
-    search_user,
-)
-
+from multinet.db import search_user
+from multinet.user import MULTINET_COOKIE, User
 from multinet.util import stream
 from multinet.auth.util import require_login
 
@@ -33,12 +26,12 @@ def user_info() -> ResponseWrapper:
     if cookie is None:
         return logged_out
 
-    user = user_from_cookie(cookie)
+    user = User.from_session(cookie)
     if user is None:
         session.pop(MULTINET_COOKIE, None)
         return logged_out
 
-    return make_response(asdict(filtered_user(user)))
+    return make_response(user.asdict())
 
 
 @bp.route("/logout", methods=["GET"])
@@ -50,9 +43,10 @@ def logout() -> ResponseWrapper:
     cookie = session.pop(MULTINET_COOKIE, None)
     if cookie is not None:
         # Load the user model and invalidate its session.
-        user = user_from_cookie(cookie)
+
+        user = User.from_session(cookie)
         if user is not None:
-            delete_user_cookie(user)
+            user.delete_session()
 
     return make_response("", 200)
 

@@ -3,7 +3,8 @@ from flasgger import swag_from
 import itertools
 import json
 
-from multinet import db, util
+from multinet import util
+from multinet.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists
 
@@ -86,8 +87,8 @@ def upload(workspace: str, graph: str) -> Any:
     `graph` - the target graph.
     `data` - the nested_json data, passed in the request body.
     """
-    space = db.get_workspace_db(workspace, readonly=False)
-    if space.has_graph(graph):
+    loaded_workspace = Workspace(workspace)
+    if loaded_workspace.has_graph(graph):
         raise AlreadyExists("graph", graph)
 
     # Set up the parameters.
@@ -98,38 +99,31 @@ def upload(workspace: str, graph: str) -> Any:
     leaf_nodetable_name = f"{graph}_leaf_nodes"
 
     # Set up the database targets.
-    if space.has_collection(edgetable_name):
-        edgetable = space.collection(edgetable_name)
+    if loaded_workspace.has_table(edgetable_name):
+        edgetable = loaded_workspace.table(edgetable_name)
     else:
-        edgetable = space.create_collection(edgetable_name, edge=True)
+        edgetable = loaded_workspace.create_table(edgetable_name, edge=True)
 
-    if space.has_collection(int_nodetable_name):
-        int_nodetable = space.collection(int_nodetable_name)
+    if loaded_workspace.has_table(int_nodetable_name):
+        int_nodetable = loaded_workspace.table(int_nodetable_name)
     else:
-        int_nodetable = space.create_collection(int_nodetable_name)
+        int_nodetable = loaded_workspace.create_table(int_nodetable_name, edge=False)
 
-    if space.has_collection(leaf_nodetable_name):
-        leaf_nodetable = space.collection(leaf_nodetable_name)
+    if loaded_workspace.has_table(leaf_nodetable_name):
+        leaf_nodetable = loaded_workspace.table(leaf_nodetable_name)
     else:
-        leaf_nodetable = space.create_collection(leaf_nodetable_name)
+        leaf_nodetable = loaded_workspace.create_table(leaf_nodetable_name, edge=False)
 
     # Analyze the nested_json data into a node and edge table.
     (nodes, edges) = analyze_nested_json(data, int_nodetable_name, leaf_nodetable_name)
 
     # Upload the data to the database.
-    edgetable.insert_many(edges)
-    int_nodetable.insert_many(nodes[0])
-    leaf_nodetable.insert_many(nodes[1])
+    edgetable.insert(edges)
+    int_nodetable.insert(nodes[0])
+    leaf_nodetable.insert(nodes[1])
 
     # Create graph
-    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
-    db.create_graph(
-        workspace,
-        graph,
-        edgetable_name,
-        edge_table_info["from_tables"],
-        edge_table_info["to_tables"],
-    )
+    loaded_workspace.create_graph(graph, edgetable_name)
 
     return {
         "edgecount": len(edges),

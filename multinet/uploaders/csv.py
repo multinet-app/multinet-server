@@ -3,7 +3,8 @@ import csv
 from flasgger import swag_from
 from io import StringIO
 
-from multinet import db, util
+from multinet import util
+from multinet.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists, FlaskTuple, ServerError
 from multinet.util import decode_data
@@ -61,8 +62,9 @@ def upload(
     `data` - the CSV data, passed in the request body. If the CSV data contains
              `_from` and `_to` fields, it will be treated as an edge table.
     """
-    space = db.get_workspace_db(workspace, readonly=False)
-    if space.has_collection(table):
+    loaded_workspace = Workspace(workspace)
+
+    if loaded_workspace.has_table(table):
         raise AlreadyExists("table", table)
 
     app.logger.info("Bulk Loading")
@@ -87,12 +89,12 @@ def upload(
     if key != "_key":
         rows = set_table_key(rows, key)
 
-    # Set the collection, paying attention to whether the data contains
-    # _from/_to fields.
+    # Check if it's an edge table or not
     fieldnames = rows[0].keys()
     edges = "_from" in fieldnames and "_to" in fieldnames
-    coll = space.create_collection(table, edge=edges)
 
-    # Insert the data into the collection.
-    results = coll.insert_many(rows)
+    # Create table and insert the data
+    loaded_table = loaded_workspace.create_table(table, edges)
+    results = loaded_table.insert(rows)
+
     return {"count": len(results)}

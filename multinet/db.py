@@ -118,7 +118,7 @@ def workspace_mapping_collection() -> StandardCollection:
 
 # Caches the document that maps an external workspace name to it's internal one
 @lru_cache()
-def workspace_mapping(name: str) -> Optional[WorkspaceDocument]:
+def workspace_mapping(name: str) -> Optional[Dict]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
 

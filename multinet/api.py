@@ -1,34 +1,29 @@
 """Flask blueprint for Multinet REST API."""
-from copy import deepcopy
-from dataclasses import asdict
 from flasgger import swag_from
 from flask import Blueprint, request
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from typing import Any, Optional, List, Dict, cast
+from typing import Any, Optional
 from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
     require_login,
     require_reader,
-    is_reader,
     require_writer,
     require_maintainer,
     require_owner,
 )
-from multinet.validation import ValidationFailure, UndefinedKeys, UndefinedTable
-from multinet.types import WorkspacePermissions
 
-from multinet import db, util
+from multinet import util
 from multinet.errors import (
-    ValidationFailed,
     BadQueryArgument,
     MalformedRequestBody,
     AlreadyExists,
     RequiredParamsMissing,
 )
-from multinet.user import current_user, find_user_from_id
 
+from multinet.user import current_user
+from multinet.workspace import Workspace
 
 bp = Blueprint("multinet", __name__)
 
@@ -36,13 +31,13 @@ bp = Blueprint("multinet", __name__)
 @bp.route("/workspaces", methods=["GET"])
 @swag_from("swagger/workspaces.yaml")
 def get_workspaces() -> Any:
-    """Retrieve list of workspaces."""
+    """Return the list of available workspaces, based on the logged in user."""
     user = current_user()
 
-    # Filter all workspaces based on whether it should be shown to the user who
-    # is logged in.
-    stream = util.stream(w["name"] for w in db.get_workspaces() if is_reader(user, w))
-    return stream
+    if user is not None:
+        return util.stream(user.available_workspaces())
+
+    return util.stream(Workspace.list_public())
 
 
 @bp.route("/workspaces/<workspace>/permissions", methods=["GET"])
@@ -78,7 +73,7 @@ def set_workspace_permissions(workspace: str) -> Any:
 @swag_from("swagger/workspace_tables.yaml")
 def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
     """Retrieve the tables of a single workspace."""
-    tables = db.workspace_tables(workspace, type)
+    tables = Workspace(workspace).tables(type)
     return util.stream(tables)
 
 
@@ -89,7 +84,7 @@ def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noq
 def create_aql_table(workspace: str, table: str) -> Any:
     """Create a table from an AQL query."""
     aql = request.data.decode()
-    table = db.create_aql_table(workspace, table, aql)
+    Workspace(workspace).create_aql_table(table, aql)
 
     return table
 
@@ -100,7 +95,7 @@ def create_aql_table(workspace: str, table: str) -> Any:
 @swag_from("swagger/table_rows.yaml")
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
     """Retrieve the rows and headers of a table."""
-    return db.workspace_table(workspace, table, offset, limit)
+    return Workspace(workspace).table(table).rows(offset, limit)
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
@@ -108,8 +103,7 @@ def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30)
 @swag_from("swagger/workspace_graphs.yaml")
 def get_workspace_graphs(workspace: str) -> Any:
     """Retrieve the graphs of a single workspace."""
-    graphs = db.workspace_graphs(workspace)
-    return util.stream(graphs)
+    return util.stream((g["name"] for g in Workspace(workspace).graphs()))
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>", methods=["GET"])
@@ -117,7 +111,9 @@ def get_workspace_graphs(workspace: str) -> Any:
 @swag_from("swagger/workspace_graph.yaml")
 def get_workspace_graph(workspace: str, graph: str) -> Any:
     """Retrieve information about a graph."""
-    return db.workspace_graph(workspace, graph)
+    node_tables = Workspace(workspace).graph(graph).node_tables()
+    edge_table = Workspace(workspace).graph(graph).edge_table()
+    return {"edgeTable": edge_table, "nodeTables": node_tables}
 
 
 @bp.route("/workspaces/<workspace>/graphs/<graph>/nodes", methods=["GET"])
@@ -128,7 +124,7 @@ def get_graph_nodes(
     workspace: str, graph: str, offset: int = 0, limit: int = 30
 ) -> Any:
     """Retrieve the nodes of a graph."""
-    return db.graph_nodes(workspace, graph, offset, limit)
+    return Workspace(workspace).graph(graph).nodes(offset, limit)
 
 
 @bp.route(
@@ -139,7 +135,7 @@ def get_graph_nodes(
 @swag_from("swagger/node_data.yaml")
 def get_node_data(workspace: str, graph: str, table: str, node: str) -> Any:
     """Return the attributes associated with a node."""
-    return db.graph_node(workspace, graph, table, node)
+    return Workspace(workspace).graph(graph).node_attributes(table, node)
 
 
 @bp.route(
@@ -162,7 +158,11 @@ def get_node_edges(
     if direction not in allowed:
         raise BadQueryArgument("direction", direction, allowed)
 
-    return db.node_edges(workspace, graph, table, node, offset, limit, direction)
+    return (
+        Workspace(workspace)
+        .graph(graph)
+        .node_edges(table, node, direction, offset, limit)
+    )
 
 
 @bp.route("/workspaces/<workspace>", methods=["POST"])
@@ -170,15 +170,12 @@ def get_node_edges(
 @swag_from("swagger/create_workspace.yaml")
 def create_workspace(workspace: str) -> Any:
     """Create a new workspace."""
-
-    # The `require_login()` decorator ensures that a user is logged in by this
-    # point.
+    # The `require_login()` decorator ensures that a user is logged in
     user = current_user()
     assert user is not None
 
-    # Perform the actual backend update to create a new workspace owned by the
-    # logged in user.
-    return db.create_workspace(workspace, user)
+    Workspace.create(workspace, user)
+    return workspace
 
 
 @bp.route("/workspaces/<workspace>/aql", methods=["POST"])
@@ -190,7 +187,7 @@ def aql(workspace: str) -> Any:
     if not query:
         raise MalformedRequestBody(query)
 
-    result = db.aql_query(workspace, query)
+    result = Workspace(workspace).run_query(query)
     return util.stream(result)
 
 
@@ -199,7 +196,7 @@ def aql(workspace: str) -> Any:
 @swag_from("swagger/delete_workspace.yaml")
 def delete_workspace(workspace: str) -> Any:
     """Delete a workspace."""
-    db.delete_workspace(workspace)
+    Workspace(workspace).delete()
     return workspace
 
 
@@ -209,7 +206,7 @@ def delete_workspace(workspace: str) -> Any:
 @swag_from("swagger/rename_workspace.yaml")
 def rename_workspace(workspace: str, name: str) -> Any:
     """Delete a workspace."""
-    db.rename_workspace(workspace, name)
+    Workspace(workspace).rename(name)
     return name
 
 
@@ -219,36 +216,14 @@ def rename_workspace(workspace: str, name: str) -> Any:
 @swag_from("swagger/create_graph.yaml")
 def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -> Any:
     """Create a graph."""
-
     if not edge_table:
         raise RequiredParamsMissing(["edge_table"])
 
-    loaded_workspace = db.get_workspace_db(workspace)
+    loaded_workspace = Workspace(workspace)
     if loaded_workspace.has_graph(graph):
         raise AlreadyExists("Graph", graph)
 
-    # Get reference tables with respective referenced keys,
-    # tables in the _from column and tables in the _to column
-    edge_table_properties = util.get_edge_table_properties(workspace, edge_table)
-    referenced_tables = edge_table_properties["table_keys"]
-    from_tables = edge_table_properties["from_tables"]
-    to_tables = edge_table_properties["to_tables"]
-
-    errors: List[ValidationFailure] = []
-    for table, keys in referenced_tables.items():
-        if not loaded_workspace.has_collection(table):
-            errors.append(UndefinedTable(table=table))
-        else:
-            table_keys = set(loaded_workspace.collection(table).keys())
-            undefined = keys - table_keys
-
-            if undefined:
-                errors.append(UndefinedKeys(table=table, keys=list(undefined)))
-
-    if errors:
-        raise ValidationFailed(errors)
-
-    db.create_graph(workspace, graph, edge_table, from_tables, to_tables)
+    Workspace(workspace).create_graph(graph, edge_table)
     return graph
 
 
@@ -257,7 +232,7 @@ def create_graph(workspace: str, graph: str, edge_table: Optional[str] = None) -
 @swag_from("swagger/delete_graph.yaml")
 def delete_graph(workspace: str, graph: str) -> Any:
     """Delete a graph."""
-    db.delete_graph(workspace, graph)
+    Workspace(workspace).delete_graph(graph)
     return graph
 
 
@@ -266,5 +241,5 @@ def delete_graph(workspace: str, graph: str) -> Any:
 @swag_from("swagger/delete_table.yaml")
 def delete_table(workspace: str, table: str) -> Any:
     """Delete a table."""
-    db.delete_table(workspace, table)
+    Workspace(workspace).delete_table(table)
     return table

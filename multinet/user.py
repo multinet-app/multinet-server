@@ -1,163 +1,204 @@
 """User data and functions."""
+from __future__ import annotations  # noqa: T484
 
-import dataclasses
+import json
+from dataclasses import dataclass
 from uuid import uuid4
-from arango.collection import StandardCollection
-from arango.cursor import Cursor
+from copy import copy
 from dacite import from_dict
-from flask import session
+from flask import session as flask_session
 
-from multinet.db import db, read_only_db, _run_aql_query
-from multinet.errors import InternalServerError
-from multinet.auth.types import (
-    GoogleUserInfo,
-    MultinetInfo,
-    UserInfo,
-    User,
-    FilteredUser,
-)
+from multinet.db import user_collection, system_db, _run_aql_query
 
-from typing import Optional, Dict
+from typing import Optional, Dict, Generator, Any
 
 MULTINET_COOKIE = "multinet-token"
 
 
-def user_collection() -> StandardCollection:
-    """Return the collection that contains user documents."""
-    sysdb = db("_system")
+@dataclass
+class MultinetInfo:
+    """Multinet specific user metadata."""
 
-    if not sysdb.has_collection("users"):
-        sysdb.create_collection("users")
-
-    return sysdb.collection("users")
+    session: Optional[str] = None
 
 
-def user_exists(userinfo: UserInfo) -> bool:
-    """Return the existance of a user."""
-    return load_user(userinfo) is not None
+@dataclass
+class UserInfo:
+    """Base info for a user."""
 
-
-def find_user_from_id(sub: str) -> Optional[User]:
-    """Directly uses the `sub` property to return a user."""
-    coll = user_collection()
-    try:
-        return from_dict(User, next(coll.find({"sub": sub}, limit=1)))
-    except StopIteration:
-        return None
-
-
-def load_user(userinfo: UserInfo) -> Optional[User]:
-    """Return a user doc if it exists, else None."""
-    return find_user_from_id(userinfo.sub)
-
-
-def updated_user(user: User) -> User:
-    """Update a user using the provided user object."""
-    coll = user_collection()
-    inserted_info = coll.update(dataclasses.asdict(user))
-
-    return from_dict(User, next(coll.find({"_id": inserted_info["_id"]}, limit=1)))
-
-
-def register_user(userinfo: UserInfo) -> User:
-    """Register a user with the given user info."""
-    coll = user_collection()
-
-    document = dataclasses.asdict(userinfo)
-    document["multinet"] = dataclasses.asdict(MultinetInfo())
-
-    inserted_info: Dict = coll.insert(document)
-    return from_dict(User, next(coll.find(inserted_info, limit=1)))
-
-
-def set_user_cookie(user: User) -> User:
-    """Update the user cookie."""
-    new_user = copy_user(user)
-
-    new_cookie = uuid4().hex
-    new_user.multinet.session = new_cookie
-
-    return updated_user(new_user)
-
-
-def delete_user_cookie(user: User) -> User:
-    """Delete the user cookie."""
-    user_copy = copy_user(user)
-
-    # Remove the session object from the user record, then persist that to the
-    # database.
-    user_copy.multinet.session = None
-    return updated_user(user_copy)
-
-
-def user_from_cookie(cookie: str) -> Optional[User]:
-    """Use provided cookie to load a user, return None if they dont exist."""
-    coll = user_collection()
-
-    try:
-        return from_dict(User, next(coll.find({"multinet.session": cookie}, limit=1)))
-    except StopIteration:
-        return None
+    family_name: str
+    given_name: str
+    name: str
+    sub: str
+    email: str
+    picture: Optional[str] = None
 
 
 def current_user() -> Optional[User]:
     """Return the logged in user (if any) from the current session."""
-    cookie = session.get(MULTINET_COOKIE)
+    cookie = flask_session.get(MULTINET_COOKIE)
     if cookie is None:
         return None
 
-    return user_from_cookie(cookie)
+    return User.from_session(cookie)
 
 
-def get_user_cookie(user: User) -> str:
-    """Return the cookie from the user object, or create it if it doesn't exist."""
-
-    if user.multinet.session is None:
-        user = set_user_cookie(user)
-
-    if not isinstance(user.multinet.session, str):
-        raise InternalServerError("User cookie not set.")
-
-    return user.multinet.session
+def generate_user_session() -> str:
+    """Generate a session."""
+    return uuid4().hex
 
 
-def filter_user_info(info: GoogleUserInfo) -> UserInfo:
-    """Return a subset of the User Object."""
-    fields = {field.name for field in dataclasses.fields(UserInfo)}
-    info_dict = dataclasses.asdict(info)
+class User:
+    """The class representing a user in multinet."""
 
-    return from_dict(UserInfo, {k: v for k, v in info_dict.items() if k in fields})
+    def __init__(
+        self,
+        family_name: str,
+        given_name: str,
+        name: str,
+        sub: str,
+        email: str,
+        picture: Optional[str] = None,
+        **kwargs: Any
+    ):
+        """Construct user object."""
+        self.family_name = family_name
+        self.given_name = given_name
+        self.name = name
+        self.sub = sub
+        self.email = email
+        self.picture = picture
 
+        # Keeps track of multinet metadata
+        self.multinet: Optional[MultinetInfo] = None
 
-def filtered_user(user: User) -> FilteredUser:
-    """Remove ArangoDB metadata from a document."""
-    doc = dataclasses.asdict(user)
+    @staticmethod
+    def exists(sub: str) -> bool:
+        """Search the user collection for a user that has the matching `sub` value."""
+        return User.get(sub) is not None
 
-    fields = {field.name for field in dataclasses.fields(FilteredUser)}
-    filtered = {k: v for k, v in doc.items() if k in fields}
+    @staticmethod
+    def get(sub: str) -> Optional[Dict]:
+        """Return the respective user document if it exists, or None."""
+        coll = user_collection()
 
-    return from_dict(FilteredUser, filtered)
+        try:
+            doc = next(coll.find({"sub": sub}, limit=1))
+        except StopIteration:
+            return None
 
+        return doc
 
-def copy_user(user: User) -> User:
-    """Create and return a new instance of User."""
-    return from_dict(User, dataclasses.asdict(user))
+    @staticmethod
+    def register(*args: Any, **kwargs: Any) -> User:
+        """Register and return a user with the passed info."""
+        user = User(*args, **kwargs)
 
+        user.multinet = MultinetInfo(session=generate_user_session())
+        user.save()
 
-def search_user(query: str) -> Cursor:
-    """Search for users given a partial string."""
+        return user
 
-    coll = user_collection()
-    aql = read_only_db("_system").aql
+    @staticmethod
+    def from_id(sub: str) -> Optional[User]:
+        """Return a user from the passed `sub` value, if they exist."""
+        doc = User.get(sub)
+        return User.from_dict(doc) if doc else None
 
-    bind_vars = {"@users": coll.name, "query": query}
-    query = """
-        FOR doc in @@users
-          FILTER CONTAINS(LOWER(doc.name), LOWER(@query))
-            OR CONTAINS(LOWER(doc.email), LOWER(@query))
+    @staticmethod
+    def from_session(session_id: str) -> Optional[User]:
+        """Return a User from the session, if it exists."""
+        coll = user_collection()
 
-          LIMIT 50
-          RETURN doc
-    """
+        try:
+            return User.from_dict(
+                next(coll.find({"multinet.session": session_id}, limit=1))
+            )
+        except StopIteration:
+            return None
 
-    return _run_aql_query(aql, query, bind_vars)
+    @staticmethod
+    def from_dict(d: Dict) -> User:
+        """Return a user object from a dict."""
+        keys = UserInfo.__annotations__.keys()
+        filtered = {k: v for k, v in d.items() if k in keys}
+
+        user = User(**filtered)
+        user.multinet = from_dict(MultinetInfo, d["multinet"])
+
+        return user
+
+    def save(self) -> None:
+        """Save this user into the user collection."""
+        coll = user_collection()
+        user_as_dict = self.asdict()
+
+        doc = User.get(self.sub)
+        if doc:
+            dict_to_save = {**doc, **user_as_dict}
+            coll.update(dict_to_save)
+        else:
+            coll.insert(user_as_dict)
+
+    def delete(self) -> None:
+        """Delete this user from the database."""
+        coll = user_collection()
+        doc = User.get(self.sub)
+        if doc:
+            coll.delete(doc["_id"])
+
+    def get_session(self) -> str:
+        """Return the login session of a user, creating it if it doesn't exist."""
+        if self.multinet is None:
+            self.multinet = MultinetInfo(session=generate_user_session())
+
+        if self.multinet.session is None:
+            self.multinet.session = generate_user_session()
+
+        return self.multinet.session
+
+    def set_session(self, session: str) -> None:
+        """Set the login session of a user."""
+        if self.multinet is None:
+            self.multinet = MultinetInfo(session=session)
+        else:
+            self.multinet.session = session
+
+        self.save()
+
+    def delete_session(self) -> None:
+        """Delete the login session of a user."""
+        if self.multinet is not None:
+            self.multinet.session = None
+            self.save()
+
+    def asjson(self) -> str:
+        """Return this user as JSON."""
+        return json.dumps(self.asdict())
+
+    def asdict(self) -> Dict:
+        """Return this user as a dict."""
+        full_dict = copy(self.__dict__)
+        full_dict["multinet"] = copy(self.multinet.__dict__)
+
+        return full_dict
+
+    def available_workspaces(self) -> Generator[str, None, None]:
+        """Return all workspaces this user has access to."""
+
+        sysdb = system_db()
+        bind_vars = {"@workspaces": "workspace_mapping", "userid": self.sub}
+
+        query = """
+        FOR w in @@workspaces
+            FILTER (
+                w.permissions.public == true
+                || w.permissions.owner == @userid
+                || @userid IN w.permissions.maintainers
+                || @userid IN w.permissions.writers
+                || @userid IN w.permissions.readers
+            )
+            RETURN w
+        """
+
+        return (x["name"] for x in _run_aql_query(sysdb.aql, query, bind_vars))

@@ -29,65 +29,8 @@ from multinet.errors import (
 )
 from multinet.user import current_user, find_user_from_id
 
+
 bp = Blueprint("multinet", __name__)
-
-
-# Included here due to circular imports
-# TODO: Remove once implementing new ORM and permission storage
-def _permissions_id_to_user(permissons: WorkspacePermissions) -> Dict:
-    """
-    Transform permission documents to directly contain user info.
-
-    Currently, `WorkspacePermissons` only contains references to users through their
-    `sub` values, stored as a str in the role to which it pertains. The client requires
-    more information to properly display/use permissions, so this function transforms
-    the `sub` values to the entire user object.
-
-    This fuction will eventually be supplanted by a change in our permission model.
-    """
-
-    # Cast to a regular dict, since it won't actually be
-    # a `WorkspacePermissions` after we perform replacement
-    new_permissions = cast(Dict, deepcopy(permissons))
-
-    for role, users in new_permissions.items():
-        if role == "public":
-            continue
-
-        if role == "owner":
-            # Since the role is "owner", `users` is a `str`
-            user = find_user_from_id(users)
-            if user is not None:
-                new_permissions["owner"] = asdict(user)
-        else:
-            new_users = []
-            for sub in users:
-                user = find_user_from_id(sub)
-                if user is not None:
-                    new_users.append(asdict(user))
-
-            new_permissions[role] = new_users
-
-    return new_permissions
-
-
-# Included here due to circular imports
-# TODO: Remove once implementing new ORM and permission storage
-def _permissions_user_to_id(expanded_user_permissions: Dict) -> WorkspacePermissions:
-    """Transform permission documents to only contain the `sub` values of users."""
-    permissions = deepcopy(expanded_user_permissions)
-
-    for role, users in permissions.items():
-        if role == "public":
-            continue
-
-        if role == "owner":
-            if users is not None:
-                permissions["owner"] = users["sub"]
-        else:
-            permissions[role] = [user["sub"] for user in users]
-
-    return cast(WorkspacePermissions, permissions)
 
 
 @bp.route("/workspaces", methods=["GET"])
@@ -107,9 +50,8 @@ def get_workspaces() -> Any:
 @swag_from("swagger/get_workspace_permissions.yaml")
 def get_workspace_permissions(workspace: str) -> Any:
     """Retrieve the permissions of a workspace."""
-    metadata = db.get_workspace_metadata(workspace)
-
-    return _permissions_id_to_user(metadata["permissions"])
+    perms = Workspace(workspace).get_permissions()
+    return util.expand_user_permissions(perms)
 
 
 @bp.route("/workspaces/<workspace>/permissions", methods=["PUT"])
@@ -126,8 +68,8 @@ def set_workspace_permissions(workspace: str) -> Any:
     }:
         raise MalformedRequestBody(request.json)
 
-    perms = _permissions_user_to_id(request.json)
-    return _permissions_id_to_user(db.set_workspace_permissions(workspace, perms))
+    perms = util.contract_user_permissions(request.json)
+    return Workspace(workspace).set_permissions(perms).__dict__
 
 
 @bp.route("/workspaces/<workspace>/tables", methods=["GET"])

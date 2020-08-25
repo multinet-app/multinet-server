@@ -2,21 +2,81 @@
 import os
 import json
 
+from copy import deepcopy
+from dataclasses import asdict
 from functools import lru_cache
 from uuid import uuid1, uuid4
 from flask import Response
-from typing import Any, Generator, Dict, Set, Iterable
+from typing import Any, Generator, Dict, Iterable
 
+import multinet.user
 from multinet import db
-from multinet.types import EdgeTableProperties
+from multinet import workspace
+
 from multinet.errors import DatabaseNotLive, DecodeFailed
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
+restricted_document_keys = {"_rev", "_id"}
+
+
+# TODO: Remove once permission storage is updated
+def expand_user_permissions(permissons: workspace.WorkspacePermissions) -> Dict:
+    """
+    Transform permission documents to directly contain user info.
+
+    Currently, `WorkspacePermissons` only contains references to users through their
+    `sub` values, stored as a str in the role to which it pertains. The client requires
+    more information to properly display/use permissions, so this function transforms
+    the `sub` values to the entire user object.
+
+    This fuction will eventually be supplanted by a change in our permission model.
+    """
+
+    new_permissions = asdict(permissons)
+    for role, users in new_permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            # Since the role is "owner", `users` is a `str`
+            user = multinet.user.User.from_id(users)
+            if user is not None:
+                new_permissions["owner"] = user.asdict()
+        else:
+            new_users = []
+            for sub in users:
+                user = multinet.user.User.from_id(sub)
+                if user is not None:
+                    new_users.append(user.asdict())
+
+            new_permissions[role] = new_users
+
+    return new_permissions
+
+
+# TODO: Remove once permission storage is updated
+def contract_user_permissions(
+    expanded_user_permissions: Dict,
+) -> workspace.WorkspacePermissions:
+    """Transform permission documents to only contain the `sub` values of users."""
+    permissions = deepcopy(expanded_user_permissions)
+
+    for role, users in permissions.items():
+        if role == "public":
+            continue
+
+        if role == "owner":
+            if users is not None:
+                permissions["owner"] = users["sub"]
+        else:
+            permissions[role] = [user["sub"] for user in users]
+
+    return workspace.WorkspacePermissions(**permissions)
 
 
 def filter_unwanted_keys(row: Dict) -> Dict:
     """Remove any unwanted keys from a document."""
-    return {k: v for k, v in row.items() if k not in db.restricted_keys}
+    return {k: v for k, v in row.items() if k not in restricted_document_keys}
 
 
 def generate_filtered_docs(rows: Iterable[Dict]) -> Generator[Dict, None, None]:
@@ -24,42 +84,6 @@ def generate_filtered_docs(rows: Iterable[Dict]) -> Generator[Dict, None, None]:
 
     for row in rows:
         yield filter_unwanted_keys(row)
-
-
-def get_edge_table_properties(workspace: str, edge_table: str) -> EdgeTableProperties:
-    """
-    Return extracted information about an edge table.
-
-    Extracts 3 pieces of data from an edge table.
-
-    table_keys: A mapping of all referenced tables to their respective referenced keys.
-    from_tables: A set containing the tables referenced in the _from column.
-    to_tables: A set containing the tables referenced in the _to column.
-    """
-
-    loaded_workspace = db.get_workspace_db(workspace)
-    edges = loaded_workspace.collection(edge_table).all()
-
-    tables_to_keys: Dict[str, Set[str]] = {}
-    from_tables = set()
-    to_tables = set()
-
-    for edge in edges:
-        from_node, to_node = edge["_from"].split("/"), edge["_to"].split("/")
-        from_tables.add(from_node[0])
-        to_tables.add(to_node[0])
-
-        for table, key in (from_node, to_node):
-            if table in tables_to_keys:
-                tables_to_keys[table].add(key)
-            else:
-                tables_to_keys[table] = {key}
-
-    return {
-        "table_keys": tables_to_keys,
-        "from_tables": from_tables,
-        "to_tables": to_tables,
-    }
 
 
 def generate(iterator: Iterable[Any]) -> Generator[str, None, None]:

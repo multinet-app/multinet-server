@@ -8,7 +8,7 @@ from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from arango.cursor import Cursor
 
 from multinet import util
-from multinet.types import EdgeTableProperties
+from multinet.types import EdgeTableProperties, TableType
 from multinet.validation import ValidationFailure, UndefinedTable, UndefinedKeys
 from multinet.validation.csv import validate_csv
 from multinet.db import (
@@ -23,7 +23,6 @@ from multinet.errors import (
     ValidationFailed,
     InternalServerError,
     WorkspaceNotFound,
-    BadQueryArgument,
     GraphNotFound,
     TableNotFound,
     GraphCreationError,
@@ -207,7 +206,6 @@ class Workspace:
         # Copy so modifications to return don't poison cache
         return copy.deepcopy(doc)
 
-    # Graphs
     def graphs(self) -> List[Dict]:
         """Return the graphs in this workspace."""
         return self.readonly_handle.graphs()
@@ -281,8 +279,7 @@ class Workspace:
 
         return self.handle.delete_graph(name)
 
-    # Tables
-    def tables(self, table_type: str = "all") -> Generator[str, None, None]:
+    def tables(self, table_type: TableType = "all") -> Generator[str, None, None]:
         """Return all tables of the specified type."""
 
         def pass_all(x: Dict[str, Any]) -> bool:
@@ -300,8 +297,6 @@ class Workspace:
             desired_type = is_node
         elif table_type == "edge":
             desired_type = is_edge
-        else:
-            raise BadQueryArgument("type", table_type, ["all", "node", "edge"])
 
         tables = (
             table["name"]

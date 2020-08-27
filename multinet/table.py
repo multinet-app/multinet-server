@@ -37,7 +37,7 @@ class Table:
 
         return {"count": count, "rows": list(rows)}
 
-    def row(self, doc: Union[Dict, str]) -> Union[Dict, None]:
+    def row(self, doc: Union[Dict, str]) -> Optional[Dict]:
         """Return a specific document, or `None` if not present."""
         return self.handle.get(doc)
 
@@ -50,11 +50,10 @@ class Table:
         return self.handle.keys()
 
     def headers(self) -> List[str]:
-        """Return a the fields present on each row in this table."""
+        """Return the fields present on each row in this table."""
         keys = []
         cur = self.handle.find({}, limit=1)
 
-        # TODO: Determine what should happen if cur is empty
         if not cur.empty():
             doc: Dict = next(cur)
             keys = list(util.filter_unwanted_keys(doc).keys())

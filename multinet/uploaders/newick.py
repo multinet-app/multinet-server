@@ -115,8 +115,8 @@ def upload(workspace: str, graph: str) -> Any:
             edgetable.insert(
                 [
                     {
-                        "_from": "%s/%s" % (nodetable_name, parent),
-                        "_to": "%s/%s" % (nodetable_name, key),
+                        "_from": f"{nodetable_name}/{parent}",
+                        "_to": f"{nodetable_name}/{key}",
                         "length": node.length,
                     }
                 ]

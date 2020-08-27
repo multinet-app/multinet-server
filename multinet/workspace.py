@@ -118,14 +118,6 @@ class Workspace:
         """Construct a workspace from a dict."""
         workspace = Workspace(name=d["name"])
 
-        internal = d.get("internal")
-        if internal:
-            workspace.internal = internal
-
-        permissions = d.get("permissions")
-        if permissions:
-            workspace.permissions = WorkspacePermissions(**permissions)
-
         return workspace
 
     def save(self) -> None:

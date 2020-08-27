@@ -99,11 +99,12 @@ class Graph:
         edge_table = self.edge_table()
 
         query_direction = edge_direction_map[direction]
-        query_filter = f'e._from == "{node_id}" || e._to == "{node_id}"'
         if query_direction == "inbound":
             query_filter = f'e._to == "{node_id}"'
         elif query_direction == "outbound":
             query_filter = f'e._from == "{node_id}"'
+        elif query_direction == "all":
+            query_filter = f'e._from == "{node_id}" || e._to == "{node_id}"'
 
         query = f"""
         FOR e IN {edge_table}

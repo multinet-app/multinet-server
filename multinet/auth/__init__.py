@@ -7,7 +7,6 @@ from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from multinet.db import search_user
 from multinet.user import MULTINET_COOKIE, User
 from multinet.util import stream
 from multinet.auth.util import require_login
@@ -57,4 +56,4 @@ def logout() -> ResponseWrapper:
 @swag_from("swagger/user/search.yaml")
 def search(query: str) -> ResponseWrapper:
     """Search for users given a partial string."""
-    return stream(search_user(query))
+    return stream(User.search(query))

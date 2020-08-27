@@ -7,6 +7,7 @@ from uuid import uuid4
 from copy import copy
 from dacite import from_dict
 from flask import session as flask_session
+from arango.cursor import Cursor
 
 from multinet.db import user_collection, system_db, _run_aql_query
 
@@ -127,6 +128,25 @@ class User:
         user.multinet = from_dict(MultinetInfo, d["multinet"])
 
         return user
+
+    @staticmethod
+    def search(query: str) -> Cursor:
+        """Search for users given a partial string."""
+
+        coll = user_collection()
+        aql = system_db().aql
+
+        bind_vars = {"@users": coll.name, "query": query}
+        query = """
+            FOR doc in @@users
+            FILTER CONTAINS(LOWER(doc.name), LOWER(@query))
+                OR CONTAINS(LOWER(doc.email), LOWER(@query))
+
+            LIMIT 50
+            RETURN doc
+        """
+
+        return _run_aql_query(aql, query, bind_vars)
 
     def save(self) -> None:
         """Save this user into the user collection."""

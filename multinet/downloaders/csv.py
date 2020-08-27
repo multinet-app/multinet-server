@@ -31,8 +31,7 @@ def download(workspace: str, table: str) -> Any:
         raise NotFound("table", table)
 
     loaded_table = loaded_workspace.table(table)
-    limit = loaded_table.row_count()
-    table_rows = loaded_table.rows(0, limit)["rows"]
+    table_rows = loaded_table.rows()["rows"]
 
     fields = loaded_table.headers()
 

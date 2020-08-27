@@ -35,7 +35,7 @@ arango = ArangoClient(
 )
 
 
-def db(name: str, readonly: bool = True, immediate: bool = False) -> StandardDatabase:
+def db(name: str, readonly: bool = True) -> StandardDatabase:
     """Return a handle for Arango database `name`."""
 
     username = "readonly" if readonly else "root"
@@ -45,7 +45,7 @@ def db(name: str, readonly: bool = True, immediate: bool = False) -> StandardDat
         else os.environ.get("ARANGO_PASSWORD", "letmein")
     )
 
-    return arango.db(name, username=username, password=password, verify=immediate)
+    return arango.db(name, username=username, password=password)
 
 
 @lru_cache()
@@ -116,25 +116,6 @@ def user_collection() -> StandardCollection:
     return sysdb.collection("users")
 
 
-def search_user(query: str) -> Cursor:
-    """Search for users given a partial string."""
-
-    coll = user_collection()
-    aql = system_db().aql
-
-    bind_vars = {"@users": coll.name, "query": query}
-    query = """
-        FOR doc in @@users
-          FILTER CONTAINS(LOWER(doc.name), LOWER(@query))
-            OR CONTAINS(LOWER(doc.email), LOWER(@query))
-
-          LIMIT 50
-          RETURN doc
-    """
-
-    return _run_aql_query(aql, query, bind_vars)
-
-
 def _run_aql_query(
     aql: AQL, query: str, bind_vars: Optional[Dict[str, Any]] = None
 ) -> Cursor:
@@ -152,17 +133,18 @@ def _run_aql_query(
 # TODO: Refactor the below functions into an `Upload` class
 # https://github.com/multinet-app/multinet-server/issues/464
 @lru_cache(maxsize=1)
-def uploads_database() -> StandardDatabase:
+def uploads_database(readonly: bool = True) -> StandardDatabase:
     """Return the database used for storing multipart upload collections."""
     sysdb = system_db(readonly=False)
     if not sysdb.has_database("uploads"):
         sysdb.create_database("uploads")
-    return db("uploads", readonly=False)
+
+    return db("uploads", readonly=readonly)
 
 
 def create_upload_collection() -> str:
     """Insert empty multipart upload temp collection."""
-    uploads_db = uploads_database()
+    uploads_db = uploads_database(readonly=False)
     upload_id = f"u-{uuid4().hex}"
     uploads_db.create_collection(upload_id)
     return upload_id
@@ -170,7 +152,7 @@ def create_upload_collection() -> str:
 
 def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
     """Insert b64-encoded string `chunk` into temporary collection."""
-    uploads_db = uploads_database()
+    uploads_db = uploads_database(readonly=False)
     if not uploads_db.has_collection(upload_id):
         raise UploadNotFound(upload_id)
 
@@ -186,7 +168,7 @@ def insert_file_chunk(upload_id: str, sequence: str, chunk: str) -> str:
 
 def delete_upload_collection(upload_id: str) -> str:
     """Delete a multipart upload collection."""
-    uploads_db = uploads_database()
+    uploads_db = uploads_database(readonly=False)
 
     if not uploads_db.has_collection(upload_id):
         raise UploadNotFound(upload_id)

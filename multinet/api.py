@@ -47,7 +47,7 @@ def get_workspaces() -> Any:
 @swag_from("swagger/get_workspace_permissions.yaml")
 def get_workspace_permissions(workspace: str) -> Any:
     """Retrieve the permissions of a workspace."""
-    perms = Workspace(workspace).get_permissions()
+    perms = Workspace(workspace).permissions
     return util.expand_user_permissions(perms)
 
 

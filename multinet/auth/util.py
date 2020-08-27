@@ -31,7 +31,7 @@ def is_reader(user: Optional[User], workspace: Workspace) -> bool:
 
     # A non-logged-in user, by definition, is a reader of public workspaces.
     if user is None:
-        return bool(perms.public)
+        return perms.public
 
     # Otherwise, check to see if the workspace is public, or the user is at
     # least a reader of the workspace.

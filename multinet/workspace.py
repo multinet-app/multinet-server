@@ -93,11 +93,10 @@ class Workspace:
             # Could only happen if there's a name collision
             raise InternalServerError("Error creating workspace")
 
-        permissions = WorkspacePermissions(owner=owner.sub).__dict__
         workspace_dict = {
             "name": name,
             "internal": internal,
-            "permissions": permissions,
+            "permissions": WorkspacePermissions(owner=owner.sub).__dict__,
         }
 
         coll = workspace_mapping_collection(readonly=False)
@@ -137,15 +136,6 @@ class Workspace:
 
         # Invalidate the cache for things changed by this function
         workspace_mapping.cache_clear()
-
-    def get_permissions(self) -> WorkspacePermissions:
-        """Fetch and return the permissions on this workspace."""
-        doc = self.get_metadata()
-
-        self.permissions = self.permissions or doc["permissions"]
-        self.internal = self.internal or doc["internal"]
-
-        return WorkspacePermissions(**doc["permissions"])
 
     def set_permissions(
         self, permissions: WorkspacePermissions

@@ -11,10 +11,20 @@ from typing import List, Set, Dict, Iterable, Union, Optional
 
 
 class Table:
-    """Table."""
+    """Tables store tabular data, and are the root of all data storage in Multinet."""
 
     def __init__(self, name: str, workspace: str, handle: StandardCollection, aql: AQL):
-        """Init Table class."""
+        """
+        Initialize all Table parameters, but make no requests.
+
+        The `workspace` parameter is the name of the workspace this table belongs to.
+
+        The `handle` parameter is the handle to the arangodb collection for which this
+        class instance is associated.
+
+        The `aql` parameter is the AQL handle of the creating Workspace, so that this
+        class may make AQL requests when necessary.
+        """
         self.name = name
         self.workspace = workspace
         self.handle = handle

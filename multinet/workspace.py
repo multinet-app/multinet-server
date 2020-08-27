@@ -48,13 +48,18 @@ class WorkspacePermissions:
 
 
 class Workspace:
-    """Workspace."""
+    """Workspaces contain Multinet Tables and Graphs."""
 
     # Keys that aren't saved to the database
     exclude_keys = {"handle", "readonly_handle", "readonly"}
 
     def __init__(self, name: str):
-        """Create a Workspace Object."""
+        """
+        Intialize a Workspace.
+
+        Retrieve the workspace metadata and populate this object. If the workspace
+        does not exist, this construction raises a `WorkspaceNotFound` error.
+        """
         self.name = name
 
         # TODO: Don't access database right away

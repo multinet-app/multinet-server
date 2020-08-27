@@ -14,10 +14,20 @@ edge_direction_map = {"all": "any", "incoming": "inbound", "outgoing": "outbound
 
 
 class Graph:
-    """Graph."""
+    """Graphs link data between tables in Multinet."""
 
     def __init__(self, name: str, workspace: str, handle: ArangoGraph, aql: AQL):
-        """Init Graph class."""
+        """
+        Initialize all Graph parameters, but make no requests.
+
+        The `workspace` parameter is the name of the workspace this graph belongs to.
+
+        The `handle` parameter is the handle to the arangodb graph for which this
+        class instance is associated.
+
+        The `aql` parameter is the AQL handle of the creating Workspace, so that this
+        class may make AQL requests when necessary.
+        """
         self.name = name
         self.workspace = workspace
         self.handle = handle

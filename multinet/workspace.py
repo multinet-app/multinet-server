@@ -40,6 +40,7 @@ class WorkspacePermissions:
     """The permissions on a workspace."""
 
     # TODO: Change str to User once updating permissions storage
+    # https://github.com/multinet-app/multinet-server/issues/456
     owner: str
     maintainers: List[str] = dataclasses.field(default_factory=lambda: [])
     writers: List[str] = dataclasses.field(default_factory=lambda: [])

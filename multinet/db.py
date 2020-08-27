@@ -54,7 +54,6 @@ def system_db(readonly: bool = True) -> StandardDatabase:
     return db("_system", readonly)
 
 
-# TODO: Fix/remove this
 def check_db() -> bool:
     """Check the database to see if it's alive."""
     try:
@@ -151,6 +150,7 @@ def _run_aql_query(
 
 
 # TODO: Refactor the below functions into an `Upload` class
+# https://github.com/multinet-app/multinet-server/issues/464
 @lru_cache(maxsize=1)
 def uploads_database() -> StandardDatabase:
     """Return the database used for storing multipart upload collections."""

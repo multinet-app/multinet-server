@@ -9,7 +9,7 @@ from multinet.errors import TableNotFound, NodeNotFound
 
 from typing import Any, Dict, Iterable, Optional
 
-
+# This maps the terminology of our API to that of python-arango
 edge_direction_map = {"all": "any", "incoming": "inbound", "outgoing": "outbound"}
 
 
@@ -66,7 +66,7 @@ class Graph:
         """Return the edge table of this graph."""
         edge_defs = self.handle.edge_definitions()
 
-        # Currently assume one edge definition per graph
+        # Multinet graphs have just one edge definition.
         return edge_defs[0]["edge_collection"]
 
     def node_attributes(self, table: str, node: str) -> Dict:

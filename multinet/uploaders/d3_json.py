@@ -107,7 +107,7 @@ def upload(workspace: str, graph: str) -> Any:
         del link["source"]
         del link["target"]
 
-    # Create or retrieve the workspace
+    # Create or retrieve the node and edge tables
     if loaded_workspace.has_table(node_table_name):
         node_table = loaded_workspace.table(node_table_name)
     else:

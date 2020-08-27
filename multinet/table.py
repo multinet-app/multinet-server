@@ -74,7 +74,6 @@ class Table:
         """
         return self.handle.insert_many(rows)
 
-    # This may be a reason to split Table up into EdgeTable and NodeTable
     def edge_properties(self) -> EdgeTableProperties:
         """
         Return extracted information about an edge table.

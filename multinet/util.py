@@ -20,6 +20,7 @@ restricted_document_keys = {"_rev", "_id"}
 
 
 # TODO: Remove once permission storage is updated
+# https://github.com/multinet-app/multinet-server/issues/456
 def expand_user_permissions(permissons: workspace.WorkspacePermissions) -> Dict:
     """
     Transform permission documents to directly contain user info.
@@ -55,6 +56,7 @@ def expand_user_permissions(permissons: workspace.WorkspacePermissions) -> Dict:
 
 
 # TODO: Remove once permission storage is updated
+# https://github.com/multinet-app/multinet-server/issues/456
 def contract_user_permissions(
     expanded_user_permissions: Dict,
 ) -> workspace.WorkspacePermissions:

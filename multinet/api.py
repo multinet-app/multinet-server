@@ -34,9 +34,11 @@ def get_workspaces() -> Any:
     """Return the list of available workspaces, based on the logged in user."""
     user = current_user()
 
+    # If the user is logged in, return all workspaces visible to them
     if user is not None:
         return util.stream(user.available_workspaces())
 
+    # Otherwise, return only public workspaces
     return util.stream(Workspace.list_public())
 
 

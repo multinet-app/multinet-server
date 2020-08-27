@@ -5,9 +5,21 @@ from arango.aql import AQL
 
 from multinet import util
 from multinet.types import EdgeTableProperties
-from multinet.errors import InternalServerError
+from multinet.errors import ServerError, FlaskTuple
 
 from typing import List, Set, Dict, Iterable, Union, Optional
+
+
+class NotAnEdgeTable(ServerError):
+    """Error raised if an edge table is required, but a node table is given."""
+
+    def __init__(self, table: str):
+        """Initialize the error with the table name."""
+        self.table = table
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 400 error."""
+        return (self.table, "400 Not an Edge Table")
 
 
 class Table:
@@ -87,7 +99,7 @@ class Table:
         """
         props = self.handle.properties()
         if not props["edge"]:
-            raise InternalServerError(f"Table {self.name} is not an edge table.")
+            raise NotAnEdgeTable(self.name)
 
         edges = self.rows()["rows"]
 

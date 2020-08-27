@@ -39,7 +39,7 @@ class Table:
         """Return all the keys in a table."""
         return self.handle.keys()
 
-    def row_fields(self, filter_keys: bool = False) -> List[str]:
+    def headers(self) -> List[str]:
         """Return a the fields present on each row in this table."""
         keys = []
         cur = self.handle.find({}, limit=1)
@@ -47,11 +47,7 @@ class Table:
         # TODO: Determine what should happen if cur is empty
         if not cur.empty():
             doc: Dict = next(cur)
-
-            if filter_keys:
-                keys = list(util.filter_unwanted_keys(doc).keys())
-            else:
-                keys = list(doc.keys())
+            keys = list(util.filter_unwanted_keys(doc).keys())
 
         return keys
 

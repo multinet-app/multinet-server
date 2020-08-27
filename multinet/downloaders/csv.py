@@ -34,7 +34,7 @@ def download(workspace: str, table: str) -> Any:
     limit = loaded_table.row_count()
     table_rows = loaded_table.rows(0, limit)["rows"]
 
-    fields = loaded_table.row_fields(filter_keys=True)
+    fields = loaded_table.headers()
 
     def csv_row_generator() -> Generator[str, None, None]:
         header_line = StringIO()

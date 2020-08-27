@@ -127,8 +127,11 @@ class Workspace:
 
         doc.update(instance_dict)
 
-        coll = workspace_mapping_collection()
+        coll = workspace_mapping_collection(readonly=False)
         coll.update(doc)
+
+        # Invalidate the cache for things changed by this function
+        workspace_mapping.cache_clear()
 
     def get_permissions(self) -> WorkspacePermissions:
         """Fetch and return the permissions on this workspace."""
@@ -144,15 +147,12 @@ class Workspace:
     ) -> WorkspacePermissions:
         """Set the permissions on a workspace."""
         # Disallow changing workspace ownership through this function.
-        permissions.owner = self.permissions.owner
+        current_owner = self.permissions.owner
+        self.permissions = permissions
+        self.permissions.owner = current_owner
 
-        doc = self.get_metadata()
-        doc["permissions"] = permissions.__dict__
-
-        workspace_mapping_collection(readonly=False).update(doc)
-        workspace_mapping.cache_clear()
-
-        return permissions
+        self.save()
+        return self.permissions
 
     def asdict(self) -> Dict:
         """Return this workspace as a dictionary."""

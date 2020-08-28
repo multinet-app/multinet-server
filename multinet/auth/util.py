@@ -4,8 +4,8 @@ import functools
 from typing import Any, Optional, Callable
 
 from multinet.errors import Unauthorized
-from multinet.workspace import Workspace
-from multinet.user import current_user, User
+from multinet.db.models.workspace import Workspace
+from multinet.db.models.user import current_user, User
 
 
 # NOTE: unfortunately, it is difficult to write a type signature for this

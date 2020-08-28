@@ -22,8 +22,8 @@ from multinet.errors import (
     RequiredParamsMissing,
 )
 
-from multinet.user import current_user
-from multinet.workspace import Workspace
+from multinet.db.models.user import current_user
+from multinet.db.models.workspace import Workspace
 
 bp = Blueprint("multinet", __name__)
 

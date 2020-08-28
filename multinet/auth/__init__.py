@@ -7,7 +7,7 @@ from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from multinet.user import MULTINET_COOKIE, User
+from multinet.db.models.user import MULTINET_COOKIE, User
 from multinet.util import stream
 from multinet.auth.util import require_login
 

@@ -14,7 +14,7 @@ from authlib.integrations.flask_client import OAuth
 from webargs.flaskparser import use_kwargs
 from webargs import fields
 
-from multinet.user import User, MULTINET_COOKIE
+from multinet.db.models.user import User, MULTINET_COOKIE
 from multinet.auth.types import GoogleUserInfo
 
 from typing import Dict, Optional

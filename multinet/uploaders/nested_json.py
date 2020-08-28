@@ -4,7 +4,7 @@ import itertools
 import json
 
 from multinet import util
-from multinet.workspace import Workspace
+from multinet.db.models.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists
 

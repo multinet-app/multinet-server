@@ -6,8 +6,8 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from multinet import create_app
-from multinet.workspace import Workspace
-from multinet.user import User, MULTINET_COOKIE
+from multinet.db.models.workspace import Workspace
+from multinet.db.models.user import User, MULTINET_COOKIE
 
 from typing import Generator, Tuple
 

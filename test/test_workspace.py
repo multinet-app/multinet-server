@@ -1,7 +1,7 @@
 """Test that workspace operations act like we expect them to."""
 from uuid import uuid4
 from multinet.db import workspace_mapping
-from multinet.workspace import Workspace
+from multinet.db.models.workspace import Workspace
 
 
 def test_present_workspace(managed_workspace):

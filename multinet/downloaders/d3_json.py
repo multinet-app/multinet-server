@@ -4,8 +4,8 @@ import json
 
 from flasgger import swag_from
 
-from multinet.workspace import Workspace
-from multinet.graph import Graph
+from multinet.db.models.workspace import Workspace
+from multinet.db.models.graph import Graph
 from multinet.util import require_db
 from multinet.errors import GraphNotFound
 

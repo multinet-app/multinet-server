@@ -5,7 +5,7 @@ from io import StringIO
 
 from multinet.util import require_db, generate_filtered_docs
 from multinet.errors import NotFound
-from multinet.workspace import Workspace
+from multinet.db.models.workspace import Workspace
 
 from flask import Blueprint, Response
 

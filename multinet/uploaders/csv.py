@@ -4,7 +4,7 @@ from flasgger import swag_from
 from io import StringIO
 
 from multinet import util
-from multinet.workspace import Workspace
+from multinet.db.models.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import AlreadyExists, FlaskTuple, ServerError
 from multinet.util import decode_data

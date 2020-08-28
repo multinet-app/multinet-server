@@ -27,9 +27,9 @@ from multinet.errors import (
     TableNotFound,
     GraphCreationError,
 )
-from multinet.user import User
-from multinet.graph import Graph
-from multinet.table import Table
+from multinet.db.models.user import User
+from multinet.db.models.graph import Graph
+from multinet.db.models.table import Table
 
 from typing import Any, List, Dict, Generator, Optional
 

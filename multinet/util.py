@@ -9,9 +9,8 @@ from uuid import uuid1, uuid4
 from flask import Response
 from typing import Any, Generator, Dict, Iterable
 
-import multinet.user
 from multinet import db
-from multinet import workspace
+from multinet.db.models import workspace
 
 from multinet.errors import DatabaseNotLive, DecodeFailed
 
@@ -40,13 +39,13 @@ def expand_user_permissions(permissons: workspace.WorkspacePermissions) -> Dict:
 
         if role == "owner":
             # Since the role is "owner", `users` is a `str`
-            user = multinet.user.User.from_id(users)
+            user = db.models.user.User.from_id(users)
             if user is not None:
                 new_permissions["owner"] = user.asdict()
         else:
             new_users = []
             for sub in users:
-                user = multinet.user.User.from_id(sub)
+                user = db.models.user.User.from_id(sub)
                 if user is not None:
                     new_users.append(user.asdict())
 

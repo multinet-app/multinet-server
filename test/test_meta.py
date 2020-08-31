@@ -7,17 +7,17 @@ def test_generated_workspace(managed_workspace, managed_user, server):
     """Test that a generated workspace exists when querying the API."""
 
     with conftest.login(managed_user, server):
-        resp = server.get(f"/api/workspaces/{managed_workspace}/permissions")
+        resp = server.get(f"/api/workspaces/{managed_workspace.name}/permissions")
         assert resp.status_code == 200
 
 
 def test_user_context(managed_workspace, managed_user, server):
     """Test that the user context properly controls login."""
     with conftest.login(managed_user, server):
-        resp = server.get(f"/api/workspaces/{managed_workspace}/tables")
+        resp = server.get(f"/api/workspaces/{managed_workspace.name}/tables")
         assert resp.status_code == 200
 
-    resp = server.get(f"/api/workspaces/{managed_workspace}/tables")
+    resp = server.get(f"/api/workspaces/{managed_workspace.name}/tables")
     assert resp.status_code == 401
 
 
@@ -27,7 +27,7 @@ def test_populated_workspace(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         # Graphs
-        resp = server.get(f"/api/workspaces/{workspace}/graphs")
+        resp = server.get(f"/api/workspaces/{workspace.name}/graphs")
         assert resp.status_code == 200
 
         graphs = resp.json
@@ -35,7 +35,7 @@ def test_populated_workspace(populated_workspace, managed_user, server):
         assert graphs[0] == "miserables"
 
         # Tables
-        resp = server.get(f"/api/workspaces/{workspace}/tables")
+        resp = server.get(f"/api/workspaces/{workspace.name}/tables")
         assert resp.status_code == 200
 
         tables = resp.json

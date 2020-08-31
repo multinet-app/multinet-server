@@ -1,25 +1,20 @@
 """Test that workspace operations act like we expect them to."""
 from uuid import uuid4
-from multinet.db import (
-    create_workspace,
-    delete_workspace,
-    rename_workspace,
-    workspace_exists,
-    workspace_mapping,
-)
+from multinet.db import workspace_mapping
+from multinet.db.models.workspace import Workspace
 
 
 def test_present_workspace(managed_workspace):
     """Test that workspace caching works as expected on present workspaces."""
 
     # Assert that the cached response matches the actual response
-    assert workspace_mapping.__wrapped__(managed_workspace) == workspace_mapping(
-        managed_workspace
+    assert workspace_mapping.__wrapped__(managed_workspace.name) == workspace_mapping(
+        managed_workspace.name
     )
     workspace_mapping.cache_clear()
 
-    first_resp = workspace_mapping(managed_workspace)
-    second_resp = workspace_mapping(managed_workspace)
+    first_resp = workspace_mapping(managed_workspace.name)
+    second_resp = workspace_mapping(managed_workspace.name)
 
     # Assert that cached response is idempotent
     assert first_resp == second_resp
@@ -47,12 +42,13 @@ def test_workspace_create(managed_user):
     workspace_name = uuid4().hex
 
     pre_create = workspace_mapping(workspace_name)
-    create_workspace(workspace_name, managed_user)
+    workspace = Workspace.create(workspace_name, managed_user)
+
     post_create = workspace_mapping(workspace_name)
-    post_create_exists = workspace_exists(workspace_name)
+    post_create_exists = Workspace.exists(workspace_name)
 
     # Teardown
-    delete_workspace(workspace_name)
+    workspace.delete()
 
     # Asserts
     assert pre_create is None
@@ -63,10 +59,11 @@ def test_workspace_create(managed_user):
 def test_workspace_delete(generated_workspace):
     """Tests that deleting a workspace doesn't result in invalid caching."""
 
-    pre_delete = workspace_mapping(generated_workspace)
-    delete_workspace(generated_workspace)
-    post_delete = workspace_mapping(generated_workspace)
-    exists_post_delete = workspace_exists(generated_workspace)
+    pre_delete = workspace_mapping(generated_workspace.name)
+    generated_workspace.delete()
+
+    post_delete = workspace_mapping(generated_workspace.name)
+    exists_post_delete = Workspace.exists(generated_workspace.name)
 
     # Asserts
     assert pre_delete is not None
@@ -77,17 +74,19 @@ def test_workspace_delete(generated_workspace):
 def test_workspace_rename(generated_workspace):
     """Test that renaming a workspace doesn't result in invalid caching."""
     new_workspace_name = uuid4().hex
+    old_workspace_name = generated_workspace.name
+    pre_rename = workspace_mapping(old_workspace_name)
 
-    pre_rename = workspace_mapping(generated_workspace)
-    rename_workspace(generated_workspace, new_workspace_name)
-    post_rename_old = workspace_mapping(generated_workspace)
+    generated_workspace.rename(new_workspace_name)
+
+    post_rename_old = workspace_mapping(old_workspace_name)
     post_rename_new = workspace_mapping(new_workspace_name)
 
-    new_exists = workspace_exists(new_workspace_name)
-    old_exists = workspace_exists(generated_workspace)
+    new_exists = Workspace.exists(new_workspace_name)
+    old_exists = Workspace.exists(old_workspace_name)
 
     # Teardown
-    delete_workspace(new_workspace_name)
+    generated_workspace.delete()
 
     # Asserts
     assert pre_rename is not None

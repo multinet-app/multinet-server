@@ -1,35 +1,9 @@
 """Custom types for Multinet codebase."""
-from typing import Dict, Set, List
+from typing import Dict, Set
 from typing_extensions import Literal, TypedDict
 
 EdgeDirection = Literal["all", "incoming", "outgoing"]
 TableType = Literal["all", "node", "edge"]
-
-
-class WorkspacePermissions(TypedDict):
-    """Permissions on a Workspace."""
-
-    owner: str  # this is the `sub` property of the `User` dataclass
-    maintainers: List[str]
-    writers: List[str]
-    readers: List[str]
-    public: bool
-
-
-class Workspace(TypedDict):
-    """Workspace metadata."""
-
-    name: str
-    internal: str
-    permissions: WorkspacePermissions
-
-
-class WorkspaceDocument(Workspace):
-    """Workspace metadata as it appears in ArangoDB."""
-
-    _id: str
-    _key: str
-    _rev: str
 
 
 class EdgeTableProperties(TypedDict):

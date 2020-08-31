@@ -3,28 +3,30 @@ import re
 import json
 
 from flasgger import swag_from
-from arango.graph import Graph
 
+from multinet.db.models.workspace import Workspace
+from multinet.db.models.graph import Graph
 from multinet.util import require_db
-from multinet.db import get_workspace_db
 from multinet.errors import GraphNotFound
 
 from flask import Blueprint, Response
 
 # Import types
-from typing import Any, Generator
+from typing import Any, Generator, List
 
 bp = Blueprint("download_d3_json", __name__)
 bp.before_request(require_db)
 
 
-def node_generator(loaded_graph: Graph) -> Generator[str, None, None]:
+def node_generator(
+    loaded_workspace: Workspace, loaded_graph: Graph
+) -> Generator[str, None, None]:
     """Generate the JSON list of nodes."""
 
     comma = ""
-    node_tables = loaded_graph.vertex_collections()
+    node_tables = loaded_graph.node_tables()
     for node_table in node_tables:
-        table_nodes = loaded_graph.vertex_collection(node_table).all()
+        table_nodes = loaded_workspace.table(node_table).rows()["rows"]
 
         for node in table_nodes:
             node["id"] = node["_key"]
@@ -34,17 +36,21 @@ def node_generator(loaded_graph: Graph) -> Generator[str, None, None]:
             comma = comma or ","
 
 
-def link_generator(loaded_graph: Graph) -> Generator[str, None, None]:
+def link_generator(
+    loaded_workspace: Workspace, loaded_graph: Graph
+) -> Generator[str, None, None]:
     """Generate the JSON list of links."""
 
     # Checks for node tables that have a `_nodes` suffix.
     # If matched, removes this suffix.
     table_nodes_pattern = re.compile(r"^([^\d_]\w+)_nodes(/.+)")
-    edge_tables = [edef["edge_collection"] for edef in loaded_graph.edge_definitions()]
+
+    # Done this way to preserve logic in the future case of multiple edge tables
+    edge_tables: List[str] = [loaded_graph.edge_table()]
 
     comma = ""
     for edge_table in edge_tables:
-        edges = loaded_graph.edge_collection(edge_table).all()
+        edges = loaded_workspace.table(edge_table).rows()["rows"]
 
         for edge in edges:
             source = edge["_from"]
@@ -74,17 +80,17 @@ def download(workspace: str, graph: str) -> Any:
     `graph` - the target graph
     """
 
-    space = get_workspace_db(workspace)
-    if not space.has_graph(graph):
+    loaded_workspace = Workspace(workspace)
+    if not loaded_workspace.has_graph(graph):
         raise GraphNotFound(workspace, graph)
 
-    loaded_graph = space.graph(graph)
+    loaded_graph = loaded_workspace.graph(graph)
 
     def d3_json_generator() -> Generator[str, None, None]:
         yield """{"nodes":["""
-        yield from node_generator(loaded_graph)
+        yield from node_generator(loaded_workspace, loaded_graph)
         yield """],"links":["""
-        yield from link_generator(loaded_graph)
+        yield from link_generator(loaded_workspace, loaded_graph)
         yield "]}"
 
     response = Response(d3_json_generator(), mimetype="application/json")

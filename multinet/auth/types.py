@@ -37,38 +37,3 @@ class GoogleUserInfo:
     nonce: str
 
     hd: Optional[str] = None
-
-
-@dataclass
-class UserInfo:
-    """The filtered info that is used to create a User."""
-
-    family_name: str
-    given_name: str
-    name: str
-    picture: str
-    email: str
-    sub: str  # Unique identifier
-
-
-@dataclass
-class MultinetInfo:
-    """Data specific to multinet."""
-
-    session: Optional[str] = None
-
-
-@dataclass
-class FilteredUser(UserInfo):
-    """Representation of a user document returned by the API."""
-
-    multinet: MultinetInfo
-
-
-@dataclass
-class User(FilteredUser):
-    """Representation of a full user document."""
-
-    _id: str
-    _key: str
-    _rev: str

@@ -5,7 +5,8 @@ from flasgger import swag_from
 from dataclasses import dataclass
 from collections import OrderedDict
 
-from multinet import db, util
+from multinet import util
+from multinet.db.models.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
@@ -14,7 +15,7 @@ from multinet.validation import ValidationFailure
 from flask import Blueprint, request
 
 # Import types
-from typing import Any, List, Sequence
+from typing import Any, List, Dict, Sequence
 
 bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
@@ -40,7 +41,7 @@ class NodeDuplicates(ValidationFailure):
     """Duplicate nodes in a D3 JSON file."""
 
 
-def validate_d3_json(data: dict) -> Sequence[ValidationFailure]:
+def validate_d3_json(data: Dict) -> Sequence[ValidationFailure]:
     """Perform any necessary d3 json validation, and return appropriate errors."""
     data_errors: List[ValidationFailure] = []
 
@@ -77,8 +78,8 @@ def upload(workspace: str, graph: str) -> Any:
     `data` - the json data, passed in the request body. The json data should contain
     nodes: [] and links: []
     """
-    space = db.get_workspace_db(workspace, readonly=False)
-    if space.has_graph(graph):
+    loaded_workspace = Workspace(workspace)
+    if loaded_workspace.has_graph(graph):
         raise AlreadyExists("graph", graph)
 
     # Get data from the request and load it as json
@@ -106,29 +107,21 @@ def upload(workspace: str, graph: str) -> Any:
         del link["source"]
         del link["target"]
 
-    # Create or retrieve the workspace
-    if space.has_collection(node_table_name):
-        nodes_coll = space.collection(node_table_name)
+    # Create or retrieve the node and edge tables
+    if loaded_workspace.has_table(node_table_name):
+        node_table = loaded_workspace.table(node_table_name)
     else:
-        nodes_coll = space.create_collection(node_table_name, edge=False)
+        node_table = loaded_workspace.create_table(node_table_name, edge=False)
 
-    if space.has_collection(edge_table_name):
-        links_coll = space.collection(edge_table_name)
+    if loaded_workspace.has_table(edge_table_name):
+        edge_table = loaded_workspace.table(edge_table_name)
     else:
-        links_coll = space.create_collection(edge_table_name, edge=True)
+        edge_table = loaded_workspace.create_table(edge_table_name, edge=True)
 
     # Insert data
-    nodes_coll.insert_many(nodes, sync=True)
-    links_coll.insert_many(links, sync=True)
+    node_table.insert(nodes)
+    edge_table.insert(links)
 
-    properties = util.get_edge_table_properties(workspace, edge_table_name)
-
-    db.create_graph(
-        workspace,
-        graph,
-        edge_table_name,
-        properties["from_tables"],
-        properties["to_tables"],
-    )
+    loaded_workspace.create_graph(graph, edge_table_name)
 
     return {"nodecount": len(nodes), "edgecount": len(links)}

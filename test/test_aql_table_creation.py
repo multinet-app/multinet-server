@@ -11,7 +11,7 @@ def test_malformed_aql(managed_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{managed_workspace}/tables",
+            f"/api/workspaces/{managed_workspace.name}/tables",
             data=malformed_aql,
             query_string={"table": table_name},
         )
@@ -31,7 +31,7 @@ def test_mutating_aql(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{workspace}/tables",
+            f"/api/workspaces/{workspace.name}/tables",
             data=mutating_aql,
             query_string={"table": new_table_name},
         )
@@ -48,7 +48,7 @@ def test_existing_table(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{workspace}/tables",
+            f"/api/workspaces/{workspace.name}/tables",
             data=aql,
             query_string={"table": node_table},
         )
@@ -66,7 +66,7 @@ def test_create_node_table(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{workspace}/tables",
+            f"/api/workspaces/{workspace.name}/tables",
             data=aql,
             query_string={"table": new_table_name},
         )
@@ -84,7 +84,7 @@ def test_create_edge_table(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{workspace}/tables",
+            f"/api/workspaces/{workspace.name}/tables",
             data=aql,
             query_string={"table": new_table_name},
         )
@@ -102,7 +102,7 @@ def test_unsupported_table(populated_workspace, managed_user, server):
 
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/workspaces/{workspace}/tables",
+            f"/api/workspaces/{workspace.name}/tables",
             data=aql,
             query_string={"table": new_table_name},
         )

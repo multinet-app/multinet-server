@@ -35,15 +35,17 @@ def test_edge_table_with_key_field(
     table_name = "membership_with_keys"
     with conftest.login(managed_user, server):
         resp = server.post(
-            f"/api/csv/{managed_workspace}/{table_name}", data=request_body
+            f"/api/csv/{managed_workspace.name}/{table_name}", data=request_body
         )
         assert resp.status_code == 200
 
         edge_table_resp = server.get(
-            f"/api/workspaces/{managed_workspace}/tables", query_string={"type": "edge"}
+            f"/api/workspaces/{managed_workspace.name}/tables",
+            query_string={"type": "edge"},
         )
         node_table_resp = server.get(
-            f"/api/workspaces/{managed_workspace}/tables", query_string={"type": "node"}
+            f"/api/workspaces/{managed_workspace.name}/tables",
+            query_string={"type": "node"},
         )
 
     assert edge_table_resp.status_code == 200

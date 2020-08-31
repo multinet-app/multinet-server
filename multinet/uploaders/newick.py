@@ -3,7 +3,8 @@ from flasgger import swag_from
 import uuid
 import newick
 
-from multinet import db, util
+from multinet import util
+from multinet.db.models.workspace import Workspace
 from multinet.auth.util import require_writer
 from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
@@ -75,8 +76,8 @@ def upload(workspace: str, graph: str) -> Any:
     """
     app.logger.info("newick tree")
 
-    space = db.get_workspace_db(workspace, readonly=False)
-    if space.has_graph(graph):
+    loaded_workspace = Workspace(workspace)
+    if loaded_workspace.has_graph(graph):
         raise AlreadyExists("graph", graph)
 
     body = decode_data(request.data)
@@ -86,17 +87,17 @@ def upload(workspace: str, graph: str) -> Any:
     edgetable_name = f"{graph}_edges"
     nodetable_name = f"{graph}_nodes"
 
-    if space.has_collection(edgetable_name):
-        edgetable = space.collection(edgetable_name)
+    if loaded_workspace.has_table(edgetable_name):
+        edgetable = loaded_workspace.table(edgetable_name)
     else:
         # Note that edge=True must be set or the _from and _to keys
         # will be ignored below.
-        edgetable = space.create_collection(edgetable_name, edge=True)
+        edgetable = loaded_workspace.create_table(edgetable_name, edge=True)
 
-    if space.has_collection(nodetable_name):
-        nodetable = space.collection(nodetable_name)
+    if loaded_workspace.has_table(nodetable_name):
+        nodetable = loaded_workspace.table(nodetable_name)
     else:
-        nodetable = space.create_collection(nodetable_name)
+        nodetable = loaded_workspace.create_table(nodetable_name, edge=False)
 
     edgecount = 0
     nodecount = 0
@@ -105,29 +106,25 @@ def upload(workspace: str, graph: str) -> Any:
         nonlocal nodecount
         nonlocal edgecount
         key = node.name or uuid.uuid4().hex
-        if not nodetable.has(key):
-            nodetable.insert({"_key": key})
+        if not nodetable.row(key):
+            nodetable.insert([{"_key": key}])
         nodecount = nodecount + 1
         for desc in node.descendants:
             read_tree(key, desc)
         if parent:
             edgetable.insert(
-                {
-                    "_from": "%s/%s" % (nodetable_name, parent),
-                    "_to": "%s/%s" % (nodetable_name, key),
-                    "length": node.length,
-                }
+                [
+                    {
+                        "_from": f"{nodetable_name}/{parent}",
+                        "_to": f"{nodetable_name}/{key}",
+                        "length": node.length,
+                    }
+                ]
             )
             edgecount += 1
 
     read_tree(None, tree[0])
-    edge_table_info = util.get_edge_table_properties(workspace, edgetable_name)
-    db.create_graph(
-        workspace,
-        graph,
-        edgetable_name,
-        edge_table_info["from_tables"],
-        edge_table_info["to_tables"],
-    )
+
+    loaded_workspace.create_graph(graph, edgetable_name)
 
     return {"edgecount": edgecount, "nodecount": nodecount}

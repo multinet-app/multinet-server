@@ -2,25 +2,18 @@
 
 import pytest
 from uuid import uuid4
-from dataclasses import asdict
 from contextlib import contextmanager
 from pathlib import Path
 
 from multinet import create_app
-from multinet.db import create_workspace, delete_workspace
-from multinet.user import (
-    register_user,
-    set_user_cookie,
-    user_collection,
-    UserInfo,
-    MULTINET_COOKIE,
-)
+from multinet.db.models.workspace import Workspace
+from multinet.db.models.user import User, MULTINET_COOKIE
 
 from typing import Generator, Tuple
 
 
 @contextmanager
-def login(user, server) -> Generator[None, None, None]:
+def login(user: User, server) -> Generator[None, None, None]:
     """Perform server actions under a user login."""
 
     with server.session_transaction() as session:
@@ -59,51 +52,42 @@ def managed_user():
 
     On teardown, deletes the user.
     """
-    user = set_user_cookie(
-        register_user(
-            UserInfo(
-                family_name="test",
-                given_name="test",
-                name="test test",
-                picture="",
-                email="test@test.test",
-                sub=uuid4().hex,
-            )
-        )
+    user = User.register(
+        family_name="test",
+        given_name="test",
+        name="test test",
+        picture="",
+        email="test@test.test",
+        sub=uuid4().hex,
     )
 
     yield user
 
-    # TODO: Once the function exists, use `delete_user` here instead
-    user_collection().delete(asdict(user))
+    user.delete()
 
 
 @pytest.fixture
-def generated_workspace(managed_user):
+def generated_workspace(managed_user) -> Workspace:
     """Create a workspace, and yield the name of the workspace."""
-
     workspace_name = uuid4().hex
-
-    create_workspace(workspace_name, managed_user)
-    return workspace_name
+    return Workspace.create(workspace_name, managed_user)
 
 
 @pytest.fixture
-def managed_workspace(generated_workspace):
+def managed_workspace(generated_workspace: Workspace):
     """
     Create a workspace, and yield the name of the workspace.
 
     On teardown, deletes the workspace.
     """
     yield generated_workspace
-
-    delete_workspace(generated_workspace)
+    generated_workspace.delete()
 
 
 @pytest.fixture
 def populated_workspace(
     managed_workspace, data_directory, server, managed_user
-) -> Tuple[str, str, str, str]:
+) -> Tuple[Workspace, str, str, str]:
     """
     Populate a workspace with some data.
 
@@ -115,7 +99,9 @@ def populated_workspace(
         data = miserables.read()
 
     with login(managed_user, server):
-        resp = server.post(f"/api/d3_json/{managed_workspace}/miserables", data=data)
+        resp = server.post(
+            f"/api/d3_json/{managed_workspace.name}/miserables", data=data
+        )
 
     assert resp.status_code == 200
 

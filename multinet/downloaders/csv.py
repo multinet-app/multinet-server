@@ -4,13 +4,8 @@ from flasgger import swag_from
 from io import StringIO
 
 from multinet.util import require_db, generate_filtered_docs
-from multinet.db import (
-    get_workspace_db,
-    workspace_table_row_count,
-    workspace_table_rows,
-    workspace_table_keys,
-)
 from multinet.errors import NotFound
+from multinet.db.models.workspace import Workspace
 
 from flask import Blueprint, Response
 
@@ -31,13 +26,14 @@ def download(workspace: str, table: str) -> Any:
     `workspace` - the target workspace
     `table` - the target table
     """
-    space = get_workspace_db(workspace)
-    if not space.has_collection(table):
+    loaded_workspace = Workspace(workspace)
+    if not loaded_workspace.has_table(table):
         raise NotFound("table", table)
 
-    limit = workspace_table_row_count(workspace, table)
-    table_rows = workspace_table_rows(workspace, table, 0, limit)
-    fields = workspace_table_keys(workspace, table, filter_keys=True)
+    loaded_table = loaded_workspace.table(table)
+    table_rows = loaded_table.rows()["rows"]
+
+    fields = loaded_table.headers()
 
     def csv_row_generator() -> Generator[str, None, None]:
         header_line = StringIO()

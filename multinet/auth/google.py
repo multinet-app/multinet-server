@@ -133,8 +133,6 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         user = User.from_dict(new_user_data)
 
     cookie = user.get_session()
-    user.save()
-
     return_url = session.pop("return_url", default_return_url())
     resp = make_response(redirect(ensure_external_url(return_url)))
     session[MULTINET_COOKIE] = cookie

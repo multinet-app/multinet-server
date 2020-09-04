@@ -4,25 +4,26 @@ import pytest
 from uuid import uuid4
 from contextlib import contextmanager
 from pathlib import Path
+from flask.testing import FlaskClient
 
 from multinet import create_app
 from multinet.db.models.workspace import Workspace
-from multinet.db.models.user import User, MULTINET_COOKIE
+from multinet.db.models.user import User
+from multinet.auth.util import LOGIN_TOKEN_COOKIE
 
 from typing import Generator, Tuple
 
 
 @contextmanager
-def login(user: User, server) -> Generator[None, None, None]:
+def login(user: User, server: FlaskClient) -> Generator[None, None, None]:
     """Perform server actions under a user login."""
 
-    with server.session_transaction() as session:
-        session[MULTINET_COOKIE] = user.multinet.session
+    # This function technically requires a domain, so we set it to empty string
+    server.set_cookie("", LOGIN_TOKEN_COOKIE, user.multinet.session)
 
     yield None
 
-    with server.session_transaction() as session:
-        del session[MULTINET_COOKIE]
+    server.delete_cookie("", LOGIN_TOKEN_COOKIE)
 
 
 @pytest.fixture

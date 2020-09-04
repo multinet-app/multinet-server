@@ -6,14 +6,13 @@ from dataclasses import dataclass
 from uuid import uuid4
 from copy import copy
 from dacite import from_dict
-from flask import session as flask_session
+from flask import request
 from arango.cursor import Cursor
 
+from multinet import auth
 from multinet.db import user_collection, system_db, _run_aql_query
 
 from typing import Optional, Dict, Generator, Any
-
-MULTINET_COOKIE = "multinet-token"
 
 
 @dataclass
@@ -37,7 +36,7 @@ class UserInfo:
 
 def current_user() -> Optional[User]:
     """Return the logged in user (if any) from the current session."""
-    cookie = flask_session.get(MULTINET_COOKIE)
+    cookie = request.cookies.get(auth.util.LOGIN_TOKEN_COOKIE)
     if cookie is None:
         return None
 

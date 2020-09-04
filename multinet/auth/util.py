@@ -7,6 +7,8 @@ from multinet.errors import Unauthorized
 from multinet.db.models.workspace import Workspace
 from multinet.db.models.user import current_user, User
 
+LOGIN_TOKEN_COOKIE = "LOGIN_TOKEN"
+
 
 # NOTE: unfortunately, it is difficult to write a type signature for this
 # decorator. I've opened an issue to ask about this here:

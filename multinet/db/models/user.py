@@ -94,9 +94,7 @@ class User:
     def register(*args: Any, **kwargs: Any) -> User:
         """Register and return a user with the passed info."""
         user = User(*args, **kwargs)
-
-        user.multinet = MultinetInfo(session=generate_user_session())
-        user.save()
+        user.ensure_session()
 
         return user
 
@@ -167,14 +165,23 @@ class User:
         if doc:
             coll.delete(doc["_id"])
 
-    def get_session(self) -> str:
-        """Return the login session of a user, creating it if it doesn't exist."""
+    def ensure_session(self) -> None:
+        """Ensure that this user has a valid session."""
         if self.multinet is None:
             self.multinet = MultinetInfo(session=generate_user_session())
 
         if self.multinet.session is None:
             self.multinet.session = generate_user_session()
 
+        self.save()
+
+    def get_session(self) -> str:
+        """Return the login session of a user."""
+        self.ensure_session()
+
+        # Asserts needed for mypy
+        assert self.multinet is not None
+        assert self.multinet.session is not None
         return self.multinet.session
 
     def set_session(self, session: str) -> None:

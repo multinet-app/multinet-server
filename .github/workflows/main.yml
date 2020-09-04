@@ -46,6 +46,7 @@ jobs:
         if: steps.multinet-cache.outputs.cache-hit != 'true'
         run: pipenv install --dev --deploy
 
+      - run: which pipenv
       - run: pipenv run lint
       - run: pipenv run format
       - run: pipenv run typecheck

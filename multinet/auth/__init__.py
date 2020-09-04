@@ -20,11 +20,11 @@ def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
     logged_out: Response = make_response(json.dumps(None), 200)
 
-    cookie = request.cookies.get(LOGIN_TOKEN_COOKIE)
-    if cookie is None:
+    login_token = request.cookies.get(LOGIN_TOKEN_COOKIE)
+    if login_token is None:
         return logged_out
 
-    user = User.from_session(cookie)
+    user = User.from_session(login_token)
     if user is None:
         logged_out.set_cookie(LOGIN_TOKEN_COOKIE, "", expires=0)
         return logged_out
@@ -37,11 +37,11 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    cookie = request.cookies.get(LOGIN_TOKEN_COOKIE)
-    if cookie is not None:
+    login_token = request.cookies.get(LOGIN_TOKEN_COOKIE)
+    if login_token is not None:
         # Load the user model and invalidate its session.
 
-        user = User.from_session(cookie)
+        user = User.from_session(login_token)
         if user is not None:
             user.delete_session()
 

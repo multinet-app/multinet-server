@@ -36,11 +36,11 @@ class UserInfo:
 
 def current_user() -> Optional[User]:
     """Return the logged in user (if any) from the current session."""
-    cookie = request.cookies.get(auth.util.LOGIN_TOKEN_COOKIE)
-    if cookie is None:
+    login_token = request.cookies.get(auth.util.LOGIN_TOKEN_COOKIE)
+    if login_token is None:
         return None
 
-    return User.from_session(cookie)
+    return User.from_session(login_token)
 
 
 def generate_user_session() -> str:

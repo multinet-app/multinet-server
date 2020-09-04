@@ -142,7 +142,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         new_user_data = {**User.asdict(existing_user), **rawinfo.__dict__}
         user = User.from_dict(new_user_data)
 
-    cookie = user.get_session()
+    login_token = user.get_session()
     user.save()
 
     return_url = session.pop("return_url", default_return_url())
@@ -152,7 +152,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     development = current_app.config.get("ENV") == "development"
     resp.set_cookie(
         LOGIN_TOKEN_COOKIE,
-        value=cookie,
+        value=login_token,
         secure=True if not development else False,
         samesite="None" if not development else None,
         httponly=True,

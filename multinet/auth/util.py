@@ -166,8 +166,11 @@ def get_login_token_from_request() -> Optional[LoginSessionDict]:
 def encode_auth_token(token_dict: LoginSessionDict) -> str:
     """Encode an authorization token into a string."""
     secret = current_app.secret_key
-    if not secret:
+    if secret is None:
         raise SecretKeyNotSet()
+
+    if not isinstance(secret, str):
+        secret = secret.decode()
 
     return jwt.encode(token_dict, secret).decode()
 
@@ -180,6 +183,9 @@ def decode_auth_token(token: str) -> Optional[LoginSessionDict]:
         secret = current_app.secret_key
         if not secret:
             raise SecretKeyNotSet()
+
+        if not isinstance(secret, str):
+            secret = secret.decode()
 
         decoded = jwt.decode(token, secret)
     except InvalidSignatureError:

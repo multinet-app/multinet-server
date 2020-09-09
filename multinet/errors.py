@@ -40,7 +40,7 @@ class InternalServerError(ServerError):
 class SecretKeyNotSet(InternalServerError):
     """Raised when app.secret_key has not been set."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize parent class with message."""
         super().__init__("Flask secret key not set.")
 

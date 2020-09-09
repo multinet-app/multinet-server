@@ -37,6 +37,14 @@ class InternalServerError(ServerError):
         return (self.message, "500 Internal Server Error")
 
 
+class SecretKeyNotSet(InternalServerError):
+    """Raised when app.secret_key has not been set."""
+
+    def __init__(self):
+        """Initialize parent class with message."""
+        super().__init__("Flask secret key not set.")
+
+
 class DatabaseCorrupted(ServerError):
     """The database has a consistency issue."""
 

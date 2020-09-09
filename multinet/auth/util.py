@@ -1,11 +1,22 @@
 """Utility functions for auth."""
 
 import functools
-from typing import Any, Optional, Callable
+import jwt
+import re
+import calendar
+from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError
+from flask import current_app, request
+from datetime import datetime, timedelta
 
-from multinet.errors import Unauthorized
+from multinet.errors import Unauthorized, SecretKeyNotSet
 from multinet.db.models.workspace import Workspace
-from multinet.db.models.user import current_user, User
+from multinet.db.models.user import User
+from multinet.auth.types import LoginSessionDict
+
+from typing import Any, Optional, Callable, cast
+
+
+LoginTokenHeaderRegex = re.compile(r"^Bearer (\S+)$")
 
 
 # NOTE: unfortunately, it is difficult to write a type signature for this
@@ -136,3 +147,70 @@ def require_owner(f: Any) -> Any:
         return f(workspace, *args, **kwargs)
 
     return wrapper
+
+
+def get_login_token_from_request() -> Optional[LoginSessionDict]:
+    """If the current request contains the correct header, decode the token."""
+    token = request.headers.get("Authorization")
+    if not token:
+        return None
+
+    match = LoginTokenHeaderRegex.match(token)
+    if not match:
+        return None
+
+    token = match.group(1)
+    return decode_auth_token(token)
+
+
+def encode_auth_token(token_dict: LoginSessionDict) -> str:
+    """Encode an authorization token into a string."""
+    secret = current_app.secret_key
+    if not secret:
+        raise SecretKeyNotSet()
+
+    return jwt.encode(token_dict, secret).decode()
+
+
+def decode_auth_token(token: str) -> Optional[LoginSessionDict]:
+    """Decode an authorization token into a LoginSessionDict."""
+    decoded = None
+
+    try:
+        secret = current_app.secret_key
+        if not secret:
+            raise SecretKeyNotSet()
+
+        decoded = jwt.decode(token, secret)
+    except InvalidSignatureError:
+        return None
+    except ExpiredSignatureError:
+        return None
+
+    return cast(LoginSessionDict, decoded)
+
+
+def create_login_token(session_str: str) -> LoginSessionDict:
+    """Create a login token from a user session."""
+    now = datetime.utcnow()
+    expiration = now + timedelta(days=30)
+
+    return {
+        "session": session_str,
+        "iss": "multinet:login",
+        "iat": calendar.timegm(now.utctimetuple()),
+        "exp": calendar.timegm(expiration.utctimetuple()),
+    }
+
+
+def current_user() -> Optional[User]:
+    """Return the logged in user (if any) from the current session."""
+    auth = request.headers.get("Authorization")
+    if auth is None:
+        return None
+
+    session_dict = get_login_token_from_request()
+    if session_dict is None:
+        return None
+
+    return User.from_session(session_dict["session"])

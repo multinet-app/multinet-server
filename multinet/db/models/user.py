@@ -2,18 +2,16 @@
 from __future__ import annotations  # noqa: T484
 
 import json
+
 from dataclasses import dataclass
 from uuid import uuid4
 from copy import copy
 from dacite import from_dict
-from flask import session as flask_session
 from arango.cursor import Cursor
 
 from multinet.db import user_collection, system_db, _run_aql_query
 
 from typing import Optional, Dict, Generator, Any
-
-MULTINET_COOKIE = "multinet-token"
 
 
 @dataclass
@@ -33,15 +31,6 @@ class UserInfo:
     sub: str
     email: str
     picture: Optional[str] = None
-
-
-def current_user() -> Optional[User]:
-    """Return the logged in user (if any) from the current session."""
-    cookie = flask_session.get(MULTINET_COOKIE)
-    if cookie is None:
-        return None
-
-    return User.from_session(cookie)
 
 
 def generate_user_session() -> str:

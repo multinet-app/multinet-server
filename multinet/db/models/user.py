@@ -10,6 +10,7 @@ from dacite import from_dict
 from arango.cursor import Cursor
 
 from multinet.db import user_collection, system_db, _run_aql_query
+from multinet.auth.types import LoginSessionDict
 
 from typing import Optional, Dict, Generator, Any
 
@@ -104,6 +105,11 @@ class User:
             )
         except StopIteration:
             return None
+
+    @staticmethod
+    def from_token(token: LoginSessionDict) -> Optional[User]:
+        """Return a User from a login token."""
+        return User.from_session(token["session"])
 
     @staticmethod
     def from_dict(d: Dict) -> User:

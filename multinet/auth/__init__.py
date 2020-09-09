@@ -25,7 +25,7 @@ def user_info() -> ResponseWrapper:
     if token is None:
         return logged_out
 
-    user = User.from_session(token["session"])
+    user = User.from_token(token)
     if user is None:
         return logged_out
 
@@ -41,7 +41,7 @@ def logout() -> ResponseWrapper:
     if token is not None:
         # Load the user model and invalidate its session.
 
-        user = User.from_session(token["session"])
+        user = User.from_token(token)
         if user is not None:
             user.delete_session()
 

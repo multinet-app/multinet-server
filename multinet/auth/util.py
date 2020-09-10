@@ -4,7 +4,7 @@ import functools
 import jwt
 import re
 import calendar
-from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError
+from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError, DecodeError
 from flask import current_app, request
 from datetime import datetime, timedelta
 
@@ -188,9 +188,12 @@ def decode_auth_token(token: str) -> Optional[LoginSessionDict]:
             secret = secret.decode()
 
         decoded = jwt.decode(token, secret)
+
     except InvalidSignatureError:
         return None
     except ExpiredSignatureError:
+        return None
+    except DecodeError:
         return None
 
     return cast(LoginSessionDict, decoded)

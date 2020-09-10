@@ -5,10 +5,11 @@ import jwt
 import re
 import calendar
 from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError, DecodeError
-from flask import current_app, request
+from flask import request
 from datetime import datetime, timedelta
 
-from multinet.errors import Unauthorized, SecretKeyNotSet
+from multinet.errors import Unauthorized
+from multinet.util import current_app_secret_key
 from multinet.db.models.workspace import Workspace
 from multinet.db.models.user import User
 from multinet.auth.types import LoginSessionDict
@@ -165,13 +166,7 @@ def get_login_token_from_request() -> Optional[LoginSessionDict]:
 
 def encode_auth_token(token_dict: LoginSessionDict) -> str:
     """Encode an authorization token into a string."""
-    secret = current_app.secret_key
-    if secret is None:
-        raise SecretKeyNotSet()
-
-    if not isinstance(secret, str):
-        secret = secret.decode()
-
+    secret = current_app_secret_key()
     return jwt.encode(token_dict, secret).decode()
 
 
@@ -180,13 +175,7 @@ def decode_auth_token(token: str) -> Optional[LoginSessionDict]:
     decoded = None
 
     try:
-        secret = current_app.secret_key
-        if not secret:
-            raise SecretKeyNotSet()
-
-        if not isinstance(secret, str):
-            secret = secret.decode()
-
+        secret = current_app_secret_key()
         decoded = jwt.decode(token, secret)
 
     except InvalidSignatureError:

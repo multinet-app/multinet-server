@@ -41,9 +41,9 @@ def login(user: User, server: FlaskClient) -> Generator[None, None, None]:
         )
 
     # Ignore flake8, since it complains about the monkey-patching
-    server.open = logged_in_open  # noqa
+    server.open = logged_in_open  # noqa T484
     yield None
-    server.open = default_open  # noqa
+    server.open = default_open  # noqa T484
 
 
 @pytest.fixture

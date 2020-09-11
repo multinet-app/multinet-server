@@ -134,12 +134,12 @@ def generate_arango_workspace_name() -> str:
 
 # Make sure this function is only evaluated once
 @lru_cache()
-def flask_secret_key() -> str:
+def load_secret_key() -> str:
     """Load or create a flask secret key."""
     return os.getenv("FLASK_SECRET_KEY") or uuid4().hex
 
 
-def current_app_secret_key() -> str:
+def get_secret_key() -> str:
     """Return the secret key set on the current app, raising errors if missing."""
     secret = current_app.secret_key
     if secret is None:

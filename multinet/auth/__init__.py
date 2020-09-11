@@ -9,7 +9,7 @@ from webargs.flaskparser import use_kwargs
 
 from multinet.db.models.user import User
 from multinet.util import stream
-from multinet.auth.util import require_login, get_login_token_from_request
+from multinet.auth.util import require_login, current_login_token
 
 bp = Blueprint("user", "user")
 
@@ -21,7 +21,7 @@ def user_info() -> ResponseWrapper:
 
     logged_out = make_response(json.dumps(None), 200)
 
-    token = get_login_token_from_request()
+    token = current_login_token()
     if token is None:
         return logged_out
 
@@ -37,7 +37,7 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    token = get_login_token_from_request()
+    token = current_login_token()
     if token is not None:
         # Load the user model and invalidate its session.
 

@@ -150,7 +150,7 @@ def require_owner(f: Any) -> Any:
     return wrapper
 
 
-def get_login_token_from_request() -> Optional[LoginSessionDict]:
+def current_login_token() -> Optional[LoginSessionDict]:
     """If the current request contains the correct header, decode the token."""
     token = request.headers.get("Authorization")
     if not token:
@@ -207,7 +207,7 @@ def current_user() -> Optional[User]:
     if auth is None:
         return None
 
-    session_dict = get_login_token_from_request()
+    session_dict = current_login_token()
     if session_dict is None:
         return None
 

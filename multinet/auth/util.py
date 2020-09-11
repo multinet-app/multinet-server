@@ -17,7 +17,7 @@ from multinet.auth.types import LoginSessionDict
 from typing import Any, Optional, Callable, cast
 
 
-LoginTokenHeaderRegex = re.compile(r"^Bearer (\S+)$")
+login_token_header_regex = re.compile(r"^Bearer (\S+)$")
 
 
 # NOTE: unfortunately, it is difficult to write a type signature for this
@@ -156,7 +156,7 @@ def get_login_token_from_request() -> Optional[LoginSessionDict]:
     if not token:
         return None
 
-    match = LoginTokenHeaderRegex.match(token)
+    match = login_token_header_regex.match(token)
     if not match:
         return None
 

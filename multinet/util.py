@@ -8,7 +8,7 @@ from dataclasses import asdict
 from functools import lru_cache
 from uuid import uuid1, uuid4
 from flask import Response, current_app
-from typing import Any, Generator, Dict, List, Iterable
+from typing import Any, Generator, Dict, Set, List, Iterable
 
 from multinet import db
 from multinet.db.models import workspace
@@ -131,6 +131,15 @@ def data_path(file_name: str) -> str:
 def generate_arango_workspace_name() -> str:
     """Generate a string that can be used as an ArangoDB workspace name."""
     return f"w-{uuid1()}"
+
+
+def get_allowed_origins() -> Set[str]:
+    """Read in comma-separated list of allowed origins from environment."""
+    allowed_origins = os.getenv("ALLOWED_ORIGINS", default=None)
+    if allowed_origins is None:
+        return set()
+
+    return {s.strip() for s in allowed_origins.split(",")}
 
 
 def regex_allowed_origins(origins: Iterable[str]) -> List[str]:

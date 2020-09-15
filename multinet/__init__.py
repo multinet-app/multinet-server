@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flasgger import Swagger
 from sentry_sdk.integrations.flask import FlaskIntegration
 
-from typing import Optional, MutableMapping, Any, Tuple, Union, List
+from typing import Optional, MutableMapping, Any, Tuple, Union
 
 from multinet import auth
 from multinet.auth import google
@@ -15,19 +15,10 @@ from multinet import api
 from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
-from multinet.util import load_secret_key
+from multinet.util import load_secret_key, regex_allowed_origins, get_allowed_origins
 
 sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
-
-
-def get_allowed_origins() -> List[str]:
-    """Read in comma-separated list of allowed origins from environment."""
-    allowed_origins = os.getenv("ALLOWED_ORIGINS", default=None)
-    if allowed_origins is None:
-        return []
-
-    return [s.strip() for s in allowed_origins.split(",")]
 
 
 def create_app(config: Optional[MutableMapping] = None) -> Flask:
@@ -37,8 +28,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     if config is not None:
         app.config.update(config)
 
-    allowed_origins = get_allowed_origins()
-    CORS(app, origins=allowed_origins, supports_credentials=True)
+    CORS(app, origins=regex_allowed_origins(get_allowed_origins()))
     Swagger(app, template_file="swagger/template.yaml")
 
     # Set max file upload size to 32 MB

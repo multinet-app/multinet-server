@@ -14,8 +14,9 @@ from authlib.integrations.flask_client import OAuth
 from webargs.flaskparser import use_kwargs
 from webargs import fields
 
-from multinet.db.models.user import User, MULTINET_COOKIE
+from multinet.db.models.user import User
 from multinet.auth.types import GoogleUserInfo
+from multinet.auth.util import create_login_token, encode_auth_token
 
 from typing import Dict, Optional
 
@@ -131,10 +132,12 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     else:
         new_user_data = {**User.asdict(existing_user), **rawinfo.__dict__}
         user = User.from_dict(new_user_data)
+        user.save()
 
-    cookie = user.get_session()
+    # Add token to url fragment, so the client can retrieve it
+    encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
     return_url = session.pop("return_url", default_return_url())
-    resp = make_response(redirect(ensure_external_url(return_url)))
-    session[MULTINET_COOKIE] = cookie
+    return_url_with_fragment = f"{return_url}#loginToken={encoded_login_token}"
+    resp = make_response(redirect(ensure_external_url(return_url_with_fragment)))
 
     return resp

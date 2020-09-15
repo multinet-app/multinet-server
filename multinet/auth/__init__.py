@@ -1,15 +1,15 @@
 """Authorization types."""
 import json
 from flasgger import swag_from
-from flask import make_response, session
+from flask import make_response
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
 from webargs.flaskparser import use_kwargs
 
-from multinet.db.models.user import MULTINET_COOKIE, User
+from multinet.db.models.user import User
 from multinet.util import stream
-from multinet.auth.util import require_login
+from multinet.auth.util import require_login, current_login_token
 
 bp = Blueprint("user", "user")
 
@@ -21,13 +21,12 @@ def user_info() -> ResponseWrapper:
 
     logged_out = make_response(json.dumps(None), 200)
 
-    cookie = session.get(MULTINET_COOKIE)
-    if cookie is None:
+    token = current_login_token()
+    if token is None:
         return logged_out
 
-    user = User.from_session(cookie)
+    user = User.from_token(token)
     if user is None:
-        session.pop(MULTINET_COOKIE, None)
         return logged_out
 
     return make_response(user.asdict())
@@ -38,12 +37,11 @@ def user_info() -> ResponseWrapper:
 def logout() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    # Instruct the browser to delete its session cookie, if it exists.
-    cookie = session.pop(MULTINET_COOKIE, None)
-    if cookie is not None:
+    token = current_login_token()
+    if token is not None:
         # Load the user model and invalidate its session.
 
-        user = User.from_session(cookie)
+        user = User.from_token(token)
         if user is not None:
             user.delete_session()
 

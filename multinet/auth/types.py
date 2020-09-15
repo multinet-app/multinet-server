@@ -1,6 +1,7 @@
 """Types associated with authentication."""
 
 from typing import Optional
+from typing_extensions import TypedDict
 from dataclasses import dataclass
 
 
@@ -37,3 +38,12 @@ class GoogleUserInfo:
     nonce: str
 
     hd: Optional[str] = None
+
+
+class LoginSessionDict(TypedDict):
+    """Information on a user's current login session."""
+
+    session: str
+    iss: str
+    iat: int
+    exp: int

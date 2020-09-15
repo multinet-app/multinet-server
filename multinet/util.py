@@ -6,13 +6,13 @@ from copy import deepcopy
 from dataclasses import asdict
 from functools import lru_cache
 from uuid import uuid1, uuid4
-from flask import Response
+from flask import Response, current_app
 from typing import Any, Generator, Dict, Iterable
 
 from multinet import db
 from multinet.db.models import workspace
 
-from multinet.errors import DatabaseNotLive, DecodeFailed
+from multinet.errors import DatabaseNotLive, DecodeFailed, SecretKeyNotSet
 
 TEST_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/data"))
 restricted_document_keys = {"_rev", "_id"}
@@ -134,6 +134,18 @@ def generate_arango_workspace_name() -> str:
 
 # Make sure this function is only evaluated once
 @lru_cache()
-def flask_secret_key() -> str:
+def load_secret_key() -> str:
     """Load or create a flask secret key."""
     return os.getenv("FLASK_SECRET_KEY") or uuid4().hex
+
+
+def get_secret_key() -> str:
+    """Return the secret key set on the current app, raising errors if missing."""
+    secret = current_app.secret_key
+    if secret is None:
+        raise SecretKeyNotSet()
+
+    if not isinstance(secret, str):
+        secret = secret.decode()
+
+    return secret

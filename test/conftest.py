@@ -4,25 +4,46 @@ import pytest
 from uuid import uuid4
 from contextlib import contextmanager
 from pathlib import Path
+from flask.testing import FlaskClient
 
 from multinet import create_app
 from multinet.db.models.workspace import Workspace
-from multinet.db.models.user import User, MULTINET_COOKIE
+from multinet.db.models.user import User
+from multinet.auth.util import create_login_token, encode_auth_token
 
 from typing import Generator, Tuple
 
 
 @contextmanager
-def login(user: User, server) -> Generator[None, None, None]:
-    """Perform server actions under a user login."""
+def login(user: User, server: FlaskClient) -> Generator[None, None, None]:
+    """
+    Perform server actions under a user login.
 
-    with server.session_transaction() as session:
-        session[MULTINET_COOKIE] = user.multinet.session
+    This is done by monkey-patching the FlaskClient `open` method, to include the
+    proper auth headers. The `open` method is the underlying method used by `get`,
+    `post`, `put`, etc.
+    """
 
+    # To create a user login token, we need the app context,
+    # since the encoding function uses flask_secret_key
+    with server.application.app_context():
+        login_token = create_login_token(user.multinet.session)
+        encoded_login_token = encode_auth_token(login_token)
+
+    default_open = server.open
+
+    def logged_in_open(self, *args, **kwargs):
+        return default_open(
+            self,
+            *args,
+            **kwargs,
+            headers={"Authorization": f"Bearer {encoded_login_token}"},
+        )
+
+    # Ignore flake8, since it complains about the monkey-patching
+    server.open = logged_in_open  # noqa T484
     yield None
-
-    with server.session_transaction() as session:
-        del session[MULTINET_COOKIE]
+    server.open = default_open  # noqa T484
 
 
 @pytest.fixture

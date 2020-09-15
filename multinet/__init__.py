@@ -15,7 +15,7 @@ from multinet import api
 from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
-from multinet.util import flask_secret_key
+from multinet.util import load_secret_key
 
 sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
@@ -44,7 +44,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     # Set max file upload size to 32 MB
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 
-    app.secret_key = flask_secret_key()
+    app.secret_key = load_secret_key()
 
     # Set up logging.
     app.logger.addHandler(default_handler)

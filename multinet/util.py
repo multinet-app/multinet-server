@@ -1,13 +1,14 @@
 """Utility functions."""
 import os
 import json
+import fnmatch
 
 from copy import deepcopy
 from dataclasses import asdict
 from functools import lru_cache
 from uuid import uuid1, uuid4
 from flask import Response, current_app
-from typing import Any, Generator, Dict, Iterable
+from typing import Any, Generator, Dict, List, Iterable
 
 from multinet import db
 from multinet.db.models import workspace
@@ -130,6 +131,11 @@ def data_path(file_name: str) -> str:
 def generate_arango_workspace_name() -> str:
     """Generate a string that can be used as an ArangoDB workspace name."""
     return f"w-{uuid1()}"
+
+
+def regex_allowed_origins(origins: Iterable[str]) -> List[str]:
+    """Return the list of glob-style origin paths as regular expressions."""
+    return [fnmatch.translate(origin) for origin in origins]
 
 
 # Make sure this function is only evaluated once

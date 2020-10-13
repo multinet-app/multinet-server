@@ -16,7 +16,11 @@ from webargs import fields
 
 from multinet.db.models.user import User
 from multinet.auth.types import GoogleUserInfo
-from multinet.auth.util import create_login_token, encode_auth_token
+from multinet.auth.util import (
+    create_login_token,
+    encode_auth_token,
+    MULTINET_LOGIN_TOKEN,
+)
 
 from typing import Dict, Optional
 
@@ -134,10 +138,10 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         user = User.from_dict(new_user_data)
         user.save()
 
-    # Add token to url fragment, so the client can retrieve it
-    encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
     return_url = session.pop("return_url", default_return_url())
-    return_url_with_fragment = f"{return_url}#loginToken={encoded_login_token}"
-    resp = make_response(redirect(ensure_external_url(return_url_with_fragment)))
+    resp: ResponseWrapper = make_response(redirect(ensure_external_url(return_url)))
+
+    encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
+    resp.set_cookie(MULTINET_LOGIN_TOKEN, encoded_login_token)
 
     return resp

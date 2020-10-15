@@ -6,7 +6,16 @@ import os
 
 from dacite import from_dict
 from flasgger import swag_from
-from flask import Flask, redirect, request, Response, session, make_response, url_for
+from flask import (
+    Flask,
+    current_app,
+    redirect,
+    request,
+    Response,
+    session,
+    make_response,
+    url_for,
+)
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
@@ -142,6 +151,15 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     resp: Response = make_response(redirect(ensure_external_url(return_url)))
 
     encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
-    resp.set_cookie(MULTINET_LOGIN_TOKEN, encoded_login_token)
+
+    # If running in development, don't set secure and samesite cookie attributes
+    development = current_app.config.get("ENV") == "development"
+    resp.set_cookie(
+        MULTINET_LOGIN_TOKEN,
+        value=encoded_login_token,
+        secure=True if not development else False,
+        samesite="None" if not development else None,
+        httponly=True,
+    )
 
     return resp

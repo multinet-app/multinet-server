@@ -6,7 +6,7 @@ import os
 
 from dacite import from_dict
 from flasgger import swag_from
-from flask import Flask, redirect, request, session, make_response, url_for
+from flask import Flask, redirect, request, Response, session, make_response, url_for
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
@@ -139,7 +139,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         user.save()
 
     return_url = session.pop("return_url", default_return_url())
-    resp: ResponseWrapper = make_response(redirect(ensure_external_url(return_url)))
+    resp: Response = make_response(redirect(ensure_external_url(return_url)))
 
     encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
     resp.set_cookie(MULTINET_LOGIN_TOKEN, encoded_login_token)

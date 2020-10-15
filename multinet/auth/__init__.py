@@ -1,7 +1,7 @@
 """Authorization types."""
 import json
 from flasgger import swag_from
-from flask import make_response
+from flask import make_response, Response
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
@@ -19,7 +19,7 @@ bp = Blueprint("user", "user")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    logged_out: ResponseWrapper = make_response(json.dumps(None), 200)
+    logged_out: Response = make_response(json.dumps(None), 200)
     logged_out.delete_cookie(MULTINET_LOGIN_TOKEN)
 
     token = current_login_token()
@@ -46,7 +46,7 @@ def logout() -> ResponseWrapper:
         if user is not None:
             user.delete_session()
 
-    resp: ResponseWrapper = make_response("", 200)
+    resp: Response = make_response("", 200)
     resp.delete_cookie(MULTINET_LOGIN_TOKEN)
     return resp
 

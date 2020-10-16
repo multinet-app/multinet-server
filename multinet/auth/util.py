@@ -2,7 +2,6 @@
 
 import functools
 import jwt
-import re
 import calendar
 from jwt.exceptions import InvalidSignatureError, ExpiredSignatureError, DecodeError
 from flask import request
@@ -17,7 +16,7 @@ from multinet.auth.types import LoginSessionDict
 from typing import Any, Optional, Callable, cast
 
 
-login_token_header_regex = re.compile(r"^Bearer (\S+)$")
+MULTINET_LOGIN_TOKEN = "multinet-token"
 
 
 # NOTE: unfortunately, it is difficult to write a type signature for this
@@ -152,15 +151,10 @@ def require_owner(f: Any) -> Any:
 
 def current_login_token() -> Optional[LoginSessionDict]:
     """If the current request contains the correct header, decode the token."""
-    token = request.headers.get("Authorization")
+    token = request.cookies.get(MULTINET_LOGIN_TOKEN)
     if not token:
         return None
 
-    match = login_token_header_regex.match(token)
-    if not match:
-        return None
-
-    token = match.group(1)
     return decode_auth_token(token)
 
 
@@ -203,10 +197,6 @@ def create_login_token(session_str: str) -> LoginSessionDict:
 
 def current_user() -> Optional[User]:
     """Return the logged in user (if any) from the current session."""
-    auth = request.headers.get("Authorization")
-    if auth is None:
-        return None
-
     session_dict = current_login_token()
     if session_dict is None:
         return None

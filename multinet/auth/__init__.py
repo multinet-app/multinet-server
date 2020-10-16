@@ -1,7 +1,7 @@
 """Authorization types."""
 import json
 from flasgger import swag_from
-from flask import make_response
+from flask import make_response, Response
 from flask.blueprints import Blueprint
 from werkzeug.wrappers import Response as ResponseWrapper
 from webargs import fields
@@ -9,7 +9,7 @@ from webargs.flaskparser import use_kwargs
 
 from multinet.db.models.user import User
 from multinet.util import stream
-from multinet.auth.util import require_login, current_login_token
+from multinet.auth.util import require_login, current_login_token, MULTINET_LOGIN_TOKEN
 
 bp = Blueprint("user", "user")
 
@@ -19,7 +19,8 @@ bp = Blueprint("user", "user")
 def user_info() -> ResponseWrapper:
     """Return the filtered user object."""
 
-    logged_out = make_response(json.dumps(None), 200)
+    logged_out: Response = make_response(json.dumps(None), 200)
+    logged_out.delete_cookie(MULTINET_LOGIN_TOKEN)
 
     token = current_login_token()
     if token is None:
@@ -45,7 +46,9 @@ def logout() -> ResponseWrapper:
         if user is not None:
             user.delete_session()
 
-    return make_response("", 200)
+    resp: Response = make_response("", 200)
+    resp.delete_cookie(MULTINET_LOGIN_TOKEN)
+    return resp
 
 
 @bp.route("/search", methods=["GET"])

@@ -28,7 +28,11 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     if config is not None:
         app.config.update(config)
 
-    CORS(app, origins=regex_allowed_origins(get_allowed_origins()))
+    CORS(
+        app,
+        origins=regex_allowed_origins(get_allowed_origins()),
+        supports_credentials=True,
+    )
     Swagger(app, template_file="swagger/template.yaml")
 
     # Set max file upload size to 32 MB

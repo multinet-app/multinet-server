@@ -6,7 +6,16 @@ import os
 
 from dacite import from_dict
 from flasgger import swag_from
-from flask import Flask, redirect, request, session, make_response, url_for
+from flask import (
+    Flask,
+    current_app,
+    redirect,
+    request,
+    Response,
+    session,
+    make_response,
+    url_for,
+)
 from werkzeug.wrappers import Response as ResponseWrapper
 from flask.blueprints import Blueprint
 from authlib.integrations.flask_client import OAuth
@@ -16,7 +25,11 @@ from webargs import fields
 
 from multinet.db.models.user import User
 from multinet.auth.types import GoogleUserInfo
-from multinet.auth.util import create_login_token, encode_auth_token
+from multinet.auth.util import (
+    create_login_token,
+    encode_auth_token,
+    MULTINET_LOGIN_TOKEN,
+)
 
 from typing import Dict, Optional
 
@@ -134,10 +147,19 @@ def authorized(state: str, code: str) -> ResponseWrapper:
         user = User.from_dict(new_user_data)
         user.save()
 
-    # Add token to url fragment, so the client can retrieve it
-    encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
     return_url = session.pop("return_url", default_return_url())
-    return_url_with_fragment = f"{return_url}#loginToken={encoded_login_token}"
-    resp = make_response(redirect(ensure_external_url(return_url_with_fragment)))
+    resp: Response = make_response(redirect(ensure_external_url(return_url)))
+
+    encoded_login_token = encode_auth_token(create_login_token(user.get_session()))
+
+    # If running in development, don't set secure and samesite cookie attributes
+    development = current_app.config.get("ENV") == "development"
+    resp.set_cookie(
+        MULTINET_LOGIN_TOKEN,
+        value=encoded_login_token,
+        secure=True if not development else False,
+        samesite="None" if not development else None,
+        httponly=True,
+    )
 
     return resp

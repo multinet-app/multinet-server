@@ -2,11 +2,10 @@
 
 from typing import Optional
 from typing_extensions import TypedDict
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class GoogleUserInfo:
+class GoogleUserInfo(BaseModel):
     """
     Representation of raw User Info from a Google Account.
 

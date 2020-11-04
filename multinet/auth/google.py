@@ -4,7 +4,6 @@ import base64
 import json
 import os
 
-from dacite import from_dict
 from flasgger import swag_from
 from flask import (
     Flask,
@@ -63,7 +62,7 @@ def parse_id_token(token: str) -> GoogleUserInfo:
     padded = payload + ("=" * (4 - len(payload) % 4))
     decoded = base64.b64decode(padded)
 
-    return from_dict(GoogleUserInfo, json.loads(decoded))
+    return GoogleUserInfo(**json.loads(decoded))
 
 
 def ensure_external_url(url: str) -> str:

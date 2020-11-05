@@ -1,5 +1,5 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
-from typing import Tuple, Any, Union, List, Sequence
+from typing import Tuple, Any, Union, Dict, List, Sequence
 from typing_extensions import TypedDict
 
 from multinet.validation import ValidationFailure
@@ -158,6 +158,18 @@ class MalformedRequestBody(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.body, "400 Malformed Request Body")
+
+
+class InvalidMetadata(ServerError):
+    """Exception for specifying invalid metadata."""
+
+    def __init__(self, metadata: Dict):
+        """Initialize the exception."""
+        self.metadata = metadata
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 400 error."""
+        return (self.metadata, "400 Invalid Metadata")
 
 
 class RequiredParamsMissing(ServerError):

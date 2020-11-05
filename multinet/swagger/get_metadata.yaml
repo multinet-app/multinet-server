@@ -1,0 +1,20 @@
+Retrieve the metadata of a table.
+---
+parameters:
+  - $ref: "#/parameters/workspace"
+  - $ref: "#/parameters/table"
+
+responses:
+  200:
+    description: The permissions for the given workspace
+    schema:
+      $ref: "#/definitions/workspace_permissions"
+
+  404:
+    description: Specified workspace or table could not be found
+    schema:
+      type: string
+      example: workspace_or_table_that_doesnt_exist
+
+tags:
+  - table

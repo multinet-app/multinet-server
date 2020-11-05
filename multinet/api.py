@@ -5,7 +5,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional
-from multinet.types import EdgeDirection, TableType
+from multinet.types import EdgeDirection, UnionTableType
 from multinet.auth.util import (
     require_login,
     require_reader,
@@ -73,7 +73,9 @@ def set_workspace_permissions(workspace: str) -> Any:
 @require_reader
 @use_kwargs({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
-def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
+def get_workspace_tables(
+    workspace: str, type: UnionTableType = "all"  # noqa: A002
+) -> Any:
     """Retrieve the tables of a single workspace."""
     tables = Workspace(workspace).tables(type)
     return util.stream(tables)
@@ -98,6 +100,23 @@ def create_aql_table(workspace: str, table: str) -> Any:
 def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30) -> Any:
     """Retrieve the rows and headers of a table."""
     return Workspace(workspace).table(table).rows(offset, limit)
+
+
+@bp.route("/workspaces/<workspace>/tables/<table>/metadata", methods=["GET"])
+@require_reader
+@swag_from("swagger/get_metadata.yaml")
+def get_table_metadata(workspace: str, table: str) -> Any:
+    """Retrieve the metadata of a table, if it exists."""
+    metadata = Workspace(workspace).table(table).get_metadata()
+    return "" if metadata is None else metadata.dict()
+
+
+@bp.route("/workspaces/<workspace>/tables/<table>/metadata", methods=["PUT"])
+@require_reader
+@swag_from("swagger/set_metadata.yaml")
+def set_table_metadata(workspace: str, table: str) -> Any:
+    """Retrieve the rows and headers of a table."""
+    return Workspace(workspace).table(table).set_metadata(request.json).dict()
 
 
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])

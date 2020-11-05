@@ -34,6 +34,21 @@ parameters:
     schema:
       type: boolean
       default: false
+  -
+    name: metadata
+    in: query
+    description: Metadata to set for the table
+    schema:
+      type: object
+      example:
+        columns:
+          -
+            key: city
+            type: label
+          -
+            key: size
+            type: number
+
 
 responses:
   200:

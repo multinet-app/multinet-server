@@ -1,5 +1,6 @@
 """Multinet uploader for CSV files."""
 import csv
+import json
 from flasgger import swag_from
 from io import StringIO
 
@@ -16,7 +17,7 @@ from webargs import fields as webarg_fields
 from webargs.flaskparser import use_kwargs
 
 # Import types
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 
 
 bp = Blueprint("csv", __name__)
@@ -47,12 +48,17 @@ def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
     {
         "key": webarg_fields.Str(location="query"),
         "overwrite": webarg_fields.Bool(location="query"),
+        "metadata": webarg_fields.Str(location="query"),
     }
 )
 @require_writer
 @swag_from("swagger/csv.yaml")
 def upload(
-    workspace: str, table: str, key: str = "_key", overwrite: bool = False
+    workspace: str,
+    table: str,
+    key: str = "_key",
+    overwrite: bool = False,
+    metadata: Optional[str] = None,
 ) -> Any:
     """
     Store a CSV file into the database as a node or edge table.
@@ -95,6 +101,10 @@ def upload(
 
     # Create table and insert the data
     loaded_table = loaded_workspace.create_table(table, edges)
+
+    if metadata:
+        loaded_table.set_metadata(json.loads(metadata))
+
     results = loaded_table.insert(rows)
 
     return {"count": len(results)}

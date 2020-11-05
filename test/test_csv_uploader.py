@@ -59,7 +59,7 @@ def test_missing_key_field():
     """Test that missing key fields are handled properly."""
     rows = read_csv("startrek_no_key_field.csv")
 
-    correct = UnsupportedTable().validation_dict()
+    correct = UnsupportedTable().dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field="_key", overwrite=False)
 
@@ -73,7 +73,7 @@ def test_invalid_key_field():
     rows = read_csv("startrek.csv")
     invalid_key = "invalid"
 
-    correct = KeyFieldDoesNotExist(key=invalid_key).validation_dict()
+    correct = KeyFieldDoesNotExist(key=invalid_key).dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field=invalid_key, overwrite=False)
 
@@ -91,7 +91,7 @@ def test_key_field_already_exists_a():
     rows = read_csv("startrek.csv")
     key_field = "name"
 
-    correct = KeyFieldAlreadyExists(key=key_field).validation_dict()
+    correct = KeyFieldAlreadyExists(key=key_field).dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field=key_field, overwrite=False)
 
@@ -117,9 +117,7 @@ def test_duplicate_keys():
         validate_csv(rows, key_field="_key", overwrite=False)
 
     validation_resp = v_error.value.errors
-    correct = [
-        err.validation_dict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]
-    ]
+    correct = [err.dict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
     assert all(err in validation_resp for err in correct)
 
 
@@ -131,7 +129,7 @@ def test_invalid_headers():
 
     validation_resp = v_error.value.errors
     correct = [
-        err.validation_dict()
+        err.dict()
         for err in [
             InvalidRow(row=3, columns=["_from"]),
             InvalidRow(row=4, columns=["_to"]),

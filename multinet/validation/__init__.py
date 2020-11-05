@@ -1,14 +1,14 @@
 """Validation errors for various multinet processes."""
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Any
 
 
 class ValidationFailure(BaseModel):
     """Base class for any validation errors."""
 
-    def validation_dict(self) -> Dict:
-        """Return a dict representation of the Validation Failure."""
-        return {**self.dict(), "type": self.schema()["title"]}
+    def dict(self, **kwargs: Any) -> Dict:  # noqa: A003
+        """Overload dict method to inject the `type` field."""
+        return {**super().dict(**kwargs), "type": self.schema()["title"]}
 
 
 # Type only errors

@@ -189,7 +189,7 @@ class ValidationFailed(ServerError):
 
     def __init__(self, errors: Sequence[ValidationFailure]):
         """Initialize the exception."""
-        self.errors = [error.validation_dict() for error in errors]
+        self.errors = [error.dict() for error in errors]
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""

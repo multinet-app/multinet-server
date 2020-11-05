@@ -142,7 +142,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     if not existing_user:
         user = User.register(**rawinfo.__dict__)
     else:
-        new_user_data = {**User.asdict(existing_user), **rawinfo.__dict__}
+        new_user_data = {**existing_user.asdict(), **rawinfo.dict()}
         user = User.from_dict(new_user_data)
         user.save()
 

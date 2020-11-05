@@ -3,7 +3,6 @@ from __future__ import annotations  # noqa: T484
 
 import json
 
-from dataclasses import dataclass
 from uuid import uuid4
 from copy import copy
 from pydantic import BaseModel
@@ -21,8 +20,7 @@ class MultinetInfo(BaseModel):
     session: Optional[str] = None
 
 
-@dataclass
-class UserInfo:
+class UserInfo(BaseModel):
     """Base info for a user."""
 
     family_name: str
@@ -113,7 +111,7 @@ class User:
     @staticmethod
     def from_dict(d: Dict) -> User:
         """Return a user object from a dict."""
-        keys = UserInfo.__annotations__.keys()
+        keys = UserInfo.__fields__.keys()
         filtered = {k: v for k, v in d.items() if k in keys}
 
         user = User(**filtered)

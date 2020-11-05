@@ -2,7 +2,6 @@
 import json
 from io import StringIO
 from flasgger import swag_from
-from dataclasses import dataclass
 from collections import OrderedDict
 
 from multinet import util
@@ -21,22 +20,18 @@ bp = Blueprint("d3_json", __name__)
 bp.before_request(util.require_db)
 
 
-@dataclass
 class InvalidStructure(ValidationFailure):
     """Invalid structure in a D3 JSON file."""
 
 
-@dataclass
 class InvalidLinkKeys(ValidationFailure):
     """Invalid link keys in a D3 JSON file."""
 
 
-@dataclass
 class InconsistentLinkKeys(ValidationFailure):
     """Inconsistent link keys in a D3 JSON file."""
 
 
-@dataclass
 class NodeDuplicates(ValidationFailure):
     """Duplicate nodes in a D3 JSON file."""
 

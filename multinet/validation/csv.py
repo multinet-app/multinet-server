@@ -1,6 +1,5 @@
 """Utilities for validating tabular data for upload to Multinet."""
 
-from dataclasses import dataclass
 import re
 from typing import Set, MutableMapping, Sequence, List
 
@@ -8,22 +7,19 @@ from multinet.errors import ValidationFailed
 from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
 
-@dataclass
 class InvalidRow(ValidationFailure):
     """Invalid syntax in a CSV file."""
 
     row: int
-    fields: List[str]
+    columns: List[str]
 
 
-@dataclass
 class KeyFieldAlreadyExists(ValidationFailure):
     """CSV file has both existing _key field and specified key field."""
 
     key: str
 
 
-@dataclass
 class KeyFieldDoesNotExist(ValidationFailure):
     """The specified key field does not exist."""
 
@@ -62,7 +58,7 @@ def validate_edge_table(rows: Sequence[MutableMapping]) -> None:
 
         if fields:
             # i+2 -> +1 for index offset, +1 due to header row
-            data_errors.append(InvalidRow(fields=fields, row=i + 2))
+            data_errors.append(InvalidRow(columns=fields, row=i + 2))
 
     if len(data_errors) > 0:
         raise ValidationFailed(data_errors)

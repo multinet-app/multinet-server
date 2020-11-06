@@ -4,7 +4,6 @@ import json
 import fnmatch
 
 from copy import deepcopy
-from dataclasses import asdict
 from functools import lru_cache
 from uuid import uuid1, uuid4
 from flask import Response, current_app
@@ -33,7 +32,7 @@ def expand_user_permissions(permissons: workspace.WorkspacePermissions) -> Dict:
     This fuction will eventually be supplanted by a change in our permission model.
     """
 
-    new_permissions = asdict(permissons)
+    new_permissions = permissons.dict()
     for role, users in new_permissions.items():
         if role == "public":
             continue

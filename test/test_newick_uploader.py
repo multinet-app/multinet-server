@@ -26,7 +26,7 @@ def test_validate_newick():
         validate_newick(body)
 
     validation_resp = v_error.value.errors
-    assert DuplicateKey(key="A").asdict() in validation_resp
+    assert DuplicateKey(key="A").dict() in validation_resp
 
     # Test unicode decode errors
     test_data = (

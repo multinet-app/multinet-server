@@ -4,7 +4,6 @@ import base64
 import json
 import os
 
-from dacite import from_dict
 from flasgger import swag_from
 from flask import (
     Flask,
@@ -63,7 +62,7 @@ def parse_id_token(token: str) -> GoogleUserInfo:
     padded = payload + ("=" * (4 - len(payload) % 4))
     decoded = base64.b64decode(padded)
 
-    return from_dict(GoogleUserInfo, json.loads(decoded))
+    return GoogleUserInfo(**json.loads(decoded))
 
 
 def ensure_external_url(url: str) -> str:
@@ -143,7 +142,7 @@ def authorized(state: str, code: str) -> ResponseWrapper:
     if not existing_user:
         user = User.register(**rawinfo.__dict__)
     else:
-        new_user_data = {**User.asdict(existing_user), **rawinfo.__dict__}
+        new_user_data = {**existing_user.asdict(), **rawinfo.dict()}
         user = User.from_dict(new_user_data)
         user.save()
 

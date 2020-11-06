@@ -2,8 +2,7 @@
 from __future__ import annotations  # noqa: T484
 
 import copy
-import dataclasses
-from dataclasses import dataclass
+from pydantic import BaseModel, Field
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from arango.cursor import Cursor
 
@@ -34,16 +33,15 @@ from multinet.db.models.table import Table
 from typing import Any, List, Dict, Generator, Optional
 
 
-@dataclass
-class WorkspacePermissions:
+class WorkspacePermissions(BaseModel):
     """The permissions on a workspace."""
 
     # TODO: Change str to User once updating permissions storage
     # https://github.com/multinet-app/multinet-server/issues/456
     owner: str
-    maintainers: List[str] = dataclasses.field(default_factory=lambda: [])
-    writers: List[str] = dataclasses.field(default_factory=lambda: [])
-    readers: List[str] = dataclasses.field(default_factory=lambda: [])
+    maintainers: List[str] = Field(default_factory=list)
+    writers: List[str] = Field(default_factory=list)
+    readers: List[str] = Field(default_factory=list)
     public: bool = False
 
 
@@ -96,7 +94,7 @@ class Workspace:
         workspace_dict = {
             "name": name,
             "internal": internal,
-            "permissions": WorkspacePermissions(owner=owner.sub).__dict__,
+            "permissions": WorkspacePermissions(owner=owner.sub).dict(),
         }
 
         coll = workspace_mapping_collection(readonly=False)

@@ -59,7 +59,7 @@ def test_missing_key_field():
     """Test that missing key fields are handled properly."""
     rows = read_csv("startrek_no_key_field.csv")
 
-    correct = UnsupportedTable().asdict()
+    correct = UnsupportedTable().dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field="_key", overwrite=False)
 
@@ -73,7 +73,7 @@ def test_invalid_key_field():
     rows = read_csv("startrek.csv")
     invalid_key = "invalid"
 
-    correct = KeyFieldDoesNotExist(key=invalid_key).asdict()
+    correct = KeyFieldDoesNotExist(key=invalid_key).dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field=invalid_key, overwrite=False)
 
@@ -91,7 +91,7 @@ def test_key_field_already_exists_a():
     rows = read_csv("startrek.csv")
     key_field = "name"
 
-    correct = KeyFieldAlreadyExists(key=key_field).asdict()
+    correct = KeyFieldAlreadyExists(key=key_field).dict()
     with pytest.raises(ValidationFailed) as v_error:
         validate_csv(rows, key_field=key_field, overwrite=False)
 
@@ -117,7 +117,7 @@ def test_duplicate_keys():
         validate_csv(rows, key_field="_key", overwrite=False)
 
     validation_resp = v_error.value.errors
-    correct = [err.asdict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
+    correct = [err.dict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
     assert all(err in validation_resp for err in correct)
 
 
@@ -129,11 +129,11 @@ def test_invalid_headers():
 
     validation_resp = v_error.value.errors
     correct = [
-        err.asdict()
+        err.dict()
         for err in [
-            InvalidRow(row=3, fields=["_from"]),
-            InvalidRow(row=4, fields=["_to"]),
-            InvalidRow(row=5, fields=["_from", "_to"]),
+            InvalidRow(row=3, columns=["_from"]),
+            InvalidRow(row=4, columns=["_to"]),
+            InvalidRow(row=5, columns=["_from", "_to"]),
         ]
     ]
     assert all(err in validation_resp for err in correct)

@@ -10,7 +10,6 @@ from multinet.errors import ValidationFailed, AlreadyExists
 from multinet.util import decode_data
 from multinet.validation import ValidationFailure, DuplicateKey
 
-from dataclasses import dataclass
 from flask import Blueprint, request
 from flask import current_app as app
 
@@ -20,7 +19,6 @@ bp = Blueprint("newick", __name__)
 bp.before_request(util.require_db)
 
 
-@dataclass
 class DuplicateEdge(ValidationFailure):
     """The edge which is duplicated."""
 

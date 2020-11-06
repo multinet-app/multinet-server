@@ -3,10 +3,9 @@ from __future__ import annotations  # noqa: T484
 
 import json
 
-from dataclasses import dataclass
 from uuid import uuid4
 from copy import copy
-from dacite import from_dict
+from pydantic import BaseModel
 from arango.cursor import Cursor
 
 from multinet.db import user_collection, system_db, _run_aql_query
@@ -15,15 +14,13 @@ from multinet.auth.types import LoginSessionDict
 from typing import Optional, Dict, Generator, Any
 
 
-@dataclass
-class MultinetInfo:
+class MultinetInfo(BaseModel):
     """Multinet specific user metadata."""
 
     session: Optional[str] = None
 
 
-@dataclass
-class UserInfo:
+class UserInfo(BaseModel):
     """Base info for a user."""
 
     family_name: str
@@ -114,11 +111,11 @@ class User:
     @staticmethod
     def from_dict(d: Dict) -> User:
         """Return a user object from a dict."""
-        keys = UserInfo.__annotations__.keys()
+        keys = UserInfo.__fields__.keys()
         filtered = {k: v for k, v in d.items() if k in keys}
 
         user = User(**filtered)
-        user.multinet = from_dict(MultinetInfo, d["multinet"])
+        user.multinet = MultinetInfo(**d["multinet"])
 
         return user
 

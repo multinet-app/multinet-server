@@ -8,7 +8,7 @@ from arango.cursor import Cursor
 from arango.collection import StandardCollection
 
 from multinet import util
-from multinet.types import EdgeTableProperties, UnionTableType
+from multinet.types import EdgeTableProperties, TableType
 from multinet.validation import ValidationFailure, UndefinedTable, UndefinedKeys
 from multinet.validation.csv import validate_csv
 from multinet.db import (
@@ -275,7 +275,7 @@ class Workspace:
 
         return self.handle.delete_graph(name)
 
-    def tables(self, table_type: UnionTableType = "all") -> Generator[str, None, None]:
+    def tables(self, table_type: TableType = "all") -> Generator[str, None, None]:
         """Return all tables of the specified type."""
 
         def pass_all(x: Dict[str, Any]) -> bool:

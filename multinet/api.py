@@ -5,7 +5,7 @@ from webargs import fields
 from webargs.flaskparser import use_kwargs
 
 from typing import Any, Optional
-from multinet.types import EdgeDirection, UnionTableType
+from multinet.types import EdgeDirection, TableType
 from multinet.auth.util import (
     require_login,
     require_reader,
@@ -73,9 +73,7 @@ def set_workspace_permissions(workspace: str) -> Any:
 @require_reader
 @use_kwargs({"type": fields.Str()})
 @swag_from("swagger/workspace_tables.yaml")
-def get_workspace_tables(
-    workspace: str, type: UnionTableType = "all"  # noqa: A002
-) -> Any:
+def get_workspace_tables(workspace: str, type: TableType = "all") -> Any:  # noqa: A002
     """Retrieve the tables of a single workspace."""
     tables = Workspace(workspace).tables(type)
     return util.stream(tables)

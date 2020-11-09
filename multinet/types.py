@@ -5,8 +5,7 @@ from typing_extensions import Literal, TypedDict
 
 EdgeDirection = Literal["all", "incoming", "outgoing"]
 
-TableType = Literal["node", "edge"]
-UnionTableType = Literal["all", TableType]
+TableType = Literal["all", "node", "edge"]
 ColumnType = Literal["label", "boolean", "category", "number", "date"]
 
 

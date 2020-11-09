@@ -81,12 +81,16 @@ class Table:
 
         return keys
 
-    def get_metadata(self) -> Optional[ArangoEntityDocument]:
+    def get_metadata(self) -> ArangoEntityDocument:
         """Retrieve metadata for this table, if it exists."""
         try:
             doc = next(self.metadata_collection.find({"item_id": self.name}, limit=1))
         except StopIteration:
-            return None
+            entity = EntityMetadata(item_id=self.name, table=TableMetadata())
+
+            # Return is just metadata, merge with entity to get full doc
+            doc = self.metadata_collection.insert(entity.dict())
+            doc.update(entity.dict())
 
         return ArangoEntityDocument(**doc)
 

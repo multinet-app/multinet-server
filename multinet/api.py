@@ -105,8 +105,7 @@ def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30)
 @swag_from("swagger/get_metadata.yaml")
 def get_table_metadata(workspace: str, table: str) -> Any:
     """Retrieve the metadata of a table, if it exists."""
-    metadata = Workspace(workspace).table(table).get_metadata()
-    return "" if metadata is None else metadata.dict()
+    return Workspace(workspace).table(table).get_metadata().dict()
 
 
 @bp.route("/workspaces/<workspace>/tables/<table>/metadata", methods=["PUT"])

@@ -101,15 +101,13 @@ class Table:
         except PydanticValidationError:
             raise InvalidMetadata(raw_data)
 
-        existing = self.get_metadata()
-        if existing is not None:
-            existing.table = data
-            doc_meta = self.metadata_collection.update(existing.dict())
-        else:
-            entity = EntityMetadata(item_id=self.name, table=data, graph=None)
-            doc_meta = self.metadata_collection.insert(entity.dict())
+        entity = self.get_metadata()
+        entity.table = data
 
-        return ArangoEntityDocument(**self.metadata_collection.get(doc_meta))
+        new_doc = entity.dict()
+        new_doc.update(self.metadata_collection.insert(new_doc, overwrite=True))
+
+        return ArangoEntityDocument(**new_doc)
 
     def rename(self, new_name: str) -> None:
         """Rename a table."""

@@ -19,9 +19,7 @@ parameters:
 
 responses:
   200:
-    description: The permissions for the given workspace
-    schema:
-      $ref: "#/definitions/workspace_permissions"
+    description: The metadata for this table
 
   404:
     description: Specified workspace or table could not be found

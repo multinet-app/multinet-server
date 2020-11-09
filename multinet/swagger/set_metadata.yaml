@@ -17,8 +17,6 @@ parameters:
           - key: length
             type: number
 
-
-
 responses:
   200:
     description: The permissions for the given workspace

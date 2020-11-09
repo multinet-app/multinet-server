@@ -7,7 +7,7 @@ from io import StringIO
 from multinet import util
 from multinet.db.models.workspace import Workspace
 from multinet.auth.util import require_writer
-from multinet.errors import AlreadyExists, FlaskTuple, ServerError
+from multinet.errors import AlreadyExists, FlaskTuple, ServerError, BadQueryArgument
 from multinet.util import decode_data
 from multinet.validation.csv import validate_csv
 
@@ -103,8 +103,10 @@ def upload(
     loaded_table = loaded_workspace.create_table(table, edges)
 
     if metadata:
-        loaded_table.set_metadata(json.loads(metadata))
+        try:
+            loaded_table.set_metadata(json.loads(metadata))
+        except json.decoder.JSONDecodeError:
+            raise BadQueryArgument("metadata", metadata)
 
     results = loaded_table.insert(rows)
-
     return {"count": len(results)}

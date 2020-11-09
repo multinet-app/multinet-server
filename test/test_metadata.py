@@ -42,7 +42,7 @@ def test_set_invalid_table_metadata(
 
 
 # NOTE: Including metadata in CSV uploads will likely be removed in a future API change
-def test_csv_upload_with_metadata(
+def test_csv_upload_with_valid_metadata(
     managed_workspace, managed_user, server, data_directory
 ):
     """Test that uploading a CSV file with metadata succeeds."""
@@ -68,3 +68,25 @@ def test_csv_upload_with_metadata(
 
         assert resp.status_code == 200
         assert resp.json["table"] == metadata
+
+
+def test_csv_upload_with_invalid_metadata(
+    managed_workspace, managed_user, server, data_directory
+):
+    """Test that uploading a CSV file with invalid json fails properly."""
+
+    table_name = "test"
+    metadata_str = "{"
+    with open(data_directory / "membership_with_keys.csv") as csv_file:
+        request_body = csv_file.read()
+
+    with conftest.login(managed_user, server):
+        resp = server.post(
+            f"/api/csv/{managed_workspace.name}/{table_name}",
+            data=request_body,
+            query_string={"metadata": metadata_str},
+        )
+
+        assert resp.status_code == 400
+        assert resp.json["argument"] == "metadata"
+        assert resp.json["value"] == metadata_str

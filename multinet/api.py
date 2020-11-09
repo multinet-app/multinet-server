@@ -174,7 +174,7 @@ def get_node_edges(
     """Return the edges connected to a node."""
     allowed = ["incoming", "outgoing", "all"]
     if direction not in allowed:
-        raise BadQueryArgument("direction", direction, allowed)
+        raise BadQueryArgument("direction", direction)
 
     return (
         Workspace(workspace)

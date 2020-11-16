@@ -5,6 +5,7 @@ import copy
 from pydantic import BaseModel, Field
 from arango.exceptions import DatabaseCreateError, EdgeDefinitionCreateError
 from arango.cursor import Cursor
+from arango.collection import StandardCollection
 
 from multinet import util
 from multinet.types import EdgeTableProperties, TableType
@@ -194,6 +195,13 @@ class Workspace:
         # Copy so modifications to return don't poison cache
         return copy.deepcopy(doc)
 
+    def entity_metadata_collection(self) -> StandardCollection:
+        """Return the collection handle for table/graph metadata."""
+        if not self.readonly_handle.has_collection("_metadata"):
+            return self.handle.create_collection("_metadata", system=True)
+
+        return self.handle.collection("_metadata")
+
     def graphs(self) -> List[Dict]:
         """Return the graphs in this workspace."""
         return self.readonly_handle.graphs()
@@ -299,7 +307,10 @@ class Workspace:
 
     def table(self, name: str) -> Table:
         """Return a specific table."""
-        return Table(name, self.name, self.handle.collection(name), self.handle.aql)
+        if not self.readonly_handle.has_collection(name):
+            raise TableNotFound(self.name, name)
+
+        return Table(name, self)
 
     def has_table(self, name: str) -> bool:
         """Return if a specific table exists."""
@@ -307,8 +318,8 @@ class Workspace:
 
     def create_table(self, table: str, edge: bool, sync: bool = False) -> Table:
         """Create a table in this workspace."""
-        table_handle = self.handle.create_collection(table, edge=edge, sync=sync)
-        return Table(table, self.name, table_handle, self.handle.aql)
+        self.handle.create_collection(table, edge=edge, sync=sync)
+        return Table(table, self)
 
     def create_aql_table(self, table: str, aql_query: str) -> Table:
         """Create a table in this workspace from an aql query."""

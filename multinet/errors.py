@@ -1,12 +1,10 @@
 """Exception objects representing Multinet-specific HTTP error conditions."""
-from typing import Tuple, Any, Union, List, Sequence
-from typing_extensions import TypedDict
+from typing import Tuple, Any, Union, Dict, List, Sequence
 
 from multinet.validation import ValidationFailure
 
 
 FlaskTuple = Tuple[Any, Union[int, str]]
-Payload = TypedDict("Payload", {"argument": str, "value": str, "allowed": List[str]})
 
 
 class ServerError(Exception):
@@ -118,20 +116,14 @@ class NodeNotFound(NotFound):
 class BadQueryArgument(ServerError):
     """Exception for illegal query argument value."""
 
-    def __init__(self, argument: str, value: str, allowed: List[str]):
+    def __init__(self, argument: str, value: str):
         """Initialize the exception."""
         self.argument = argument
         self.value = value
-        self.allowed = allowed
 
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error for the bad argument."""
-        payload: Payload = {
-            "argument": self.argument,
-            "value": self.value,
-            "allowed": self.allowed,
-        }
-
+        payload = {"argument": self.argument, "value": self.value}
         return (payload, "400 Bad Query Argument")
 
 
@@ -158,6 +150,18 @@ class MalformedRequestBody(ServerError):
     def flask_response(self) -> FlaskTuple:
         """Generate a 400 error."""
         return (self.body, "400 Malformed Request Body")
+
+
+class InvalidMetadata(ServerError):
+    """Exception for specifying invalid metadata."""
+
+    def __init__(self, metadata: Dict):
+        """Initialize the exception."""
+        self.metadata = metadata
+
+    def flask_response(self) -> FlaskTuple:
+        """Generate a 400 error."""
+        return (self.metadata, "400 Invalid Metadata")
 
 
 class RequiredParamsMissing(ServerError):

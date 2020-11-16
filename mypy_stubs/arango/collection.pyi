@@ -20,7 +20,6 @@ class Collection:
 
 class StandardCollection(Collection):
     name: str
-
     def insert(
         self,
         document: Any,

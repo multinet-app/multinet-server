@@ -1,7 +1,7 @@
 version: '3'
 services:
   arangodb:
-    image: arangodb/arangodb:3.4.3
+    image: arangodb/arangodb:3.5.6
     ports:
       - "${ARANGO_PORT:-8529}:8529"
     environment:

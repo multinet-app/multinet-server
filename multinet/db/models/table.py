@@ -1,11 +1,19 @@
 """Operations that deal with tables."""
 from __future__ import annotations  # noqa: T484
+
 from arango.collection import StandardCollection
 from arango.aql import AQL
+from pydantic import ValidationError as PydanticValidationError
 
 from multinet import util
-from multinet.types import EdgeTableProperties
-from multinet.errors import ServerError, FlaskTuple
+from multinet.db.models import workspace
+from multinet.types import (
+    EdgeTableProperties,
+    ArangoEntityDocument,
+    EntityMetadata,
+    TableMetadata,
+)
+from multinet.errors import ServerError, FlaskTuple, InvalidMetadata
 
 from typing import List, Set, Dict, Iterable, Union, Optional
 
@@ -25,22 +33,23 @@ class NotAnEdgeTable(ServerError):
 class Table:
     """Tables store tabular data, and are the root of all data storage in Multinet."""
 
-    def __init__(self, name: str, workspace: str, handle: StandardCollection, aql: AQL):
+    def __init__(self, name: str, workspace: workspace.Workspace):
         """
         Initialize all Table parameters, but make no requests.
 
-        The `workspace` parameter is the name of the workspace this table belongs to.
-
-        The `handle` parameter is the handle to the arangodb collection for which this
-        class instance is associated.
-
-        The `aql` parameter is the AQL handle of the creating Workspace, so that this
-        class may make AQL requests when necessary.
+        The `name` parameter is the name of this table.
+        The `workspace` parameter is the workspace this table belongs to.
         """
         self.name = name
-        self.workspace = workspace
-        self.handle = handle
-        self.aql = aql
+
+        # Used for inserting/modifying table metadata
+        self.metadata_collection = workspace.entity_metadata_collection()
+
+        # Used for querying table items
+        self.handle: StandardCollection = workspace.handle.collection(name)
+
+        # Used for running AQL queries when necessary
+        self.aql: AQL = workspace.handle.aql
 
     def rows(self, offset: Optional[int] = None, limit: Optional[int] = None) -> Dict:
         """Return the desired rows in a table."""
@@ -71,6 +80,34 @@ class Table:
             keys = list(util.filter_unwanted_keys(doc).keys())
 
         return keys
+
+    def get_metadata(self) -> ArangoEntityDocument:
+        """Retrieve metadata for this table, if it exists."""
+        try:
+            doc = next(self.metadata_collection.find({"item_id": self.name}, limit=1))
+        except StopIteration:
+            entity = EntityMetadata(item_id=self.name, table=TableMetadata())
+
+            # Return is just metadata, merge with entity to get full doc
+            doc = self.metadata_collection.insert(entity.dict())
+            doc.update(entity.dict())
+
+        return ArangoEntityDocument(**doc)
+
+    def set_metadata(self, raw_data: Dict) -> ArangoEntityDocument:
+        """Set metadata for this table."""
+        try:
+            data = TableMetadata(**raw_data)
+        except PydanticValidationError:
+            raise InvalidMetadata(raw_data)
+
+        entity = self.get_metadata()
+        entity.table = data
+
+        new_doc = entity.dict()
+        new_doc.update(self.metadata_collection.insert(new_doc, overwrite=True))
+
+        return ArangoEntityDocument(**new_doc)
 
     def rename(self, new_name: str) -> None:
         """Rename a table."""

@@ -100,6 +100,22 @@ def get_table_rows(workspace: str, table: str, offset: int = 0, limit: int = 30)
     return Workspace(workspace).table(table).rows(offset, limit)
 
 
+@bp.route("/workspaces/<workspace>/tables/<table>/metadata", methods=["GET"])
+@require_reader
+@swag_from("swagger/get_metadata.yaml")
+def get_table_metadata(workspace: str, table: str) -> Any:
+    """Retrieve the metadata of a table, if it exists."""
+    return Workspace(workspace).table(table).get_metadata().dict()
+
+
+@bp.route("/workspaces/<workspace>/tables/<table>/metadata", methods=["PUT"])
+@require_reader
+@swag_from("swagger/set_metadata.yaml")
+def set_table_metadata(workspace: str, table: str) -> Any:
+    """Retrieve the rows and headers of a table."""
+    return Workspace(workspace).table(table).set_metadata(request.json).dict()
+
+
 @bp.route("/workspaces/<workspace>/graphs", methods=["GET"])
 @require_reader
 @swag_from("swagger/workspace_graphs.yaml")
@@ -158,7 +174,7 @@ def get_node_edges(
     """Return the edges connected to a node."""
     allowed = ["incoming", "outgoing", "all"]
     if direction not in allowed:
-        raise BadQueryArgument("direction", direction, allowed)
+        raise BadQueryArgument("direction", direction)
 
     return (
         Workspace(workspace)

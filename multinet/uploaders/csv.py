@@ -95,6 +95,7 @@ def upload(
     # TODO: This temporarily needs to be done here, so that validation of the metadata
     # can be done before the table is actually created. Once the API is updated, this
     # will change.
+    metadata_dict = {}
     if metadata:
         try:
             metadata_dict = json.loads(metadata)

@@ -72,16 +72,16 @@ def validate_node_table(
     if key_field != "_key" and key_field not in fieldnames:
         validation_errors.append(KeyFieldDoesNotExist(key=key_field))
 
-    if "_key" in fieldnames and key_field != "_key" and not overwrite:
+    elif "_key" in fieldnames and key_field != "_key" and not overwrite:
         validation_errors.append(KeyFieldAlreadyExists(key=key_field))
-
-    keys = (row[key_field] for row in rows)
-    unique_keys: Set[str] = set()
-    for key in keys:
-        if key in unique_keys:
-            validation_errors.append(DuplicateKey(key=key))
-        else:
-            unique_keys.add(key)
+    else:
+        keys = (row[key_field] for row in rows)
+        unique_keys: Set[str] = set()
+        for key in keys:
+            if key in unique_keys:
+                validation_errors.append(DuplicateKey(key=key))
+            else:
+                unique_keys.add(key)
 
     return validation_errors
 

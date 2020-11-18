@@ -6,10 +6,18 @@ from io import StringIO
 
 from multinet import util
 from multinet.db.models.workspace import Workspace
+from multinet.db.models.table import table_metadata_from_dict
 from multinet.auth.util import require_writer
-from multinet.errors import AlreadyExists, FlaskTuple, ServerError, BadQueryArgument
+from multinet.errors import (
+    AlreadyExists,
+    FlaskTuple,
+    ServerError,
+    BadQueryArgument,
+    ValidationFailed,
+)
 from multinet.util import decode_data
-from multinet.validation.csv import validate_csv
+from multinet.metadata.utils import process_rows_with_metadata
+from multinet.validation.csv import validate_csv, is_edge_table
 
 from flask import Blueprint, request
 from flask import current_app as app
@@ -84,8 +92,24 @@ def upload(
     except csv.Error:
         raise CSVReadError()
 
+    # TODO: This temporarily needs to be done here, so that validation of the metadata
+    # can be done before the table is actually created. Once the API is updated, this
+    # will change.
+    if metadata:
+        try:
+            metadata_dict = json.loads(metadata)
+        except json.decoder.JSONDecodeError:
+            raise BadQueryArgument("metadata", metadata)
+
+    table_metadata = table_metadata_from_dict(metadata_dict)
+    rows, metadata_validation_errors = process_rows_with_metadata(rows, table_metadata)
+
     # Perform validation.
-    validate_csv(rows, key, overwrite)
+    csv_validation_errors = validate_csv(rows, key, overwrite)
+
+    validation_errors = [*metadata_validation_errors, *csv_validation_errors]
+    if len(validation_errors):
+        raise ValidationFailed(errors=validation_errors)
 
     # Once we reach here, we know that the specified key field must be present,
     # and either:
@@ -95,18 +119,11 @@ def upload(
     if key != "_key":
         rows = set_table_key(rows, key)
 
-    # Check if it's an edge table or not
-    fieldnames = rows[0].keys()
-    edges = "_from" in fieldnames and "_to" in fieldnames
-
     # Create table and insert the data
-    loaded_table = loaded_workspace.create_table(table, edges)
+    loaded_table = loaded_workspace.create_table(table, edge=is_edge_table(rows))
 
-    if metadata:
-        try:
-            loaded_table.set_metadata(json.loads(metadata))
-        except json.decoder.JSONDecodeError:
-            raise BadQueryArgument("metadata", metadata)
+    # Set table metadata
+    loaded_table.set_metadata(metadata_dict)
 
     results = loaded_table.insert(rows)
     return {"count": len(results)}

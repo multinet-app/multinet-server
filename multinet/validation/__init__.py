@@ -33,3 +33,17 @@ class DuplicateKey(ValidationFailure):
     """Duplicate key detected when trying to create a table."""
 
     key: str
+
+
+class MetadataColumnKeyNotFound(ValidationFailure):
+    """A key in the column metadata was not found in the source data."""
+
+    key: str
+
+
+class IncompatibleMetadata(ValidationFailure):
+    """Metadata on an entity is imcompatible with the underlying data."""
+
+    row: int
+    column: str
+    message: str

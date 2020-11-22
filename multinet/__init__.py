@@ -35,6 +35,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     )
     Swagger(app, template_file="swagger/template.yaml")
 
+    # TODO: Add handler that halts app creation if there are unapplied migrations
+
     # Set max file upload size to 32 MB
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 

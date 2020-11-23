@@ -16,7 +16,8 @@ from multinet.errors import (
     ValidationFailed,
 )
 from multinet.util import decode_data
-from multinet.metadata.utils import process_rows_with_metadata
+from multinet.processing import process_rows_with_metadata
+from multinet.processing.types import UnprocessedTableRow, ProcessedTableRow
 from multinet.validation.csv import validate_csv, is_edge_table
 
 from flask import Blueprint, request
@@ -25,7 +26,7 @@ from webargs import fields as webarg_fields
 from webargs.flaskparser import use_kwargs
 
 # Import types
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Optional
 
 
 bp = Blueprint("csv", __name__)
@@ -40,9 +41,9 @@ class CSVReadError(ServerError):
         return ("Could not read CSV data", "415 Unsupported Media Type")
 
 
-def set_table_key(rows: List[Dict[str, str]], key: str) -> List[Dict[str, str]]:
+def set_table_key(rows: List[ProcessedTableRow], key: str) -> List[ProcessedTableRow]:
     """Update the _key field in each row."""
-    new_rows: List[Dict[str, str]] = []
+    new_rows: List[ProcessedTableRow] = []
     for row in rows:
         new_row = dict(row)
         new_row["_key"] = new_row[key]
@@ -88,7 +89,7 @@ def upload(
 
     try:
         # Type to a Dict rather than an OrderedDict
-        rows: List[Dict[str, str]] = list(csv.DictReader(StringIO(body)))
+        csv_rows: List[UnprocessedTableRow] = list(csv.DictReader(StringIO(body)))
     except csv.Error:
         raise CSVReadError()
 
@@ -103,7 +104,9 @@ def upload(
             raise BadQueryArgument("metadata", metadata)
 
     table_metadata = table_metadata_from_dict(metadata_dict)
-    rows, metadata_validation_errors = process_rows_with_metadata(rows, table_metadata)
+    rows, metadata_validation_errors = process_rows_with_metadata(
+        csv_rows, table_metadata
+    )
 
     # Perform validation.
     csv_validation_errors = validate_csv(rows, key, overwrite)

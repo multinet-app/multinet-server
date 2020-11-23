@@ -47,6 +47,8 @@ def process_row(
 
         process_entry = entry_processing_dict.get(col.type)
         if process_entry is None:
+            # This happens on any type not defined in `entry_processing_dict`
+            # E.g. label, category
             continue
 
         # Attempt normal entry processing

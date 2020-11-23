@@ -41,8 +41,8 @@ class MetadataColumnKeyNotFound(ValidationFailure):
     key: str
 
 
-class IncompatibleMetadata(ValidationFailure):
-    """Metadata on an entity is imcompatible with the underlying data."""
+class TypeConversionFailure(ValidationFailure):
+    """Failed to convert underlying data to type specified by metadata."""
 
     row: int
     column: str

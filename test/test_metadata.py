@@ -132,7 +132,7 @@ def test_csv_upload_with_incompatible_metadata(
         # The product of the number of rows (3) and the number of incorrect columns (3)
         assert len(resp.json["errors"]) == 9
         assert all(
-            error["type"] == "IncompatibleMetadata" for error in resp.json["errors"]
+            error["type"] == "TypeConversionFailure" for error in resp.json["errors"]
         )
 
         # Assert that the table was not created

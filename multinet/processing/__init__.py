@@ -1,7 +1,7 @@
 """Functions for processing multinet data."""
 from multinet.validation import (
     ValidationFailure,
-    IncompatibleMetadata,
+    TypeConversionFailure,
     MetadataColumnKeyNotFound,
 )
 from multinet.processing.processors import (
@@ -61,7 +61,7 @@ def process_row(
         except ValueError:
             # Error in processing entry. Add error, leave entry unchanged
             validation_errors.append(
-                IncompatibleMetadata(
+                TypeConversionFailure(
                     message=f"Cannot convert entry '{entry}' to type: {col.type}",
                     row=row_index,
                     column=col.key,

@@ -16,7 +16,7 @@ from multinet.errors import (
     ValidationFailed,
 )
 from multinet.util import decode_data
-from multinet.processing import process_rows_with_metadata
+from multinet.processing import process_rows
 from multinet.processing.types import UnprocessedTableRow, ProcessedTableRow
 from multinet.validation.csv import validate_csv, is_edge_table
 
@@ -104,9 +104,7 @@ def upload(
             raise BadQueryArgument("metadata", metadata)
 
     table_metadata = table_metadata_from_dict(metadata_dict)
-    rows, metadata_validation_errors = process_rows_with_metadata(
-        csv_rows, table_metadata
-    )
+    rows, metadata_validation_errors = process_rows(csv_rows, table_metadata.columns)
 
     # Perform validation.
     csv_validation_errors = validate_csv(rows, key, overwrite)

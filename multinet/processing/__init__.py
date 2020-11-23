@@ -9,7 +9,7 @@ from multinet.processing.processors import (
     process_boolean_entry,
     process_date_entry,
 )
-from multinet.types import TableMetadata
+from multinet.types import ColumnMetadata
 from multinet.processing.types import (
     UnprocessedTableRow,
     ProcessedTableRow,
@@ -29,7 +29,7 @@ entry_processing_dict: Dict[str, TableRowEntryProcessor] = {
 
 
 def process_row(
-    row_index: int, row: UnprocessedTableRow, metadata: TableMetadata
+    row_index: int, row: UnprocessedTableRow, columns: List[ColumnMetadata]
 ) -> Tuple[ProcessedTableRow, List[ValidationFailure]]:
     """Process a single row, returning the processed row, and any errors."""
     validation_errors: List[ValidationFailure] = []
@@ -37,7 +37,7 @@ def process_row(
     # Copy row
     new_row: ProcessedTableRow = dict(row)
 
-    for col in metadata.columns:
+    for col in columns:
         entry = row.get(col.key)
 
         # If any of the following conditions are met, skip processing the entry
@@ -71,11 +71,11 @@ def process_row(
     return (new_row, validation_errors)
 
 
-def process_rows_with_metadata(
-    initial_rows: List[UnprocessedTableRow], metadata: TableMetadata
+def process_rows(
+    initial_rows: List[UnprocessedTableRow], col_metadata: List[ColumnMetadata]
 ) -> Tuple[List[ProcessedTableRow], List[ValidationFailure]]:
     """Perform any processing of table rows with the supplied metadata."""
-    if not metadata.columns or not initial_rows:
+    if not col_metadata or not initial_rows:
         # Copy rows to ensure consistent behavior, no change applied
         rows: List[ProcessedTableRow] = [dict(row) for row in initial_rows]
         return (rows, [])
@@ -84,7 +84,7 @@ def process_rows_with_metadata(
     validation_errors: List[ValidationFailure] = []
 
     for i, init_row in enumerate(initial_rows):
-        row, errors = process_row(i, init_row, metadata)
+        row, errors = process_row(i, init_row, col_metadata)
 
         rows.append(row)
         validation_errors.extend(errors)

@@ -331,7 +331,7 @@ class Workspace:
         rows = list(self.run_query(aql_query))
 
         errors = validate_csv(rows, "_key", False)
-        if len(errors):
+        if errors:
             raise ValidationFailed(errors=errors)
 
         loaded_table = self.create_table(table, False)

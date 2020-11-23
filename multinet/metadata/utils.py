@@ -63,7 +63,10 @@ def process_date_entry(entry: str) -> str:
 
 def process_number_entry(entry: str) -> Union[int, float]:
     """Try to read a number from a given string."""
-    return int(entry) if entry.isdigit() else float(entry)
+    try:
+      return int(entry)
+    except ValueError:
+      return float(entry)
 
 
 # Maps types to the functions responsible for processing their entries
@@ -119,7 +122,7 @@ def process_rows_with_metadata(
     initial_rows: List[Dict[str, str]], metadata: TableMetadata
 ) -> Tuple[List[Dict[str, Any]], List[ValidationFailure]]:
     """Perform any processing of table rows with the supplied metadata."""
-    if not len(metadata.columns) or not len(initial_rows):
+    if not metadata.columns or not initial_rows:
         return (initial_rows, [])
 
     rows = []

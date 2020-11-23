@@ -1,1 +1,1 @@
-"""Functions and classes for handling Metadata."""
+"""Functions and classes for handling metadata."""

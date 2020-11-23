@@ -52,21 +52,21 @@ def process_boolean_entry(entry: str) -> bool:
 
 def process_date_entry(entry: str) -> str:
     """Try to read a date as an ISO 8601 string or unix timestamp."""
-
-    if entry.isdigit():
+    try:
+        # Raises ValueError is entry is not a float/int
         # Raises ValueError if the number is out of range
-        return datetime.fromtimestamp(int(entry)).isoformat()
-
-    # Raises ValueError if it cannot parse the string into a datetime object
-    return dateutilparser.parse(entry).isoformat()
+        return datetime.fromtimestamp(float(entry)).isoformat()
+    except ValueError:
+        # Raises ValueError if it cannot parse the string into a datetime object
+        return dateutilparser.parse(entry).isoformat()
 
 
 def process_number_entry(entry: str) -> Union[int, float]:
     """Try to read a number from a given string."""
     try:
-      return int(entry)
+        return int(entry)
     except ValueError:
-      return float(entry)
+        return float(entry)
 
 
 # Maps types to the functions responsible for processing their entries

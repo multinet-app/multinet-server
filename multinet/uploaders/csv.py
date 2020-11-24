@@ -96,6 +96,7 @@ def upload(
     # TODO: This temporarily needs to be done here, so that validation of the metadata
     # can be done before the table is actually created. Once the API is updated, this
     # will change.
+    # https://github.com/multinet-app/multinet-server/issues/493
     metadata_dict = {}
     if metadata:
         try:

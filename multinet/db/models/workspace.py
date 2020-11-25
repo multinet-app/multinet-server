@@ -100,7 +100,6 @@ class Workspace:
 
         coll = workspace_mapping_collection(readonly=False)
         coll.insert(workspace_dict, sync=True)
-        workspace_mapping.cache_clear()
 
         return Workspace(name)
 
@@ -132,9 +131,6 @@ class Workspace:
 
         coll = workspace_mapping_collection(readonly=False)
         coll.update(doc)
-
-        # Invalidate the cache for things changed by this function
-        workspace_mapping.cache_clear()
 
     def set_permissions(
         self, permissions: WorkspacePermissions
@@ -170,9 +166,6 @@ class Workspace:
 
         self.name = new_name
 
-        # Invalidate the cache for things changed by this function
-        workspace_mapping.cache_clear()
-
     def delete(self) -> None:
         """Delete this workspace."""
         doc = self.get_metadata()
@@ -182,9 +175,6 @@ class Workspace:
 
         sysdb.delete_database(doc["internal"])
         coll.delete(doc["_id"])
-
-        # Invalidate the cache for things changed by this function
-        workspace_mapping.cache_clear()
 
     def get_metadata(self) -> Dict:
         """Fetch and return the metadata for this workspace."""

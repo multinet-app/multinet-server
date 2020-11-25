@@ -7,12 +7,6 @@ from multinet.db.models.workspace import Workspace
 def test_present_workspace(managed_workspace):
     """Test that workspace caching works as expected on present workspaces."""
 
-    # Assert that the cached response matches the actual response
-    assert workspace_mapping.__wrapped__(managed_workspace.name) == workspace_mapping(
-        managed_workspace.name
-    )
-    workspace_mapping.cache_clear()
-
     first_resp = workspace_mapping(managed_workspace.name)
     second_resp = workspace_mapping(managed_workspace.name)
 
@@ -24,8 +18,7 @@ def test_absent_workspace():
     """Test that workspace caching works as expected on absent workspaces."""
 
     # Test that random workspace doesn't exist
-    assert workspace_mapping.__wrapped__(uuid4().hex) is None
-    workspace_mapping.cache_clear()
+    assert workspace_mapping(uuid4().hex) is None
 
     workspace_name = uuid4().hex
     first_resp = workspace_mapping(workspace_name)

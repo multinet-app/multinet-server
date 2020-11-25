@@ -48,6 +48,7 @@ def db(name: str, readonly: bool = True) -> StandardDatabase:
     return arango.db(name, username=username, password=password)
 
 
+# Cache this as it's just a handle to a database, and shouldn't ever change
 @lru_cache()
 def system_db(readonly: bool = True) -> StandardDatabase:
     """Return the singleton `_system` db handle."""
@@ -77,8 +78,6 @@ def register_legacy_workspaces() -> None:
         coll.insert({"name": workspace, "internal": workspace})
 
 
-# Since this shouldn't ever change while running, this function becomes a singleton
-@lru_cache(maxsize=1)
 def workspace_mapping_collection(readonly: bool = True) -> StandardCollection:
     """Return the collection used for mapping external to internal workspace names."""
     sysdb = system_db(readonly=readonly)
@@ -89,8 +88,6 @@ def workspace_mapping_collection(readonly: bool = True) -> StandardCollection:
     return sysdb.collection("workspace_mapping")
 
 
-# Caches the document that maps an external workspace name to it's internal one
-@lru_cache()
 def workspace_mapping(name: str) -> Optional[Dict]:
     """
     Get the document containing the workspace mapping for :name: (if it exists).
@@ -132,6 +129,7 @@ def _run_aql_query(
 
 # TODO: Refactor the below functions into an `Upload` class
 # https://github.com/multinet-app/multinet-server/issues/464
+# Cache this as it's just a handle to a database, and shouldn't ever change
 @lru_cache(maxsize=1)
 def uploads_database(readonly: bool = True) -> StandardDatabase:
     """Return the database used for storing multipart upload collections."""

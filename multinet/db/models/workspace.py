@@ -329,7 +329,10 @@ class Workspace:
         # In the future, the result of this validation can be
         # used to determine dependencies in virtual tables
         rows = list(self.run_query(aql_query))
-        validate_csv(rows, "_key", False)
+
+        errors = validate_csv(rows, "_key", False)
+        if errors:
+            raise ValidationFailed(errors=errors)
 
         loaded_table = self.create_table(table, False)
         loaded_table.insert(rows)

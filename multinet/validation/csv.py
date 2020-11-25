@@ -3,7 +3,6 @@
 import re
 from typing import Set, MutableMapping, Sequence, List
 
-from multinet.errors import ValidationFailed
 from multinet.validation import ValidationFailure, DuplicateKey, UnsupportedTable
 
 
@@ -42,9 +41,9 @@ def is_node_table(rows: Sequence[MutableMapping], key_field: str) -> bool:
     return key_field != "_key" or "_key" in fieldnames
 
 
-def validate_edge_table(rows: Sequence[MutableMapping]) -> None:
+def validate_edge_table(rows: Sequence[MutableMapping]) -> List[ValidationFailure]:
     """Validate that the given table is a valid edge table."""
-    data_errors: List[ValidationFailure] = []
+    validation_errors: List[ValidationFailure] = []
 
     # Checks that a cell has the form table_name/key
     valid_cell = re.compile("[^/]+/[^/]+")
@@ -58,49 +57,45 @@ def validate_edge_table(rows: Sequence[MutableMapping]) -> None:
 
         if fields:
             # i+2 -> +1 for index offset, +1 due to header row
-            data_errors.append(InvalidRow(columns=fields, row=i + 2))
+            validation_errors.append(InvalidRow(columns=fields, row=i + 2))
 
-    if len(data_errors) > 0:
-        raise ValidationFailed(data_errors)
+    return validation_errors
 
 
 def validate_node_table(
     rows: Sequence[MutableMapping], key_field: str, overwrite: bool
-) -> None:
+) -> List[ValidationFailure]:
     """Validate that the given table is a valid node table."""
     fieldnames = rows[0].keys()
-    data_errors: List[ValidationFailure] = []
+    validation_errors: List[ValidationFailure] = []
 
     if key_field != "_key" and key_field not in fieldnames:
-        data_errors.append(KeyFieldDoesNotExist(key=key_field))
-        raise ValidationFailed(data_errors)
+        validation_errors.append(KeyFieldDoesNotExist(key=key_field))
 
-    if "_key" in fieldnames and key_field != "_key" and not overwrite:
-        data_errors.append(KeyFieldAlreadyExists(key=key_field))
-        raise ValidationFailed(data_errors)
+    elif "_key" in fieldnames and key_field != "_key" and not overwrite:
+        validation_errors.append(KeyFieldAlreadyExists(key=key_field))
+    else:
+        keys = (row[key_field] for row in rows)
+        unique_keys: Set[str] = set()
+        for key in keys:
+            if key in unique_keys:
+                validation_errors.append(DuplicateKey(key=key))
+            else:
+                unique_keys.add(key)
 
-    keys = (row[key_field] for row in rows)
-    unique_keys: Set[str] = set()
-    for key in keys:
-        if key in unique_keys:
-            data_errors.append(DuplicateKey(key=key))
-        else:
-            unique_keys.add(key)
-
-    if len(data_errors) > 0:
-        raise ValidationFailed(data_errors)
+    return validation_errors
 
 
 def validate_csv(
     rows: Sequence[MutableMapping], key_field: str, overwrite: bool
-) -> None:
+) -> List[ValidationFailure]:
     """Perform any necessary CSV validation, and return appropriate errors."""
     if not rows:
-        raise ValidationFailed([MissingBody()])
+        return [MissingBody()]
 
     if is_edge_table(rows):
-        validate_edge_table(rows)
+        return validate_edge_table(rows)
     elif is_node_table(rows, key_field):
-        validate_node_table(rows, key_field, overwrite)
+        return validate_node_table(rows, key_field, overwrite)
     else:
-        raise ValidationFailed([UnsupportedTable()])
+        return [UnsupportedTable()]

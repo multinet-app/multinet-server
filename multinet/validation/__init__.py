@@ -35,7 +35,7 @@ class DuplicateKey(ValidationFailure):
     key: str
 
 
-class MetadataColumnKeyNotFound(ValidationFailure):
+class MissingColumn(ValidationFailure):
     """A key in the column metadata was not found in the source data."""
 
     key: str

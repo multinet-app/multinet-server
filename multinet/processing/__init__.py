@@ -1,9 +1,5 @@
 """Functions for processing multinet data."""
-from multinet.validation import (
-    ValidationFailure,
-    TypeConversionFailure,
-    MetadataColumnKeyNotFound,
-)
+from multinet.validation import ValidationFailure, TypeConversionFailure, MissingColumn
 from multinet.processing.processors import (
     process_number_entry,
     process_boolean_entry,
@@ -42,7 +38,7 @@ def process_row(
 
         # If any of the following conditions are met, skip processing the entry
         if entry is None:
-            validation_errors.append(MetadataColumnKeyNotFound(key=col.key))
+            validation_errors.append(MissingColumn(key=col.key))
             continue
 
         process_entry = entry_processing_dict.get(col.type)

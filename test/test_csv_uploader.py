@@ -5,7 +5,7 @@ import os
 import pytest
 
 import conftest
-from multinet.errors import ValidationFailed, DecodeFailed
+from multinet.errors import DecodeFailed
 from multinet.uploaders.csv import decode_data
 from multinet.validation import DuplicateKey, UnsupportedTable
 from multinet.validation.csv import (
@@ -60,12 +60,10 @@ def test_missing_key_field():
     rows = read_csv("startrek_no_key_field.csv")
 
     correct = UnsupportedTable().dict()
-    with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field="_key", overwrite=False)
+    errors = validate_csv(rows, key_field="_key", overwrite=False)
 
-    validation_resp = v_error.value.errors
-    assert len(validation_resp) == 1
-    assert validation_resp[0] == correct
+    assert len(errors) == 1
+    assert errors[0] == correct
 
 
 def test_invalid_key_field():
@@ -74,12 +72,10 @@ def test_invalid_key_field():
     invalid_key = "invalid"
 
     correct = KeyFieldDoesNotExist(key=invalid_key).dict()
-    with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field=invalid_key, overwrite=False)
+    errors = validate_csv(rows, key_field=invalid_key, overwrite=False)
 
-    validation_resp = v_error.value.errors
-    assert len(validation_resp) == 1
-    assert validation_resp[0] == correct
+    assert len(errors) == 1
+    assert errors[0] == correct
 
 
 def test_key_field_already_exists_a():
@@ -92,12 +88,10 @@ def test_key_field_already_exists_a():
     key_field = "name"
 
     correct = KeyFieldAlreadyExists(key=key_field).dict()
-    with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field=key_field, overwrite=False)
+    errors = validate_csv(rows, key_field=key_field, overwrite=False)
 
-    validation_resp = v_error.value.errors
-    assert len(validation_resp) == 1
-    assert validation_resp[0] == correct
+    assert len(errors) == 1
+    assert errors[0] == correct
 
 
 def test_key_field_already_exists_b():
@@ -107,27 +101,24 @@ def test_key_field_already_exists_b():
     (overwrite = True).
     """
     rows = read_csv("startrek.csv")
-    validate_csv(rows, key_field="name", overwrite=True)
+    errors = validate_csv(rows, key_field="name", overwrite=True)
+    assert len(errors) == 0
 
 
 def test_duplicate_keys():
     """Test that duplicate keys are handled properly."""
     rows = read_csv("clubs_invalid_duplicate_keys.csv")
-    with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field="_key", overwrite=False)
+    errors = validate_csv(rows, key_field="_key", overwrite=False)
 
-    validation_resp = v_error.value.errors
     correct = [err.dict() for err in [DuplicateKey(key="2"), DuplicateKey(key="5")]]
-    assert all(err in validation_resp for err in correct)
+    assert all(err in errors for err in correct)
 
 
 def test_invalid_headers():
     """Test that invalid headers are handled properly."""
     rows = read_csv("membership_invalid_syntax.csv")
-    with pytest.raises(ValidationFailed) as v_error:
-        validate_csv(rows, key_field="_key", overwrite=False)
+    errors = validate_csv(rows, key_field="_key", overwrite=False)
 
-    validation_resp = v_error.value.errors
     correct = [
         err.dict()
         for err in [
@@ -136,7 +127,7 @@ def test_invalid_headers():
             InvalidRow(row=5, columns=["_from", "_to"]),
         ]
     ]
-    assert all(err in validation_resp for err in correct)
+    assert all(err in errors for err in correct)
 
 
 def test_decode_failed():

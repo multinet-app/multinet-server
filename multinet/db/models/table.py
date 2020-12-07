@@ -18,6 +18,14 @@ from multinet.errors import ServerError, FlaskTuple, InvalidMetadata
 from typing import List, Set, Dict, Iterable, Union, Optional
 
 
+def table_metadata_from_dict(raw_data: Dict) -> TableMetadata:
+    """Cast a dict to TableMetadata, raising an exception if failed."""
+    try:
+        return TableMetadata(**raw_data)
+    except PydanticValidationError:
+        raise InvalidMetadata(raw_data)
+
+
 class NotAnEdgeTable(ServerError):
     """Error raised if an edge table is required, but a node table is given."""
 
@@ -96,11 +104,7 @@ class Table:
 
     def set_metadata(self, raw_data: Dict) -> ArangoEntityDocument:
         """Set metadata for this table."""
-        try:
-            data = TableMetadata(**raw_data)
-        except PydanticValidationError:
-            raise InvalidMetadata(raw_data)
-
+        data = table_metadata_from_dict(raw_data)
         entity = self.get_metadata()
         entity.table = data
 

@@ -57,11 +57,35 @@ def main():
     nodes = [nodes[i] for i in range(0, 100)]
 
     # Filter links to those with both in node table
-    links = [link for link in links if (any(f"people/{node['_key']}" == link["_from"] for node in nodes) and any(f"people/{node['_key']}" == link["_to"] for node in nodes))]
+    links = [
+        link
+        for link in links
+        if (
+            any(f"people/{node['_key']}" == link["_from"] for node in nodes)
+            and any(f"people/{node['_key']}" == link["_to"] for node in nodes)
+        )
+    ]
     links = [link for (index, link) in enumerate(links) if index % 10 == 0]
 
     # Write out both the node and link data to CSV files.
-    write_csv(nodes, ["_key", "followers_count", "query_tweet_count", "friends_count", "statuses_count", "listed_count", "favourites_count", "count_followers_in_query", "screen_name", "profile_image_url", "influential", "original"], "people.csv")
+    write_csv(
+        nodes,
+        [
+            "_key",
+            "followers_count",
+            "query_tweet_count",
+            "friends_count",
+            "statuses_count",
+            "listed_count",
+            "favourites_count",
+            "count_followers_in_query",
+            "screen_name",
+            "profile_image_url",
+            "influential",
+            "original",
+        ],
+        "people.csv",
+    )
     write_csv(links, ["_key", "_from", "_to"], "connections.csv")
 
     return 0

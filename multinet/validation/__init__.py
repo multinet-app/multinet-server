@@ -33,3 +33,17 @@ class DuplicateKey(ValidationFailure):
     """Duplicate key detected when trying to create a table."""
 
     key: str
+
+
+class MissingColumn(ValidationFailure):
+    """A key in the column metadata was not found in the source data."""
+
+    key: str
+
+
+class TypeConversionFailure(ValidationFailure):
+    """Failed to convert underlying data to type specified by metadata."""
+
+    row: int
+    column: str
+    message: str

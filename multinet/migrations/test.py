@@ -1,9 +1,9 @@
 """Test migration module."""
-from multinet.migrations.base import Migration
+from multinet.migrations.base import BaseMigration
 
 
 # This performs a migration successfully
-class TestMigrationA(Migration):
+class TestMigrationA(BaseMigration):
     """Test Migration."""
 
     @staticmethod

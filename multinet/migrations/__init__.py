@@ -6,8 +6,7 @@ from functools import lru_cache
 from arango.collection import StandardCollection
 from multinet.db import system_db
 from multinet.migrations.util import get_migrations
-from multinet.migrations.base import Migration
-from multinet.migrations.types import MigrationDocument
+from multinet.migrations.types import Migration, MigrationDocument
 
 from types import ModuleType
 from typing import List, Generator

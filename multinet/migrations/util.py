@@ -1,6 +1,7 @@
 """Utilities for migrations."""
 import inspect
-from multinet.migrations.base import Migration
+from multinet.migrations.base import BaseMigration
+from multinet.migrations.types import Migration
 from types import ModuleType
 from typing import List
 
@@ -16,7 +17,7 @@ def is_migration(cls: type) -> bool:
 
     Only strict subclasses of the base Migration class are considered valid.
     """
-    return issubclass(cls, Migration) and cls != Migration
+    return issubclass(cls, BaseMigration) and cls != BaseMigration
 
 
 def get_migrations(modules: List[ModuleType]) -> List[Migration]:

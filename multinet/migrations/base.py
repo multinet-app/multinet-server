@@ -1,7 +1,7 @@
 """Base classes that other migrations inherit from."""
 
 
-class Migration:
+class BaseMigration:
     """
     The parent class to which all migrations should inherit from.
 

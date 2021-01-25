@@ -16,6 +16,7 @@ from multinet.db import register_legacy_workspaces
 from multinet import uploaders, downloaders
 from multinet.errors import ServerError
 from multinet.util import load_secret_key, regex_allowed_origins, get_allowed_origins
+from multinet.migrations import get_unapplied_migrations
 
 sentry_dsn = os.getenv("SENTRY_DSN", default="")
 sentry_sdk.init(dsn=sentry_dsn, integrations=[FlaskIntegration()])
@@ -35,7 +36,11 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     )
     Swagger(app, template_file="swagger/template.yaml")
 
-    # TODO: Add handler that halts app creation if there are unapplied migrations
+    unapplied_migrations = get_unapplied_migrations()
+    if len(unapplied_migrations):
+        raise Exception(
+            "There are unapplied migrations. To peform these migrations, run the command `pipenv run migrate`"
+        )
 
     # Set max file upload size to 32 MB
     app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024

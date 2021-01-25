@@ -1,15 +1,16 @@
 """Logic to manage and run migrations."""
 import pkgutil
-from datetime import datetime
 from functools import lru_cache
 
-from arango.collection import StandardCollection
-from multinet.db import system_db
-from multinet.migrations.util import get_migrations
-from multinet.migrations.types import Migration, MigrationDocument
+from multinet.migrations.types import Migration
+from multinet.migrations.util import (
+    get_migrations,
+    get_stored_migrations,
+    store_migration,
+)
 
 from types import ModuleType
-from typing import List, Generator
+from typing import List
 
 
 # This function must exist in this file, as it needs access to the `__path__` variable,
@@ -23,27 +24,6 @@ def get_modules() -> List[ModuleType]:
         for loader, name, _ in pkgutil.walk_packages(__path__)  # type: ignore
     ]
     return modules
-
-
-def migrations_collection() -> StandardCollection:
-    """Return the collection that stores previously applied migrations."""
-
-    if not system_db().has_collection("migrations"):
-        return system_db(False).create_collection("migrations")
-
-    return system_db(False).collection("migrations")
-
-
-def store_migration(migration: Migration) -> None:
-    """Insert a migration into the migrations collection."""
-    now = datetime.now().isoformat()
-    doc = MigrationDocument(name=migration.__name__, applied=now)
-    migrations_collection().insert(doc.dict())
-
-
-def get_stored_migrations() -> Generator[MigrationDocument, None, None]:
-    """Return all previously run migrations."""
-    return (MigrationDocument(**doc) for doc in migrations_collection().all())
 
 
 def get_unapplied_migrations() -> List[Migration]:

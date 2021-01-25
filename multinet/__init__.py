@@ -39,7 +39,8 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     unapplied_migrations = get_unapplied_migrations()
     if len(unapplied_migrations):
         raise Exception(
-            "There are unapplied migrations. To peform these migrations, run the command `pipenv run migrate`"
+            "There are unapplied migrations. To peform these migrations, run the "
+            "command `pipenv run migrate`"
         )
 
     # Set max file upload size to 32 MB

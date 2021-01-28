@@ -43,7 +43,7 @@ def run_migrations() -> None:
     """Run all defined migrations."""
 
     migrations = get_unapplied_migrations()
-    if not len(migrations):
+    if not migrations:
         print("All migrations up to date!")
         return
 

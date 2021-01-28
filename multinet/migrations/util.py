@@ -43,9 +43,9 @@ def migrations_collection() -> StandardCollection:
     """Return the collection that stores previously applied migrations."""
 
     if not system_db().has_collection("migrations"):
-        return system_db(False).create_collection("migrations")
+        return system_db(readonly=False).create_collection("migrations")
 
-    return system_db(False).collection("migrations")
+    return system_db(readonly=False).collection("migrations")
 
 
 def store_migration(migration: Migration) -> None:

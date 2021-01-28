@@ -14,6 +14,7 @@
 
     - name: server_name
       prompt: "What server are you deploying to? (db.multinet.app or db-test.multinet.app)"
+      private: no
 
   tasks:
     - name: Import and run ssl related tasks

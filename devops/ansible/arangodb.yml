@@ -12,11 +12,13 @@
     - name: arango_readonly_password
       prompt: "Password for ArangoDB readonly user"
 
-    - name: ssl_cert_path
-      prompt: "Path to parent SSL cert directory"
-      default: "/etc/letsencrypt/live/multinet.app/"
+    - name: server_name
+      prompt: "What server are you deploying to? (db.multinet.app or db-test.multinet.app)"
 
   tasks:
+    - name: Import and run ssl related tasks
+      import_tasks: ssl.yml
+
     # https://www.arangodb.com/download-major/ubuntu/
     - name: Add arangodb release key
       apt_key:
@@ -49,33 +51,7 @@
       shell: ARANGODB_DEFAULT_ROOT_PASSWORD={{ arangodb_root_password }} arango-secure-installation
       become: true
 
-    - name: Copy the SSL certificate files to the server
-      copy:
-        src: '{{ ssl_cert_path }}'
-        dest: /home/ubuntu/
-        local_follow: yes
-        mode: u=rw,g=,o=
-      become: true
-
-    - name: Combine the chain and the private key into one file (required by arango)
-      shell:
-        chdir: /home/ubuntu/
-        cmd: cat fullchain.pem privkey.pem > server.pem
-      become: true
-
-    - name: Set the combined file as 600 permission
-      file:
-        path: /home/ubuntu/server.pem
-        mode: u=rw,g=,o=
-      become: true
-
-    - name: Add an exception to the permissions for the arangodb user
-      shell:
-        chdir: /home/ubuntu/
-        cmd: setfacl -m u:arangodb:r server.pem
-      become: true
-
-    - name: Add the SSL filepath to the config
+    - name: Add the SSL filepath to the config (cert file provided by ssl.yml)
       blockinfile:
         path: /etc/arangodb3/arangod.conf
         block: |

@@ -1,0 +1,39 @@
+- name: Install certbot
+  apt:
+    name: certbot
+    update_cache: yes
+  become: true
+
+- name: Copy post cert renewal hook script
+  copy:
+    src: arango-ssl.sh
+    dest: /etc/letsencrypt/renewal-hooks/deploy/
+    mode: u=rwx,g=,o=
+  become: true
+
+- name: Set server name inside of the post cert renewal hook script
+  replace:
+    path: /etc/letsencrypt/renewal-hooks/deploy/arango-ssl.sh
+    regexp: '(SERVER_NAME)'
+    replace: '{{ server_name }}'
+  become: true
+
+- name: Generate a certificate
+  shell:
+    cmd: certbot certonly -d {{ server_name }} --standalone -m jwilburn@sci.utah.edu --agree-tos -n
+  become: true
+
+- name: Run arango-ssl.sh (doesn't run above since it's not a renewal)
+  shell:
+    cmd: /etc/letsencrypt/renewal-hooks/deploy/arango-ssl.sh
+  become: true
+
+- name: Add cronjob for cert renewal
+  cron:
+    name: certbot renew
+    minute: "0"
+    hour: "0,12"
+    job: "python -c 'import random; import time; time.sleep(random.random() * 3600)' && certbot renew -q"
+    cron_file: /etc/crontab
+    user: root
+  become: true

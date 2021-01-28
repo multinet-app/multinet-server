@@ -30,8 +30,8 @@ ansible-playbook \
     -i <target-hostname>,\
     --ssh-extra-args="-i <identity.pem>" \
     -e \
-        arangodb_root_password=<password>
-        arango_readonly_password=<a-different-password>
-        server_name=<server-url>
+        arangodb_root_password=<password> \
+        arango_readonly_password=<a-different-password> \
+        server_name=<server-url> \
         ssl_email=<email-address>
 ```

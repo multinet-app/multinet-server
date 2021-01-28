@@ -33,4 +33,5 @@ ansible-playbook \
         arangodb_root_password=<password>
         arango_readonly_password=<a-different-password>
         server_name=<server-url>
+        ssl_email=<email-address>
 ```

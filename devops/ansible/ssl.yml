@@ -20,7 +20,7 @@
 
 - name: Generate a certificate
   shell:
-    cmd: certbot certonly -d {{ server_name }} --standalone -m jwilburn@sci.utah.edu --agree-tos -n
+    cmd: certbot certonly -d {{ server_name }} --standalone -m {{ ssl_email }} --agree-tos -n
   become: true
 
 - name: Run arango-ssl.sh (doesn't run above since it's not a renewal)

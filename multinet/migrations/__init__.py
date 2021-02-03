@@ -45,7 +45,7 @@ def run_migrations() -> bool:
 
     delimiter = f"{'-' * 10}\n"
     migrations = get_unapplied_migrations()
-    if not len(migrations):
+    if not migrations:
         click.secho("All migrations up to date!", fg="green", bold=True)
         return True
 

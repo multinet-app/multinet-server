@@ -36,8 +36,7 @@ def create_app(config: Optional[MutableMapping] = None) -> Flask:
     )
     Swagger(app, template_file="swagger/template.yaml")
 
-    unapplied_migrations = get_unapplied_migrations()
-    if len(unapplied_migrations):
+    if get_unapplied_migrations():
         raise Exception(
             "There are unapplied migrations. To peform these migrations, run the "
             "command `pipenv run migrate`"

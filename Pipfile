@@ -20,6 +20,7 @@ authlib = "==0.14.1"
 pyjwt = ">=1.7.1"
 pydantic = ">=1.7.2"
 python-dateutil = ">=2.8.1"
+click = "*"
 
 [dev-packages]
 black = "==19.3b0"

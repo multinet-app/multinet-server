@@ -49,6 +49,7 @@ jobs:
       - run: pipenv run lint
       - run: pipenv run format
       - run: pipenv run typecheck
+      - run: pipenv run migrate
       - run: pipenv run test
         env:
           ARANGO_HOST: ${{ secrets.CI_ARANGO_HOST }}

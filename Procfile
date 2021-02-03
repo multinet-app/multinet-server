@@ -1,1 +1,1 @@
-web: gunicorn multinet.app:app -t 120
+web: scripts/serve.sh

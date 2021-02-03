@@ -9,11 +9,6 @@ from types import ModuleType
 from typing import List, Generator
 
 
-# TODO: Add creation and return of `migrations` collection in _system db. This will
-# hold a document for each migration that exists. This can be used to check the
-# migrations that have been run, what needs to be run, etc.
-
-
 def is_migration(cls: type) -> bool:
     """
     Return true if the supplied class is an implemented Migration.
@@ -29,11 +24,9 @@ def get_migrations(modules: List[ModuleType]) -> List[Migration]:
     migrations: List[Migration] = []
     for module in modules:
         migrations.extend(
-            [
-                obj
-                for _, obj in inspect.getmembers(module, inspect.isclass)
-                if is_migration(obj)
-            ]
+            obj
+            for _, obj in inspect.getmembers(module, inspect.isclass)
+            if is_migration(obj)
         )
 
     return migrations

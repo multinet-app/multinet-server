@@ -1,5 +1,6 @@
 """Logic to manage and run migrations."""
 import pkgutil
+import click
 from functools import lru_cache
 
 from multinet.migrations.types import Migration
@@ -39,16 +40,42 @@ def get_unapplied_migrations() -> List[Migration]:
     ]
 
 
-def run_migrations() -> None:
+def run_migrations() -> bool:
     """Run all defined migrations."""
 
+    delimiter = f"{'-' * 10}\n"
     migrations = get_unapplied_migrations()
     if not len(migrations):
-        print("All migrations up to date!")
-        return
+        click.secho("All migrations up to date!", fg="green", bold=True)
+        return True
 
+    click.secho(f"Applying Migrations...")
+
+    success = 0
     for migration in migrations:
-        migration.run()
-        store_migration(migration)
+        name = migration.__name__
+        failed = False
 
-    print(f"Successfully applied {len(migrations)} migrations")
+        try:
+            migration.run()
+        except Exception as e:
+            failed = True
+            click.secho(
+                f"{delimiter}Migration {name} raised {type(e)} with message: \n\n{e}",
+                fg="red",
+                bold=True,
+                err=True,
+            )
+
+        if not failed:
+            click.secho(f"Migration {name} applied successfully", fg="green", bold=True)
+            store_migration(migration)
+            success += 1
+
+    click.echo(
+        f"{delimiter}Successfully applied {success}/{len(migrations)} migrations"
+    )
+    if success == len(migrations):
+        return True
+
+    return False

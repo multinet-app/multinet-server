@@ -13,7 +13,7 @@ responses:
     description: D3 data uploaded to tables
 
   404:
-    description: Graph not found
+    description: Network not found
 
 tags:
   - graph

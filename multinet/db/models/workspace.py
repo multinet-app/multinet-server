@@ -23,7 +23,7 @@ from multinet.errors import (
     ValidationFailed,
     InternalServerError,
     WorkspaceNotFound,
-    GraphNotFound,
+    NetworkNotFound,
     TableNotFound,
     GraphCreationError,
 )
@@ -209,7 +209,7 @@ class Workspace:
     def graph(self, name: str) -> Graph:
         """Return a specific graph."""
         if not self.readonly_handle.has_graph(name):
-            raise GraphNotFound(self.name, name)
+            raise NetworkNotFound(self.name, name)
 
         return Graph(name, self.name, self.handle.graph(name), self.handle.aql)
 
@@ -271,7 +271,7 @@ class Workspace:
     def delete_graph(self, name: str) -> bool:
         """Delete a specific graph."""
         if not self.has_graph(name):
-            raise GraphNotFound(self.name, name)
+            raise NetworkNotFound(self.name, name)
 
         return self.handle.delete_graph(name)
 

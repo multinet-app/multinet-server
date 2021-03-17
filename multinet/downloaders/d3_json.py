@@ -7,7 +7,7 @@ from flasgger import swag_from
 from multinet.db.models.workspace import Workspace
 from multinet.db.models.graph import Graph
 from multinet.util import require_db
-from multinet.errors import GraphNotFound
+from multinet.errors import NetworkNotFound
 
 from flask import Blueprint, Response
 
@@ -82,7 +82,7 @@ def download(workspace: str, graph: str) -> Any:
 
     loaded_workspace = Workspace(workspace)
     if not loaded_workspace.has_graph(graph):
-        raise GraphNotFound(workspace, graph)
+        raise NetworkNotFound(workspace, graph)
 
     loaded_graph = loaded_workspace.graph(graph)
 

@@ -97,12 +97,12 @@ class TableNotFound(NotFound):
         super().__init__("Table", f"{workspace}/{table}")
 
 
-class GraphNotFound(NotFound):
-    """Exception for missing graph."""
+class NetworkNotFound(NotFound):
+    """Exception for missing network."""
 
     def __init__(self, workspace: str, graph: str):
         """Initialize the exception."""
-        super().__init__("Graph", f"{workspace}/{graph}")
+        super().__init__("Network", f"{workspace}/{graph}")
 
 
 class NodeNotFound(NotFound):

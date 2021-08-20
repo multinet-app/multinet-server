@@ -23,7 +23,7 @@ from multinet.errors import (
     ValidationFailed,
     InternalServerError,
     WorkspaceNotFound,
-    GraphNotFound,
+    NetworkNotFound,
     TableNotFound,
     GraphCreationError,
 )
@@ -199,7 +199,7 @@ class Workspace:
     def graph(self, name: str) -> Graph:
         """Return a specific graph."""
         if not self.readonly_handle.has_graph(name):
-            raise GraphNotFound(self.name, name)
+            raise NetworkNotFound(self.name, name)
 
         return Graph(name, self.name, self.handle.graph(name), self.handle.aql)
 
@@ -261,7 +261,7 @@ class Workspace:
     def delete_graph(self, name: str) -> bool:
         """Delete a specific graph."""
         if not self.has_graph(name):
-            raise GraphNotFound(self.name, name)
+            raise NetworkNotFound(self.name, name)
 
         return self.handle.delete_graph(name)
 
@@ -319,7 +319,10 @@ class Workspace:
         # In the future, the result of this validation can be
         # used to determine dependencies in virtual tables
         rows = list(self.run_query(aql_query))
-        validate_csv(rows, "_key", False)
+
+        errors = validate_csv(rows, "_key", False)
+        if errors:
+            raise ValidationFailed(errors=errors)
 
         loaded_table = self.create_table(table, False)
         loaded_table.insert(rows)

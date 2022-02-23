@@ -1,3 +1,6 @@
+
+## ARCHIVED, PLEASE SEE [multinet-api](https://github.com/multinet-app/multinet-api)
+
 # multinet-server
 
 This is the server component for the Multinet project. It is a Flask application
